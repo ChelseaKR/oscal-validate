@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use oscal-validate, please cite it as below."
+title: "oscal-validate: deterministic structural validator for OSCAL documents"
+abstract: >-
+  A zero-runtime-dependency Python CLI that checks OSCAL documents against
+  NIST's published JSON Schema and Metaschema constraint layer before
+  publication: document structure, datatype conformance, identifier uniqueness,
+  and resolution of control and back-matter references across a document's
+  effective data model. Structural conformance only; it does not and cannot
+  assess whether a control is implemented. Every finding cites the published
+  rule it came from; output is deterministic byte for byte.
+type: software
+authors:
+  - given-names: Chelsea
+    family-names: Kelly-Reif
+license: Apache-2.0
+repository-code: "https://github.com/ChelseaKR/oscal-validate"
+url: "https://github.com/ChelseaKR/oscal-validate"
+keywords:
+  - oscal
+  - nist
+  - fedramp
+  - compliance-as-code
+  - validation

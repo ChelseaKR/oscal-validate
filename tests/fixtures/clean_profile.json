@@ -1,0 +1,20 @@
+{
+  "profile": {
+    "uuid": "2b7e6d90-51c4-4a2f-8a0e-1c9d7e4b5a33",
+    "metadata": {
+      "title": "Synthetic Example Profile",
+      "last-modified": "2026-08-14T00:00:00Z",
+      "version": "1.0.0",
+      "oscal-version": "1.2.3"
+    },
+    "imports": [
+      {
+        "href": "clean_catalog.json",
+        "include-controls": [{ "with-ids": ["ex-1", "ex-2"] }]
+      }
+    ],
+    "modify": {
+      "set-parameters": [{ "param-id": "ex-1_prm_1", "values": ["a chosen value"] }]
+    }
+  }
+}

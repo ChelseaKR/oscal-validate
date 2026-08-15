@@ -1,0 +1,71 @@
+# Targets for docs/findings/. One line per document:
+#   group<TAB>url<TAB>comma-separated cache file names to --resolve against
+#
+# The sample is purposive, not random. It is every OSCAL JSON instance NIST
+# publishes as an example, NIST's own control catalogs and baselines, the
+# FedRAMP baselines and templates as they survive today, and a spread of
+# third-party publishers. See docs/findings/ for what that supports and what it
+# does not.
+#
+# -- NIST, usnistgov/oscal-content (public domain / CC0) --------------------
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic-catalog.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic_catalog.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-profile.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic-catalog.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic_profile.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic_catalog.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-profile-resolved.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-resolved-profile_catalog.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ssp-example.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp-example.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraged-example_ssp.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraging-example_ssp.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component-definition.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan-example.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results-example.json
+nist-example	https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/poam/json/ifa_plan-of-action-and-milestones.json
+nist-catalog	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+nist-catalog	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_catalog.json
+nist-catalog	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/CSF/v2.0/json/NIST_CSF_v2.0_catalog.json
+nist-catalog	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-171/rev3/json/NIST_SP800-171_rev3_catalog.json
+nist-catalog	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-172/rev3/json/NIST_SP800-172_rev3_catalog.json
+nist-catalog	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-218/ver1/json/NIST_SP800-218_ver1_catalog.json
+nist-baseline	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline_profile.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+nist-baseline	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+nist-baseline	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline_profile.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+nist-baseline	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_PRIVACY-baseline_profile.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+nist-baseline	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline-resolved-profile_catalog.json
+nist-baseline	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_MODERATE-baseline_profile.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_catalog.json
+#
+# -- FedRAMP, OSCAL-Foundation/fedramp-automation ---------------------------
+# GSA/fedramp-automation, the original home of these files, was archived in
+# July 2025 and has since been removed from GitHub; automate.fedramp.gov no
+# longer resolves. This fork carries the GSA commit history and is the reachable
+# copy as of 2026-08-14. No license file is stated in the fork; only metadata
+# and findings are recorded here, never content.
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/baselines/json/FedRAMP_rev5_HIGH-baseline_profile.json
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/baselines/json/FedRAMP_rev5_MODERATE-baseline_profile.json
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/ssp/json/FedRAMP-SSP-OSCAL-Template.json
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/sap/json/FedRAMP-SAP-OSCAL-Template.json
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/sar/json/FedRAMP-SAR-OSCAL-Template.json
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/poam/json/FedRAMP-POAM-OSCAL-Template.json
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/baselines/rev5/json/FedRAMP_rev5_LI-SaaS-baseline_profile.json
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/baselines/rev5/json/FedRAMP_rev5_LOW-baseline_profile.json
+fedramp	https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/examples/ssp/json/fedramp-ssp-example_NORMALIZED_.oscal.json
+#
+# -- Third-party publishers -------------------------------------------------
+vendor	https://raw.githubusercontent.com/awslabs/oscal-content-for-aws-services/main/component-definitions/s3.oscal.json
+vendor	https://raw.githubusercontent.com/awslabs/oscal-content-for-aws-services/main/component-definitions/ec2.oscal.json
+vendor	https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/catalog-basic.json
+vendor	https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/profile-basic.json
+vendor	https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/ssp-example.json
+vendor	https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/component-definition-example.json
+vendor	https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/assessment-plan-ifa.json
+vendor	https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/assessment-results-ifa.json
+vendor	https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/poam-ifa.json
+vendor	https://raw.githubusercontent.com/ComplianceAsCode/oscal-content/main/catalogs/hipaa/catalog.json
+vendor	https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/component-definitions/sample/component-definition.json
+vendor	https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/system-security-plans/sample/system-security-plan.json
+vendor	https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/plan-of-action-and-milestones/sample/plan-of-action-and-milestones.json

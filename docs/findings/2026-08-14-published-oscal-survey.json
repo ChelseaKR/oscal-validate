@@ -1,0 +1,2027 @@
+{
+  "records": [
+    {
+      "bytes": 15735,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 15735,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic-catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic-catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic-catalog.json"
+    },
+    {
+      "bytes": 15899,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 15899,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic_catalog.json"
+    },
+    {
+      "bytes": 1692,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "fetch": {
+        "bytes": 1692,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-profile.json"
+    },
+    {
+      "bytes": 1814,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "fetch": {
+        "bytes": 1814,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic_profile.json"
+    },
+    {
+      "bytes": 11504,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 11504,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-profile-resolved.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-profile-resolved.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-profile-resolved.json"
+    },
+    {
+      "bytes": 11846,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 11846,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-resolved-profile_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-resolved-profile_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic-resolved-profile_catalog.json"
+    },
+    {
+      "bytes": 22092,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 16
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 22092,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ssp-example.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ssp-example.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 23,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ssp-example.json"
+    },
+    {
+      "bytes": 18609,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 9
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 18609,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp-example.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp-example.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 16,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp-example.json"
+    },
+    {
+      "bytes": 20686,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 9
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 20686,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 16,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp.json"
+    },
+    {
+      "bytes": 12309,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 5
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 12309,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraged-example_ssp.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraged-example_ssp.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 12,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraged-example_ssp.json"
+    },
+    {
+      "bytes": 13483,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 13483,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraging-example_ssp.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraging-example_ssp.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 10,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraging-example_ssp.json"
+    },
+    {
+      "bytes": 6366,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 9,
+        "UUID_NOT_UNIQUE": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id",
+        "UUID_NOT_UNIQUE": "/component-definition/components/0/control-implementations/0/implemented-requirements/1/statements/0/uuid"
+      },
+      "fetch": {
+        "bytes": 6366,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component-definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component-definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 16,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component-definition.json"
+    },
+    {
+      "bytes": 4067,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 2,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 4067,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 2,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 2,
+        "UNVERIFIABLE": 10,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component.json"
+    },
+    {
+      "bytes": 8515,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-plan",
+        "IMPORT_NOT_SUPPLIED": "/assessment-plan/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-plan",
+        "REFERENCE_UNVERIFIABLE": "/assessment-plan/local-definitions/activities/0/related-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 8515,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 10,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan.json"
+    },
+    {
+      "bytes": 6404,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-plan",
+        "IMPORT_NOT_SUPPLIED": "/assessment-plan/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-plan",
+        "REFERENCE_UNVERIFIABLE": "/assessment-plan/local-definitions/activities/0/related-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 6404,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan-example.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan-example.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 10,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan-example.json"
+    },
+    {
+      "bytes": 14128,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-results",
+        "IMPORT_NOT_SUPPLIED": "/assessment-results/import-ap/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-results/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-results",
+        "REFERENCE_UNVERIFIABLE": "/assessment-results/local-definitions/activities/0/related-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 14128,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-results",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 10,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results.json"
+    },
+    {
+      "bytes": 12024,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-results",
+        "IMPORT_NOT_SUPPLIED": "/assessment-results/import-ap/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-results/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-results",
+        "REFERENCE_UNVERIFIABLE": "/assessment-results/local-definitions/activities/0/related-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 12024,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results-example.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results-example.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-results",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 10,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results-example.json"
+    },
+    {
+      "bytes": 14070,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/plan-of-action-and-milestones",
+        "IMPORT_NOT_SUPPLIED": "/plan-of-action-and-milestones/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/plan-of-action-and-milestones/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/plan-of-action-and-milestones"
+      },
+      "fetch": {
+        "bytes": 14070,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/poam/json/ifa_plan-of-action-and-milestones.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/poam/json/ifa_plan-of-action-and-milestones.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-example",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "plan-of-action-and-milestones",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/poam/json/ifa_plan-of-action-and-milestones.json"
+    },
+    {
+      "bytes": 10442037,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNRESOLVED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog",
+        "REFERENCE_UNRESOLVED": "/catalog/groups/16/controls/23/parts/2/parts/0/parts/4/links/0/href"
+      },
+      "fetch": {
+        "bytes": 10442037,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-catalog",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
+    },
+    {
+      "bytes": 5617142,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 4,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/catalog/back-matter/resources/112",
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 5617142,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-catalog",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 5
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_catalog.json"
+    },
+    {
+      "bytes": 349827,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "UUID_NOT_UNIQUE": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog",
+        "UUID_NOT_UNIQUE": "/catalog/back-matter/resources/3/uuid"
+      },
+      "fetch": {
+        "bytes": 349827,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/CSF/v2.0/json/NIST_CSF_v2.0_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/CSF/v2.0/json/NIST_CSF_v2.0_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-catalog",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/CSF/v2.0/json/NIST_CSF_v2.0_catalog.json"
+    },
+    {
+      "bytes": 905711,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNRESOLVED": 64
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog",
+        "REFERENCE_UNRESOLVED": "/catalog/groups/0/controls/1/parts/2/links/0/href"
+      },
+      "fetch": {
+        "bytes": 905711,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-171/rev3/json/NIST_SP800-171_rev3_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-171/rev3/json/NIST_SP800-171_rev3_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-catalog",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 64,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-171/rev3/json/NIST_SP800-171_rev3_catalog.json"
+    },
+    {
+      "bytes": 980722,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 980722,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-172/rev3/json/NIST_SP800-172_rev3_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-172/rev3/json/NIST_SP800-172_rev3_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-catalog",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-172/rev3/json/NIST_SP800-172_rev3_catalog.json"
+    },
+    {
+      "bytes": 253878,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 253878,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-218/ver1/json/NIST_SP800-218_ver1_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-218/ver1/json/NIST_SP800-218_ver1_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-catalog",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-218/ver1/json/NIST_SP800-218_ver1_catalog.json"
+    },
+    {
+      "bytes": 7234,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "fetch": {
+        "bytes": 7234,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-baseline",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline_profile.json"
+    },
+    {
+      "bytes": 10498,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "fetch": {
+        "bytes": 10498,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-baseline",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json"
+    },
+    {
+      "bytes": 12492,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "fetch": {
+        "bytes": 12492,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-baseline",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline_profile.json"
+    },
+    {
+      "bytes": 6064,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "fetch": {
+        "bytes": 6064,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_PRIVACY-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_PRIVACY-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-baseline",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_PRIVACY-baseline_profile.json"
+    },
+    {
+      "bytes": 2631225,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNRESOLVED": 501
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog",
+        "REFERENCE_UNRESOLVED": "/catalog/groups/0/controls/0/links/7/href"
+      },
+      "fetch": {
+        "bytes": 2631225,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline-resolved-profile_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline-resolved-profile_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-baseline",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 501,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline-resolved-profile_catalog.json"
+    },
+    {
+      "bytes": 56140,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNRESOLVED": 2
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile",
+        "REFERENCE_UNRESOLVED": "/profile/metadata/responsible-parties/0/party-uuids/0"
+      },
+      "fetch": {
+        "bytes": 56140,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_MODERATE-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_MODERATE-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "nist-baseline",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 2,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_MODERATE-baseline_profile.json"
+    },
+    {
+      "bytes": 1372670,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 1096
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_NOT_SUPPLIED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile",
+        "REFERENCE_UNVERIFIABLE": "/profile/imports/0/include-controls/0/with-ids/0"
+      },
+      "fetch": {
+        "bytes": 1372670,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/baselines/json/FedRAMP_rev5_HIGH-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/baselines/json/FedRAMP_rev5_HIGH-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 1103,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/baselines/json/FedRAMP_rev5_HIGH-baseline_profile.json"
+    },
+    {
+      "bytes": 1204545,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 882
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_NOT_SUPPLIED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile",
+        "REFERENCE_UNVERIFIABLE": "/profile/imports/0/include-controls/0/with-ids/0"
+      },
+      "fetch": {
+        "bytes": 1204545,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/baselines/json/FedRAMP_rev5_MODERATE-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/baselines/json/FedRAMP_rev5_MODERATE-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 889,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/baselines/json/FedRAMP_rev5_MODERATE-baseline_profile.json"
+    },
+    {
+      "bytes": 229732,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 1,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "CONSTRAINT_NOT_UNIQUE": 1,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 166,
+        "UUID_NOT_UNIQUE": 4
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/system-security-plan/back-matter/resources/0",
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "CONSTRAINT_NOT_UNIQUE": "/system-security-plan/metadata/revisions/1/props/0",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id",
+        "UUID_NOT_UNIQUE": "/system-security-plan/control-implementation/implemented-requirements/19/statements/0/by-components/0/uuid"
+      },
+      "fetch": {
+        "bytes": 229732,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/ssp/json/FedRAMP-SSP-OSCAL-Template.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/ssp/json/FedRAMP-SSP-OSCAL-Template.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 5,
+        "INFO": 1,
+        "UNVERIFIABLE": 173,
+        "WARNING": 2
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/ssp/json/FedRAMP-SSP-OSCAL-Template.json"
+    },
+    {
+      "bytes": 104534,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 2,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "CONSTRAINT_NOT_UNIQUE": 1,
+        "DATATYPE_MISMATCH": 1,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 11,
+        "UUID_NOT_UNIQUE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/assessment-plan/back-matter/resources/0",
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-plan",
+        "CONSTRAINT_NOT_UNIQUE": "/assessment-plan/metadata/responsible-parties/6",
+        "DATATYPE_MISMATCH": "/assessment-plan/metadata/roles/14/title",
+        "IMPORT_NOT_SUPPLIED": "/assessment-plan/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-plan",
+        "REFERENCE_UNVERIFIABLE": "/assessment-plan/local-definitions/objectives-and-methods/0/control-id",
+        "UUID_NOT_UNIQUE": "/assessment-plan/local-definitions/activities/0/steps/1/uuid"
+      },
+      "fetch": {
+        "bytes": 104534,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/sap/json/FedRAMP-SAP-OSCAL-Template.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/sap/json/FedRAMP-SAP-OSCAL-Template.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 5,
+        "INFO": 1,
+        "UNVERIFIABLE": 18,
+        "WARNING": 3
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/sap/json/FedRAMP-SAP-OSCAL-Template.json"
+    },
+    {
+      "bytes": 91325,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 1,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "DATATYPE_MISMATCH": 1,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 16,
+        "UUID_NOT_UNIQUE": 9
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/assessment-results/back-matter/resources/0",
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-results",
+        "DATATYPE_MISMATCH": "/assessment-results/results/0/risks/1/remediations/0/title",
+        "IMPORT_NOT_SUPPLIED": "/assessment-results/import-ap/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-results/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-results",
+        "REFERENCE_UNVERIFIABLE": "/assessment-results/local-definitions/objectives-and-methods/0/control-id",
+        "UUID_NOT_UNIQUE": "/assessment-results/back-matter/resources/10/uuid"
+      },
+      "fetch": {
+        "bytes": 91325,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/sar/json/FedRAMP-SAR-OSCAL-Template.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/sar/json/FedRAMP-SAR-OSCAL-Template.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-results",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 10,
+        "INFO": 1,
+        "UNVERIFIABLE": 23,
+        "WARNING": 2
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/sar/json/FedRAMP-SAR-OSCAL-Template.json"
+    },
+    {
+      "bytes": 33658,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 2,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 7
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/plan-of-action-and-milestones/back-matter/resources/0",
+        "CONSTRAINT_NOT_EVALUATED": "/plan-of-action-and-milestones",
+        "IMPORT_NOT_SUPPLIED": "/plan-of-action-and-milestones/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/plan-of-action-and-milestones/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/plan-of-action-and-milestones",
+        "REFERENCE_UNVERIFIABLE": "/plan-of-action-and-milestones/metadata/parties/1/links/1/href"
+      },
+      "fetch": {
+        "bytes": 33658,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/poam/json/FedRAMP-POAM-OSCAL-Template.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/poam/json/FedRAMP-POAM-OSCAL-Template.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "plan-of-action-and-milestones",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 3
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-automation/master/dist/content/rev5/templates/poam/json/FedRAMP-POAM-OSCAL-Template.json"
+    },
+    {
+      "bytes": 193706,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 480
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_NOT_SUPPLIED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile",
+        "REFERENCE_UNVERIFIABLE": "/profile/imports/0/include-controls/0/with-ids/0"
+      },
+      "fetch": {
+        "bytes": 193706,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/baselines/rev5/json/FedRAMP_rev5_LI-SaaS-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/baselines/rev5/json/FedRAMP_rev5_LI-SaaS-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 487,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/baselines/rev5/json/FedRAMP_rev5_LI-SaaS-baseline_profile.json"
+    },
+    {
+      "bytes": 48936,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 329
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_NOT_SUPPLIED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile",
+        "REFERENCE_UNVERIFIABLE": "/profile/imports/0/include-controls/0/with-ids/0"
+      },
+      "fetch": {
+        "bytes": 48936,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/baselines/rev5/json/FedRAMP_rev5_LOW-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/baselines/rev5/json/FedRAMP_rev5_LOW-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 336,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/baselines/rev5/json/FedRAMP_rev5_LOW-baseline_profile.json"
+    },
+    {
+      "bytes": 1093468,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 2219,
+        "TYPE_MISMATCH": 8,
+        "UUID_NOT_UNIQUE": 408
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id",
+        "TYPE_MISMATCH": "/system-security-plan/system-implementation/components/32/protocols/0/port-ranges/0/end",
+        "UUID_NOT_UNIQUE": "/system-security-plan/control-implementation/implemented-requirements/10/statements/0/uuid"
+      },
+      "fetch": {
+        "bytes": 1093468,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/examples/ssp/json/fedramp-ssp-example_NORMALIZED_.oscal.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/examples/ssp/json/fedramp-ssp-example_NORMALIZED_.oscal.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "fedramp",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 416,
+        "INFO": 1,
+        "UNVERIFIABLE": 2226,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/OSCAL-Foundation/fedramp-resources/main/examples/ssp/json/fedramp-ssp-example_NORMALIZED_.oscal.json"
+    },
+    {
+      "bytes": 45319,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 21,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 60
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 45319,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/awslabs/oscal-content-for-aws-services/main/component-definitions/s3.oscal.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/awslabs/oscal-content-for-aws-services/main/component-definitions/s3.oscal.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 21,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 21,
+        "UNVERIFIABLE": 67,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/awslabs/oscal-content-for-aws-services/main/component-definitions/s3.oscal.json"
+    },
+    {
+      "bytes": 92150,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 43,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 132
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 92150,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/awslabs/oscal-content-for-aws-services/main/component-definitions/ec2.oscal.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/awslabs/oscal-content-for-aws-services/main/component-definitions/ec2.oscal.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 43,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 43,
+        "UNVERIFIABLE": 139,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/awslabs/oscal-content-for-aws-services/main/component-definitions/ec2.oscal.json"
+    },
+    {
+      "bytes": 10467,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 10467,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/catalog-basic.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/catalog-basic.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/catalog-basic.json"
+    },
+    {
+      "bytes": 1000,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 4
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_NOT_SUPPLIED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile",
+        "REFERENCE_UNVERIFIABLE": "/profile/imports/0/exclude-controls/0/with-ids/0"
+      },
+      "fetch": {
+        "bytes": 1000,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/profile-basic.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/profile-basic.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "profile",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/profile-basic.json"
+    },
+    {
+      "bytes": 13910,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 16
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 13910,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/ssp-example.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/ssp-example.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 23,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/ssp-example.json"
+    },
+    {
+      "bytes": 3982,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 9,
+        "UUID_NOT_UNIQUE": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id",
+        "UUID_NOT_UNIQUE": "/component-definition/components/0/control-implementations/0/implemented-requirements/1/statements/0/uuid"
+      },
+      "fetch": {
+        "bytes": 3982,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/component-definition-example.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/component-definition-example.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 16,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/component-definition-example.json"
+    },
+    {
+      "bytes": 4548,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-plan",
+        "IMPORT_NOT_SUPPLIED": "/assessment-plan/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-plan",
+        "REFERENCE_UNVERIFIABLE": "/assessment-plan/local-definitions/activities/0/related-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 4548,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/assessment-plan-ifa.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/assessment-plan-ifa.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 10,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/assessment-plan-ifa.json"
+    },
+    {
+      "bytes": 9193,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 3
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-results",
+        "IMPORT_NOT_SUPPLIED": "/assessment-results/import-ap/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-results/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-results",
+        "REFERENCE_UNVERIFIABLE": "/assessment-results/local-definitions/activities/0/related-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 9193,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/assessment-results-ifa.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/assessment-results-ifa.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-results",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 10,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/assessment-results-ifa.json"
+    },
+    {
+      "bytes": 10104,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/plan-of-action-and-milestones",
+        "IMPORT_NOT_SUPPLIED": "/plan-of-action-and-milestones/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/plan-of-action-and-milestones/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/plan-of-action-and-milestones"
+      },
+      "fetch": {
+        "bytes": 10104,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/poam-ifa.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/poam-ifa.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "plan-of-action-and-milestones",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/EasyDynamics/oscal-viewer/main/samples/poam-ifa.json"
+    },
+    {
+      "bytes": 51084,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "DATATYPE_MISMATCH": 4,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "DATATYPE_MISMATCH": "/catalog/groups/0/controls/0/controls/0/controls/2/controls/0/title",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 51084,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/ComplianceAsCode/oscal-content/main/catalogs/hipaa/catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/ComplianceAsCode/oscal-content/main/catalogs/hipaa/catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 4,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/ComplianceAsCode/oscal-content/main/catalogs/hipaa/catalog.json"
+    },
+    {
+      "bytes": 302,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version"
+      },
+      "fetch": {
+        "bytes": 302,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/component-definitions/sample/component-definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/component-definitions/sample/component-definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 6,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/component-definitions/sample/component-definition.json"
+    },
+    {
+      "bytes": 2075,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 1,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 2
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/system-security-plan/control-implementation/implemented-requirements/0",
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 2075,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/system-security-plans/sample/system-security-plan.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/system-security-plans/sample/system-security-plan.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 9,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/system-security-plans/sample/system-security-plan.json"
+    },
+    {
+      "bytes": 435,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/plan-of-action-and-milestones",
+        "OSCAL_VERSION_DIFFERS": "/plan-of-action-and-milestones/metadata/oscal-version"
+      },
+      "fetch": {
+        "bytes": 435,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/plan-of-action-and-milestones/sample/plan-of-action-and-milestones.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/plan-of-action-and-milestones/sample/plan-of-action-and-milestones.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "plan-of-action-and-milestones",
+      "outcome": "fetched",
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 6,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/IBM/oscal-exchange-protocol/main/trestle.workspace/plan-of-action-and-milestones/sample/plan-of-action-and-milestones.json"
+    }
+  ],
+  "summary": {
+    "blocked": 0,
+    "codes": {
+      "CONSTRAINT_CARDINALITY": 11,
+      "CONSTRAINT_NOT_EVALUATED": 312,
+      "CONSTRAINT_NOT_UNIQUE": 2,
+      "DATATYPE_MISMATCH": 6,
+      "IMPORT_NOT_SUPPLIED": 93,
+      "IMPORT_RESOLVED": 7,
+      "OSCAL_VERSION_DIFFERS": 52,
+      "PATTERN_NOT_CHECKED": 50,
+      "REFERENCE_UNRESOLVED": 568,
+      "REFERENCE_UNVERIFIABLE": 5501,
+      "TYPE_MISMATCH": 8,
+      "UUID_NOT_UNIQUE": 427
+    },
+    "models": {
+      "assessment-plan": 4,
+      "assessment-results": 4,
+      "catalog": 13,
+      "component-definition": 6,
+      "plan-of-action-and-milestones": 4,
+      "profile": 12,
+      "system-security-plan": 9
+    },
+    "not_read": 0,
+    "targets": 52,
+    "validated": 52,
+    "with_complete_effective_model": 22,
+    "with_errors": 13
+  }
+}

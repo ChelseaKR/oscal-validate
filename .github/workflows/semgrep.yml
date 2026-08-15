@@ -1,0 +1,31 @@
+# Taint-style SAST over the source and the workflows themselves. Runs
+# unauthenticated against the public Semgrep Registry ruleset; no
+# SEMGREP_APP_TOKEN required or used.
+name: Semgrep
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: semgrep-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: semgrep/semgrep@sha256:59fbed6127ea7c5dde3ba6a85142733bb20ea9aaa36120c953904f1539aaf66e # 1.168.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: >-
+          semgrep ci --config auto
+          --exclude-rule
+          python.lang.compatibility.python37.python37-compatibility-importlib2

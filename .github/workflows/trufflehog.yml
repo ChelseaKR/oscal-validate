@@ -1,0 +1,52 @@
+# Full-history verified-secret scan. gitleaks runs diff-scoped in pre-commit
+# (see .pre-commit-config.yaml); this is a periodic sweep of the entire commit
+# history with a different engine and its own detector set, catching anything
+# a diff-scoped scan by construction cannot (a secret introduced and later
+# removed in the same PR still shows up in history). Also runs on push and
+# pull_request so every change is swept, not just the weekly schedule.
+name: trufflehog
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 9 * * 0" # weekly, Sunday, staggered off ci.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trufflehog-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: full-history secret scan (verified only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # full clone; this is a whole-history scan, not a diff
+          persist-credentials: false
+      - name: TruffleHog (verified secrets only)
+        uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
+        with:
+          path: ./
+          # The action's baked-in command already passes --fail; repeating it
+          # is a CLI error ("flag 'fail' cannot be repeated").
+          #
+          # Lob is excluded because its detector matches this repository's
+          # pytest function names. Lob keys are `test_` or `live_` followed by
+          # alphanumerics, which is also the shape of every test under tests/,
+          # and Lob's verifier confirms them because a malformed key and an
+          # unauthorized key are indistinguishable in its response. It is a
+          # known false positive that has broken scans across this portfolio.
+          # There is no Lob integration here and no direct-mail dependency in
+          # pyproject.toml, so the detector can only ever produce noise in this
+          # repository. Scoped to the one detector on purpose: excluding tests/
+          # by path would blind the scan to real secrets in fixtures, which is
+          # where they most often hide.
+          extra_args: --only-verified --exclude-detectors=Lob
