@@ -40,6 +40,20 @@ def test_the_semgrep_exception_is_exact_and_the_gate_stays_blocking() -> None:
     assert re.search(r"--exclude(?:\s|=)", workflow) is None
 
 
+def test_the_only_semgrep_suppression_is_the_vendored_xml_parse_and_it_is_justified() -> None:
+    # A `nosemgrep` is a claim that a rule does not apply here. It has to stay
+    # rare, has to name the rule, and has to be defended by something other than
+    # the comment beside it: in this case, a guard that refuses a DTD outright.
+    sources = sorted((ROOT / "src").rglob("*.py")) + sorted((ROOT / "tools").rglob("*.py"))
+    suppressed = [path for path in sources if "nosemgrep" in path.read_text(encoding="utf-8")]
+    assert [path.name for path in suppressed] == ["metaschema.py"]
+
+    text = (ROOT / "src" / "oscal_validate" / "metaschema.py").read_text(encoding="utf-8")
+    assert text.count("nosemgrep") == 1
+    assert "nosemgrep: python.lang.security.use-defused-xml-parse" in text
+    assert 'FORBIDDEN_MARKUP = (b"<!DOCTYPE", b"<!ENTITY")' in text
+
+
 def test_the_secret_scan_excludes_one_known_false_positive_and_nothing_else() -> None:
     workflow = TRUFFLEHOG.read_text(encoding="utf-8")
     assert "--only-verified" in workflow

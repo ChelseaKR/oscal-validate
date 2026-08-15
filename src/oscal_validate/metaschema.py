@@ -173,10 +173,45 @@ def _effective_name(element: ElementTree.Element) -> str:
     return _text_of(element, "use-name") or str(element.attrib.get("name", ""))
 
 
-def _read_module(name: str) -> ElementTree.Element:
+#: Markup that makes an XML document able to attack its parser. Both external
+#: entity resolution and entity-expansion bombs need a DTD, so a document
+#: declaring one is refused rather than parsed. The vendored files carry none;
+#: a re-vendoring that introduced one would fail here and in the test suite.
+FORBIDDEN_MARKUP = (b"<!DOCTYPE", b"<!ENTITY")
+
+
+def read_module_bytes(name: str) -> bytes:
+    """The bytes of one vendored metaschema module, checked before parsing.
+
+    The only XML this tool ever parses is vendored, hash-pinned, and never
+    supplied by a user: it is package data, read through ``importlib.resources``
+    from a path the caller cannot influence, and ``tests/test_vendor_integrity``
+    recomputes its SHA-256 on every run. The two attacks the standard library's
+    parser is criticized for -- external entity resolution and entity-expansion
+    bombs -- both require a DTD, so any document carrying one is refused before
+    it reaches the parser rather than trusted to be harmless.
+
+    The alternative, a third-party hardened parser, would put a runtime
+    dependency in a package whose zero dependencies are what make its
+    no-network and no-model claims mechanically checkable. See ADR-0003.
+    """
     path = resources.files("oscal_validate").joinpath("vendor", "oscal", name)
     with path.open("rb") as handle:
-        return ElementTree.parse(handle).getroot()  # noqa: S314 - vendored, hash-checked
+        data: bytes = handle.read()
+    for marker in FORBIDDEN_MARKUP:
+        if marker in data:
+            raise ValueError(
+                f"vendored {name} contains {marker.decode()}, which this tool refuses to "
+                "parse. Re-vendor from a NIST release and re-record the hash."
+            )
+    return data
+
+
+def _read_module(name: str) -> ElementTree.Element:
+    # nosemgrep: python.lang.security.use-defused-xml-parse
+    # See read_module_bytes: the input is vendored, hash-pinned package data,
+    # and any DTD is refused before this line is reached.
+    return ElementTree.fromstring(read_module_bytes(name))  # noqa: S314
 
 
 def parse_target(expression: str) -> tuple[Step, ...] | None:
@@ -426,6 +461,7 @@ def key_values(node: Any, key_field: KeyField, metaschema: Metaschema) -> list[s
 
 __all__ = [
     "EVALUATED_KINDS",
+    "FORBIDDEN_MARKUP",
     "MODULES",
     "UNEVALUATED_KINDS",
     "Constraint",
@@ -436,5 +472,6 @@ __all__ = [
     "key_values",
     "load_metaschema",
     "parse_target",
+    "read_module_bytes",
     "select",
 ]

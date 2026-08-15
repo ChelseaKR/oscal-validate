@@ -7,8 +7,11 @@ in every finding becomes suspect. This gate makes that impossible to miss.
 from __future__ import annotations
 
 import hashlib
+import io
 import re
 from importlib import resources
+
+import pytest
 
 from oscal_validate.metaschema import MODULES
 from oscal_validate.schema import VENDORED_SCHEMA, schema_release
@@ -91,3 +94,39 @@ def test_the_release_the_schema_declares_is_the_one_we_cite() -> None:
     from oscal_validate.rules import OSCAL_RELEASE
 
     assert schema_release() == OSCAL_RELEASE
+
+
+def test_no_vendored_metaschema_carries_a_dtd() -> None:
+    # The only XML this tool parses is vendored and hash-pinned. Both attacks
+    # the standard library parser is criticized for need a DTD, so a document
+    # carrying one is refused rather than trusted.
+    from oscal_validate.metaschema import FORBIDDEN_MARKUP, read_module_bytes
+
+    for name in MODULES:
+        data = read_module_bytes(name)
+        assert not any(marker in data for marker in FORBIDDEN_MARKUP), name
+
+
+def test_a_vendored_file_carrying_a_dtd_would_be_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from oscal_validate import metaschema
+
+    class _Handle(io.BytesIO):
+        def __enter__(self) -> _Handle:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            self.close()
+
+    class _Path:
+        def open(self, mode: str) -> _Handle:
+            return _Handle(b'<!DOCTYPE lolz [<!ENTITY a "boom">]><METASCHEMA/>')
+
+    class _Files:
+        def joinpath(self, *args: str) -> _Path:
+            return _Path()
+
+    monkeypatch.setattr(resources, "files", lambda _package: _Files())
+    with pytest.raises(ValueError, match="refuses to parse"):
+        metaschema.read_module_bytes("anything.xml")

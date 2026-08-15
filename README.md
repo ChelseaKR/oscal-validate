@@ -232,6 +232,14 @@ module does not implement. Substituting a hand-written approximation would be a
 rule encoded from memory, which is the one thing this tool refuses to do, so
 those values are reported unchecked with a count.
 
+**It parses XML with the standard library, on purpose.** The metaschema modules
+are vendored, hash-pinned package data that no user supplies. Both attacks the
+standard library's parser is criticized for need a DTD, so any vendored file
+carrying `<!DOCTYPE` or `<!ENTITY` is refused before it reaches the parser, and
+a test asserts none do. Taking a hardened third-party parser as a runtime
+dependency would cost the zero-dependency property that makes the no-network
+and no-model claims mechanically checkable.
+
 **It is not a JSON Schema implementation.** The walk reads `$ref`,
 `properties`, `required`, `additionalProperties`, `items`, `type`, and
 `pattern`. It does not evaluate `enum` (except to suppress a pattern finding
