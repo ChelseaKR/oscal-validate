@@ -14,6 +14,13 @@ authorized. Every finding is about whether a published document conforms to the
 published specification. That is a much smaller question, and it is the only
 one this tool can answer.
 
+**Nor is it a report on anyone's software.** Every finding here describes a
+document as published on 2026-08-14 and its conformance to the specification as
+published on the same date. None of it is a claim about the tools that produced
+those documents. No issue or pull request was filed anywhere on the strength of
+this survey, and this project is not affiliated with, endorsed by, or reviewed
+by NIST, FedRAMP, or StateRAMP.
+
 ## Headline
 
 | | count | of documents validated |
@@ -94,19 +101,20 @@ inconclusive, it is reported as UNVERIFIABLE and is not counted as a defect.
 
 ## Finding 1: a link in NIST SP 800-53 rev 5 names a control statement that does not exist
 
-In `NIST_SP-800-53_rev5_catalog.json`, control `sa-24` carries assessment
-objectives that link back to the statement each one assesses. Nine of them
-point at `sa-24_smt.*`. One does not:
+In `NIST_SP-800-53_rev5_catalog.json`, control `sa-24` carries ten assessment
+objectives, each with an `assessment-for` link back to the statement it
+assesses. Four point at `#sa-24_smt.a.1` through `#sa-24_smt.a.4`. One points
+at a statement that does not exist:
 
 ```
 ERROR  REFERENCE_UNRESOLVED  at=/catalog/groups/16/controls/23/parts/2/parts/0/parts/4/links/0/href
     href = #ac-2_smt.a.5
 ```
 
-The objective is `sa-24_obj.a-5`, its four siblings link to `#sa-24_smt.a.1`
-through `#sa-24_smt.a.4`, and `sa-24_smt.a.5` exists in the same control. The
-string `ac-2_smt.a.5` occurs exactly once in the whole 10 MB document, in that
-href, and no object anywhere in the catalog carries it as an `id`.
+The objective is `sa-24_obj.a-5`, and `sa-24_smt.a.5` exists in the same
+control. The string `ac-2_smt.a.5` occurs exactly once in the whole 10 MB
+document, in that href, and no object anywhere in the catalog carries it as an
+`id`.
 
 A catalog imports nothing, so its effective data model is itself, and by the
 published rule the fragment has to resolve inside it:
@@ -117,26 +125,31 @@ published rule the fragment has to resolve inside it:
 > — NIST, [URI Usage](https://pages.nist.gov/OSCAL/learn/concepts/uri-use/),
 > page last updated 2025-03-03, retrieved 2026-08-14
 
-**And the tool cannot see the rest of it.** The same control's five `b`
+**And the tool cannot see the rest of it.** The remaining five of the ten
 objectives link to `#ac-2_smt.b`, which is a real statement — of control
 `ac-2`, not `sa-24`, whose own `sa-24_smt.b` exists. Those five references
 resolve, so a resolution check passes them in silence. One dangling reference is
-reported; five references to the wrong control are not. That is a limit of what
-reference resolution can be, not an omission: a checker can tell you an
+reported; five references into a different control are not. That is a limit of
+what reference resolution can be, not an omission: a checker can tell you an
 identifier is absent, and it cannot tell you a present identifier is the wrong
 one.
 
-## Finding 2: 64 dangling fragments in SP 800-171 rev 3, from a case and format mismatch
+## Finding 2: 64 dangling fragments in SP 800-171 rev 3, all of one shape
 
-`NIST_SP800-171_rev3_catalog.json` carries 64 hrefs of the form
-`#SR-03.01.02`. The document's control identifiers are lower case and carry no
-family prefix in that position, so nothing in the catalog answers to
-`SR-03.01.02`. Every other fragment in the document is a back-matter resource
-UUID and resolves.
+`NIST_SP800-171_rev3_catalog.json` makes 781 fragment references. 359 name a
+back-matter resource by UUID and resolve. 358 name an `SR-` identifier and
+resolve. 64 name an `SR-` identifier and do not.
 
-This is one shape repeated, not 64 independent mistakes, which is the useful
-thing about running a structural check over a whole document: it separates
-"one convention went wrong" from "many things went wrong".
+Every one of the 64 has the same shape. They reference an `SR-` identifier at
+the control level, such as `#SR-03.01.02`, and the document declares `SR-`
+identifiers only at the item level below it: `SR-03.01.01.a`, `SR-03.01.01.c`,
+`SR-03.01.01.c.02`, and so on. Nothing in the catalog carries a bare
+`SR-03.xx.yy` as an `id`. There are 29 distinct such targets, referenced 64
+times.
+
+This is one convention applied inconsistently, not 64 independent mistakes, and
+telling those two apart is most of what a structural check over a whole document
+is good for.
 
 ## Finding 3: a resolved baseline keeps 501 links to controls it no longer contains
 

@@ -198,8 +198,9 @@ is what came back from running this against 52 published OSCAL documents,
 26.1 MB across seven of the eight models, from NIST, FedRAMP, and four
 third-party publishers. Thirteen carried at least one ERROR. Among them: a link
 in NIST SP 800-53 rev 5 naming a control statement that does not exist, 64
-dangling fragments in SP 800-171 rev 3, 501 in a resolved LOW baseline, and a
-catalog whose own UUID is also one of its back-matter resources'. Every one was
+dangling fragments of one shape in SP 800-171 rev 3, 501 in a resolved LOW
+baseline, and a catalog whose own UUID is also one of its back-matter
+resources'. Every one was
 verified by hand against the document before publication.
 
 The survey harness and its target list are in [`tools/`](tools/), and the run
