@@ -29,7 +29,7 @@ not checked, alongside what was.
 This is a demonstration and reference implementation. It is not affiliated
 with, endorsed by, or reviewed by NIST, FedRAMP, or StateRAMP.
 
-```
+```console
 $ oscal-validate my-catalog.json
 model: catalog
 
@@ -75,7 +75,7 @@ in this repository.
 
 Python 3.12+, no runtime dependencies.
 
-```
+```sh
 pip install .
 oscal-validate <file.json>
 oscal-validate <file.json> --format json
@@ -117,7 +117,7 @@ imports a catalog, so its effective data model is invisible unless the catalog
 is handed over: the same unresolved reference is **unknown**, and the tool says
 UNVERIFIABLE and names the file it was missing.
 
-```
+```console
 $ oscal-validate baseline_profile.json
 UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/profile/imports/0/include-controls/0/with-ids/3
     with-ids = ac-2
@@ -318,7 +318,7 @@ it was last updated. No rule is encoded from memory.
 Uses [`uv`](https://docs.astral.sh/uv/) with a locked toolchain
 (Python 3.12, see `.python-version`):
 
-```
+```sh
 uv sync --frozen
 make verify   # lockfile check + lint + format + strict types + coverage-gated tests + pip-audit
 ```
