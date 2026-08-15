@@ -154,7 +154,17 @@ UNVERIFIABLE rather than passing quietly:
 
 - references into a document that was not supplied,
 - the 262 published constraints this tool does not evaluate,
+- references checked against an index that no evaluated constraint builds,
 - values governed by a pattern this tool cannot compile.
+
+The third of those is the mirror of the rule and was added after it bit. Two of
+the 78 constraints this tool evaluates are `index-has-key` constraints whose
+index is populated by an `index` constraint it skips, so the lookup misses every
+key no matter what the document says. Reporting that as a failure would render a
+rule that was never evaluated as somebody else's defect, which is the same
+mistake in the other direction. Those two are listed in
+[`docs/CONSTRAINT-COVERAGE.md`](docs/CONSTRAINT-COVERAGE.md) under a generated
+heading so the count cannot drift.
 
 ### Break the gate before trusting it
 
@@ -203,8 +213,25 @@ baseline, and a catalog whose own UUID is also one of its back-matter
 resources'. Every one was
 verified by hand against the document before publication.
 
-The survey harness and its target list are in [`tools/`](tools/), and the run
-is reproducible.
+That run's own stated limit was that most of what it saw it could not settle:
+5,501 references reported UNVERIFIABLE against 568 reported wrong.
+[`docs/findings/2026-08-15-imports-supplied-survey.md`](docs/findings/2026-08-15-imports-supplied-survey.md)
+is the same 52 documents with their imports located and handed over. **5,216 of
+those 5,501 references resolved to something that exists, 178 resolved to
+nothing, and 107 still cannot be settled.** All four FedRAMP rev 5 baselines
+went from a combined 2,787 unanswerable control references to zero errors. The
+178 are four shapes, and the largest is a parameter identifier that is one
+zero-pad away from resolving: an SSP setting `ac-2_odp.01` against a baseline
+that defines `ac-02_odp.01`.
+
+The 107 that stayed unknown are a finding in their own right. Nine documents
+import a profile whose only `rlink` is a GitHub release ZIP; five import a
+relative path into a directory the publishing repository does not have; one
+imports a back-matter UUID it never declares. And 29 were this tool's fault, a
+defect the run exposed and the write-up describes.
+
+The survey harness and its target list are in [`tools/`](tools/), and both runs
+are reproducible.
 
 ## Limits
 
@@ -293,11 +320,15 @@ Uses [`uv`](https://docs.astral.sh/uv/) with a locked toolchain
 
 ```
 uv sync --frozen
-make verify   # lint + format + strict types + coverage-gated tests + pip-audit
+make verify   # lockfile check + lint + format + strict types + coverage-gated tests + pip-audit
 ```
 
 `make verify` is the exact gate CI runs; see [CONTRIBUTING.md](CONTRIBUTING.md)
-for the individual targets.
+for the individual targets. Its first step is `uv lock --check`, not
+`uv sync --frozen`: `--frozen` installs from `uv.lock` without reading
+`pyproject.toml`, so it exits 0 on a lock that no longer matches the manifest
+and cannot be a drift gate. The comment in the `Makefile` records the
+measurement.
 
 ## Disclosure
 
@@ -312,22 +343,36 @@ the vendored snapshot, not this tool's opinion, is what to update.
 ## Standards Conformance
 
 This repository is part of a portfolio with shared engineering standards.
-Status against each, with an explicit reason wherever a standard does not
-apply.
+State against each, with an explicit reason wherever a standard does not apply,
+and an explicit gap wherever one applies and is not yet met.
 
-| Standard | Status | Evidence |
+**How this scope was decided.** The portfolio keeps a machine-readable
+applicability manifest, and this repository is not in it: as of 2026-08-15
+`applicability.yml` on the standards repository's default branch has no
+`oscal-validate` entry, which by that file's own header is a failure of the
+weekly conformance run rather than a pass. The scope below was therefore
+derived here, from each standard's own applicability section, for an offline
+command-line tool with no hosted route, no HTML surface, no model, and no
+persistent store. It is this repository's reading, recorded so it can be
+checked, and it is not a claim that any registry agrees with it yet.
+
+| Standard | State | Evidence |
 |---|---|---|
 | Responsible-Tech Framework | Applies | [docs/RESPONSIBLE-TECH-AUDITS.md](docs/RESPONSIBLE-TECH-AUDITS.md): the harm surface is false assurance about a security authorization, and the controls target it directly. |
 | Code Quality | Applies | Floors in `pyproject.toml`: Python >= 3.12, ruff >= 0.15, mypy >= 1.18 (strict), complexity <= 10, branch coverage >= 90%; locked with `uv.lock`; reproduced locally by `make verify`. |
 | Security & Supply-Chain | Applies | [SECURITY.md](SECURITY.md); SHA-pinned Actions; Semgrep and full-history TruffleHog in CI; pip-audit in `make verify`; Dependabot; gitleaks in pre-commit. |
 | CI/CD | Applies | `ci.yml` runs the same `make verify` gate as local development. |
-| Observability | N/A (single-shot CLI; no service, no telemetry, nothing reported anywhere; the report on stdout is the entire observable surface) | Exit-code contract and JSON output tested in `tests/test_cli.py`. |
+| Observability | Applies (Tier C, library/CLI) | Declared in [docs/ROADMAP.md](docs/ROADMAP.md#observability). Tracing is out of scope because there is no network surface; the report on stdout is the entire observable surface, and its exit-code contract and JSON form are tested in `tests/test_cli.py`. Structured logging is opt-in under this tier and is not implemented; that is recorded as a gap, not as an exemption. |
+| Performance | N/A (pure library/CLI with no hosted route and no shipped HTML, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. |
 | Accessibility | N/A (no graphical or web surface; plain-text terminal output plus `--format json`) | Revisit if any web or GUI surface is added. |
 | Internationalization | N/A (findings quote English-language specification prose verbatim; see [docs/I18N.md](docs/I18N.md)) | Multilingual document *data* validates identically. |
 | AI Evaluation | N/A (deterministic rule engine; no model, prompt, retrieval, embedding, or LLM call anywhere; AI-assisted authoring disclosed above) | Zero runtime dependencies makes the no-model claim mechanically checkable. |
+| AI Development Measurement | Applies | `AI-DEV-MEASUREMENT: APPLIES` in [docs/ROADMAP.md](docs/ROADMAP.md). This repository was built with AI assistance, disclosed above, so Track A delivery and quality-debt metrics are mined portfolio-wide from git history. Track B is N/A: there is no AI surface in the product. |
+| Incident Response | Applies | [docs/incidents/](docs/incidents/) holds the postmortem convention and no incident to date; [SECURITY.md](SECURITY.md) is the reporting channel. Open gap, recorded in [docs/ROADMAP.md](docs/ROADMAP.md): the `incident` and `sev1`-`sev4` labels are a repository-settings change and have not been created. |
+| Data Governance | Applies (L1, public non-sensitive) | Data cards in [docs/data/](docs/data/) for both ingest sources, with hashes in [vendor/SOURCES.md](src/oscal_validate/vendor/SOURCES.md) enforced by `tests/test_vendor_integrity.py`. Open gap, recorded in [docs/ROADMAP.md](docs/ROADMAP.md): survey records carry the fetch outcome but no per-record fetch timestamp, so lineage is dated only at the file level. |
 | Documentation | Applies | This README, [CHANGELOG.md](CHANGELOG.md), ADRs in [docs/adr/](docs/adr/), [CITATION.cff](CITATION.cff), [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/CONSTRAINT-COVERAGE.md](docs/CONSTRAINT-COVERAGE.md). |
 | Quality & Metrics | Applies | [docs/ROADMAP.md](docs/ROADMAP.md) names every gate as AUTO, REVIEW, or a reasoned exception. |
-| Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current. No release has been made yet. |
+| Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current. No release has been made yet, and no release workflow exists; that is an open gap recorded in [docs/ROADMAP.md](docs/ROADMAP.md), not a declaration that releases are out of scope. |
 
 ## License
 

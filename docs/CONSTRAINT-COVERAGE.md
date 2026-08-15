@@ -108,6 +108,15 @@ where it does not, the reason.
 | `oscal-unique-step-responsible-role` | is-unique | ERROR | `step` | `responsible-role` |
 | `oscal-unique-system-component-responsible-role` | is-unique | ERROR | `system-component` | `responsible-role` |
 
+## Evaluated, but reading an index that is never built
+
+These constraints are parsed and run, and they can never produce a definite answer: the `index` constraint that would populate the index they read is one of the skipped constraints below, so every lookup misses. References checked against them are reported UNVERIFIABLE, naming the index, and are never reported as failures of the document.
+
+| Constraint | Declared on | Reads index | Populated by |
+|---|---|---|---|
+| `oscal-by-component-export-provided-uuid-index` | `export` | `by-component-export-provided-uuid` | `oscal-by-component-export-provided-uuid-index`, skipped |
+| `oscal-index-metadata-party-organizations-uuid` | `member-of-organization` | `index-metadata-party-organizations-uuid` | `oscal-index-metadata-party-organizations-uuid`, skipped |
+
 ## Not evaluated
 
 Neither passed nor failed. A document that this tool reports no findings for may still violate any of these.

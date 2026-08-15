@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from oscal_validate.metaschema import load_metaschema  # noqa: E402
+from oscal_validate.metaschema import Metaschema, load_metaschema  # noqa: E402
 from oscal_validate.rules import OSCAL_RELEASE, RETRIEVED  # noqa: E402
 
 HEADER = f"""# Which of NIST's published constraints this tool evaluates
@@ -61,6 +61,8 @@ def render() -> str:
         )
     lines.append("")
 
+    lines.extend(_reads_an_unbuilt_index(metaschema))
+
     lines.append("## Not evaluated")
     lines.append("")
     lines.append(
@@ -78,6 +80,50 @@ def render() -> str:
         )
     lines.append("")
     return "\n".join(lines)
+
+
+def _reads_an_unbuilt_index(metaschema: Metaschema) -> list[str]:
+    """The evaluated constraints that can never reach a definite answer.
+
+    An ``index-has-key`` is only as good as the ``index`` that fills the index
+    it reads. Where that ``index`` constraint is one this tool skips, the
+    lookup misses every key no matter what the document says, so the finding is
+    always UNVERIFIABLE. Counting those among the evaluated constraints without
+    saying so would overstate coverage, which is the one thing this file exists
+    to prevent.
+    """
+    evaluated = metaschema.evaluated()
+    built = {c.index_name for c in evaluated if c.kind == "index"}
+    stranded = sorted(
+        (c for c in evaluated if c.kind == "index-has-key" and c.index_name not in built),
+        key=_sort_key,
+    )
+    lines = ["## Evaluated, but reading an index that is never built", ""]
+    lines.append(
+        "These constraints are parsed and run, and they can never produce a definite "
+        "answer: the `index` constraint that would populate the index they read is one "
+        "of the skipped constraints below, so every lookup misses. References checked "
+        "against them are reported UNVERIFIABLE, naming the index, and are never "
+        "reported as failures of the document."
+    )
+    lines.append("")
+    lines.append("| Constraint | Declared on | Reads index | Populated by |")
+    lines.append("|---|---|---|---|")
+    for constraint in stranded:
+        source = next(
+            (
+                c.identifier
+                for c in metaschema.skipped()
+                if c.kind == "index" and c.index_name == constraint.index_name
+            ),
+            "(nothing declares it)",
+        )
+        lines.append(
+            f"| `{constraint.identifier}` | `{constraint.context}` | "
+            f"`{constraint.index_name}` | `{source}`, skipped |"
+        )
+    lines.append("")
+    return lines
 
 
 def _sort_key(constraint: object) -> tuple[str, str, str]:

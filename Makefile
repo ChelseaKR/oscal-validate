@@ -5,7 +5,16 @@
 verify: sync lint format typecheck test audit
 	@echo "make verify: all gates passed."
 
+# `uv lock --check` is the drift gate; `uv sync --frozen` is not one, and it is
+# worth saying why because the two look interchangeable. `--frozen` installs
+# from uv.lock without reading pyproject.toml at all, so a lock that no longer
+# agrees with the manifest installs cleanly and exits 0. Measured on a scratch
+# project with a deliberately stale lock: `uv lock --check` and
+# `uv sync --locked` exit 1, `uv sync --frozen` exits 0. The check runs first,
+# before any `uv run` in this file, because a bare `uv run` re-locks silently
+# and would repair the drift on its way past.
 sync:
+	uv lock --check
 	uv sync --frozen
 
 lint:

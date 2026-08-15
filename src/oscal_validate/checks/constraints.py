@@ -13,6 +13,14 @@ An ``index-has-key`` failure is reported as an ERROR only when every document
 the primary imports was supplied. OSCAL identifiers are cross-instance scoped,
 so a key that is absent from the documents in hand may be present in one that
 was not; that case is UNVERIFIABLE and says which documents were missing.
+
+It is also reported as an ERROR only when the index it looks in was actually
+built. Some indexes are declared by an ``index`` constraint whose target
+expression is outside the Metapath subset this tool parses, and a lookup into
+an index that was never built misses everything. Reporting that as a failure of
+the document would be the mirror image of the mistake this tool exists to
+avoid: it would turn a rule that was not evaluated into a finding against
+someone's file. Those references are UNVERIFIABLE, and they name the index.
 """
 
 from __future__ import annotations
@@ -121,9 +129,26 @@ def build_indexes(session: Session) -> dict[tuple[str, Key], str]:
     return built
 
 
+def buildable_indexes(session: Session) -> frozenset[str]:
+    """Index names that some evaluated ``index`` constraint actually builds.
+
+    An ``index-has-key`` naming anything outside this set has nothing to look
+    its key up in, because the constraint that would have populated the index
+    was skipped. See this module's docstring for why that is UNVERIFIABLE and
+    not a finding against the document.
+    """
+    return frozenset(
+        constraint.index_name
+        for document in session.corpus.reachable
+        for constraint in session.metaschema.evaluated(document.walked.model)
+        if constraint.kind == "index"
+    )
+
+
 def check(session: Session) -> list[Finding]:
     findings: list[Finding] = []
     indexes = build_indexes(session)
+    buildable = buildable_indexes(session)
     walked = session.corpus.primary.walked
     payload: dict[str, object] = {walked.model: walked.root}
     for constraint in session.metaschema.evaluated(walked.model):
@@ -134,7 +159,7 @@ def check(session: Session) -> list[Finding]:
             if constraint.kind in ("is-unique", "index"):
                 findings.extend(_uniqueness(constraint, selected, session))
             elif constraint.kind == "index-has-key":
-                findings.extend(_cross_reference(constraint, selected, indexes, session))
+                findings.extend(_cross_reference(constraint, selected, indexes, buildable, session))
             elif constraint.kind == "has-cardinality":
                 findings.extend(_cardinality(constraint, context, selected))
     findings.extend(_coverage(session))
@@ -173,14 +198,28 @@ def _uniqueness(constraint: Constraint, selected: list[Located], session: Sessio
     return findings
 
 
+def _unsettled(constraint: Constraint, built: bool, incompleteness: str) -> str:
+    """Why an ``index-has-key`` could not be settled, when it could not be."""
+    if not built:
+        return (
+            f"NIST declares the {constraint.index_name!r} index on a target expression outside "
+            "the Metapath subset this tool parses, so the index was never built and this key "
+            "could not be looked up in it. The reference is neither resolved nor unresolved "
+            "here; see docs/CONSTRAINT-COVERAGE.md."
+        )
+    return f"{incompleteness}, so whether this resolves cannot be settled here."
+
+
 def _cross_reference(
     constraint: Constraint,
     selected: list[Located],
     indexes: dict[tuple[str, Key], str],
+    buildable: frozenset[str],
     session: Session,
 ) -> list[Finding]:
     findings: list[Finding] = []
-    complete = session.complete
+    built = constraint.index_name in buildable
+    settled = session.complete and built
     for located in selected:
         for key in keys_for(located.value, constraint, session.metaschema):
             if all(part is None for part in key):
@@ -189,9 +228,9 @@ def _cross_reference(
                 continue
             findings.append(
                 Finding(
-                    code="REFERENCE_UNRESOLVED" if complete else "REFERENCE_UNVERIFIABLE",
+                    code="REFERENCE_UNRESOLVED" if settled else "REFERENCE_UNVERIFIABLE",
                     severity=LEVELS.get(constraint.level, Severity.ERROR)
-                    if complete
+                    if settled
                     else Severity.UNVERIFIABLE,
                     location=located.pointer,
                     prop=", ".join(field.source for field in constraint.key_fields),
@@ -201,12 +240,11 @@ def _cross_reference(
                         + (
                             "Every document this reference could reach was supplied, so it "
                             "resolves to nothing."
-                            if complete
-                            else f"{session.incompleteness}, so whether this resolves cannot "
-                            "be settled here."
+                            if settled
+                            else _unsettled(constraint, built, session.incompleteness)
                         )
                     ),
-                    rule=constraint_rule(constraint) if complete else rules.CROSS_INSTANCE_SCOPE,
+                    rule=constraint_rule(constraint) if settled else rules.CROSS_INSTANCE_SCOPE,
                 )
             )
     return findings

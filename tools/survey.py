@@ -18,6 +18,14 @@ so that imports can be resolved against documents fetched earlier in the run.
 Each document is cached under a directory named for a hash of its URL, keeping
 its own file name, so two publishers' ``catalog.json`` cannot collide and the
 validator can still match an import by file name.
+
+A target line's third column lists the documents to hand it with ``--resolve``.
+Those are fetched on the same terms as a target and are *not* themselves
+surveyed: a document named only there is a supporting document, part of some
+target's effective data model, and it is never counted as a document the survey
+reports on. A resolve URL that cannot be fetched stops the run rather than
+quietly turning its target into an unreadable one, because a survey that
+silently dropped a target would misreport its own denominator.
 """
 
 from __future__ import annotations
@@ -70,13 +78,28 @@ def cache_path(cache: Path, url: str) -> Path:
     return cache / digest / (url.rsplit("/", 1)[-1] or "index.json")
 
 
-def _validate(path: Path, resolve: list[Path]) -> dict[str, Any]:
+def _by_url(location: str, source_of: dict[str, str]) -> str:
+    """A pointer into a supporting document, named by its URL, not its cache path.
+
+    The validator qualifies a pointer with the path of the file it came from,
+    which is right at a terminal and wrong in committed evidence: a cache
+    directory is a fact about one laptop. Rewriting it to the URL keeps the
+    evidence reproducible on any machine and leaves the reader with something
+    they can actually open.
+    """
+    head, separator, tail = location.partition("#")
+    if not separator:
+        return location
+    return f"{source_of.get(head, head)}{separator}{tail}"
+
+
+def _validate(path: Path, resolve: list[Path], source_of: dict[str, str]) -> dict[str, Any]:
     session = build_session(path, resolve)
     findings = validate(session)
     by_code: Counter[str] = Counter(finding.code for finding in findings)
     example: dict[str, str] = {}
     for finding in findings:
-        example.setdefault(finding.code, finding.location)
+        example.setdefault(finding.code, _by_url(finding.location, source_of))
     return {
         "model": session.corpus.primary.walked.model,
         "imports": len(session.corpus.edges),
@@ -88,25 +111,58 @@ def _validate(path: Path, resolve: list[Path]) -> dict[str, Any]:
     }
 
 
+def _acquire(fetcher: Fetcher, cache: Path, url: str, offline: bool) -> tuple[Path, dict[str, Any]]:
+    """The cached bytes for one URL, fetched if they are not there yet."""
+    path = cache_path(cache, url)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if offline or path.exists():
+        return path, {"outcome": "read from cache"}
+    result = fetcher.fetch(url)
+    path.write_bytes(result.body)
+    return path, {"outcome": "fetched", "fetch": result.to_dict()}
+
+
+def supporting(
+    targets: list[tuple[str, str, list[str]]], cache: Path, offline: bool, fetcher: Fetcher
+) -> list[dict[str, Any]]:
+    """Acquire every document any target names in its ``--resolve`` column.
+
+    Done in one pass before anything is validated, so that each supporting
+    document's own provenance is recorded once rather than attributed to
+    whichever target happened to reach it first. These documents are not
+    surveyed: they are somebody's effective data model, not a document the
+    survey reports on, and they are never counted in the denominator.
+
+    A failure here is raised rather than recorded. A run that quietly reported
+    a target as unreadable because a supporting document was missing would be
+    reporting the wrong thing about the wrong file.
+    """
+    seen: list[dict[str, Any]] = []
+    done: set[str] = set()
+    for _, _, resolve in targets:
+        for url in resolve:
+            if url in done:
+                continue
+            done.add(url)
+            path, outcome = _acquire(fetcher, cache, url, offline)
+            if not path.exists():
+                raise FetchError(f"{url}: named with --resolve and not in the cache")
+            print(f"  {outcome['outcome']:18} {url}  (--resolve)", file=sys.stderr)
+            seen.append({"url": url, "bytes": path.stat().st_size, **outcome})
+    return seen
+
+
 def run(
-    targets: list[tuple[str, str, list[str]]], cache: Path, offline: bool
+    targets: list[tuple[str, str, list[str]]], cache: Path, offline: bool, fetcher: Fetcher
 ) -> Iterator[dict[str, Any]]:
-    fetcher = Fetcher()
-    cache.mkdir(parents=True, exist_ok=True)
     for group, url, resolve in targets:
-        record: dict[str, Any] = {"group": group, "url": url}
-        path = cache_path(cache, url)
-        path.parent.mkdir(parents=True, exist_ok=True)
+        record: dict[str, Any] = {"group": group, "url": url, "resolve": list(resolve)}
         try:
-            if offline or path.exists():
-                record["outcome"] = "read from cache"
-            else:
-                result = fetcher.fetch(url)
-                path.write_bytes(result.body)
-                record["outcome"] = "fetched"
-                record["fetch"] = result.to_dict()
+            path, outcome = _acquire(fetcher, cache, url, offline)
+            record.update(outcome)
             record["bytes"] = path.stat().st_size
-            record.update(_validate(path, [cache_path(cache, other) for other in resolve]))
+            supporting = {str(cache_path(cache, other)): other for other in resolve}
+            record.update(_validate(path, [Path(p) for p in supporting], supporting))
         except BlockedError as exc:
             record["outcome"] = "blocked by robots.txt"
             record["reason"] = str(exc)
@@ -117,13 +173,14 @@ def run(
         yield record
 
 
-def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
+def summarize(records: list[dict[str, Any]], supplied: list[dict[str, Any]]) -> dict[str, Any]:
     read = [r for r in records if "summary" in r]
     codes: Counter[str] = Counter()
     models: Counter[str] = Counter()
     for record in read:
         codes.update(record["codes"])
         models[record["model"]] += 1
+    supporting = {entry["url"] for entry in supplied}
     return {
         "targets": len(records),
         "validated": len(read),
@@ -131,6 +188,10 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
         "blocked": sum(1 for r in records if r["outcome"] == "blocked by robots.txt"),
         "with_errors": sum(1 for r in read if r["summary"]["ERROR"]),
         "with_complete_effective_model": sum(1 for r in read if r["effective_model_complete"]),
+        "supporting_documents": len(supporting),
+        "supporting_not_also_targets": len(supporting - {r["url"] for r in records}),
+        "import_edges": sum(r.get("imports", 0) for r in read),
+        "import_edges_resolved": sum(r.get("imports_resolved", 0) for r in read),
         "models": dict(sorted(models.items())),
         "codes": dict(codes.most_common()),
     }
@@ -144,8 +205,16 @@ def main() -> int:
     parser.add_argument("--offline", action="store_true", help="use the cache only")
     args = parser.parse_args()
 
-    records = list(run(read_targets(args.targets), args.cache, args.offline))
-    payload = {"summary": summarize(records), "records": records}
+    targets = read_targets(args.targets)
+    args.cache.mkdir(parents=True, exist_ok=True)
+    fetcher = Fetcher()
+    supplied = supporting(targets, args.cache, args.offline, fetcher)
+    records = list(run(targets, args.cache, args.offline, fetcher))
+    payload = {
+        "summary": summarize(records, supplied),
+        "supporting": supplied,
+        "records": records,
+    }
     args.output.write_text(
         json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
         encoding="utf-8",

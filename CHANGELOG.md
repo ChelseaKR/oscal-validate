@@ -8,7 +8,46 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- An `index-has-key` constraint whose index no evaluated `index` constraint
+  builds no longer reports its references as unresolved. NIST populates two such
+  indexes with constraints whose targets carry predicates outside the parsed
+  Metapath subset, so the index is never built and every lookup missed; the
+  references were reported as ERROR against documents that were correct. They
+  are now UNVERIFIABLE and name the index. Measured effect on the 2026-08-15
+  survey: 29 false ERRORs removed, every one verified by hand against the
+  document first. The imports-withheld run is unaffected, so the 2026-08-14
+  evidence stands unchanged.
+- `make sync` now runs `uv lock --check` before `uv sync --frozen`.
+  `--frozen` installs from `uv.lock` without reading `pyproject.toml` and exits
+  0 on a lock that no longer matches the manifest, so it was never the
+  lockfile-drift gate it looked like. Measured on a scratch project with a
+  deliberately stale lock.
+
 ### Added
+
+- `docs/findings/2026-08-15-imports-supplied-survey.md` and its evidence JSON:
+  the same 52 documents re-run with their imports located and supplied. 5,216 of
+  the first run's 5,501 UNVERIFIABLE references resolved to something that
+  exists, 178 resolved to nothing, and 107 still cannot be settled. All four
+  FedRAMP rev 5 baselines went from 2,787 unanswerable control references to
+  zero errors.
+- `tools/survey.py` fetches the documents named in a target's `--resolve`
+  column, in one pass before validation, recording their provenance separately
+  under `supporting`. A supporting document is never counted as a surveyed
+  document. Findings located inside one are named by its URL rather than by a
+  cache path, so the evidence is reproducible on any machine.
+- A generated "Evaluated, but reading an index that is never built" section in
+  `docs/CONSTRAINT-COVERAGE.md`, and a break-the-gate test asserting the
+  non-firing direction.
+- `tests/test_findings_evidence.py` now recomputes both runs' headline numbers,
+  and recomputes the delta table between them from the two evidence files rather
+  than trusting it.
+- Data cards under `docs/data/` for both ingest sources, and `docs/incidents/`
+  with the postmortem convention. The README conformance table now covers all
+  fifteen portfolio standards, states Observability as applying at the
+  library/CLI tier rather than not at all, and names the gaps it has not closed.
 
 - Initial version of the deterministic OSCAL structural validator: model
   detection across all eight OSCAL roots, a schema-guided document walk,

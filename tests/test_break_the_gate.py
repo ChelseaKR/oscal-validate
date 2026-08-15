@@ -115,6 +115,41 @@ def test_a_profile_control_reference_that_misses_is_caught_only_with_the_catalog
     assert "REFERENCE_UNRESOLVED" in _errors(path, [catalog])
 
 
+def test_a_lookup_into_an_index_that_was_never_built_is_never_an_error(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """The other direction of the same rule: a skipped constraint accuses nobody.
+
+    NIST builds ``index-metadata-party-organizations-uuid`` with an ``index``
+    constraint whose target is ``party[@type='organization']``, a predicate
+    outside the Metapath subset this tool parses, so that index is never
+    populated. The ``index-has-key`` constraint that reads it *is* evaluated. A
+    lookup into an empty index misses every key, so reporting the miss as a
+    failure would report a rule this tool did not evaluate as a defect in
+    someone's document. Here the organization named is the one the fixture
+    declares, and it must not be an ERROR.
+    """
+    organization = clean_catalog["catalog"]["metadata"]["parties"][0]
+    clean_catalog["catalog"]["metadata"]["parties"].append(
+        {
+            "uuid": "5c2b0d18-2b7a-4f6e-9a0e-2c1d3e4f5a60",
+            "type": "person",
+            "name": "Example Person",
+            "member-of-organizations": [organization["uuid"]],
+        }
+    )
+    path = write(tmp_path, "c.json", clean_catalog)
+    assert "REFERENCE_UNRESOLVED" not in _errors(path)
+    unsettled = [
+        f
+        for f in validate_file(path)
+        if f.code == "REFERENCE_UNVERIFIABLE"
+        and "index-metadata-party-organizations-uuid" in f.message
+    ]
+    assert unsettled, "the unbuilt index must be named, not silently passed"
+    assert all(f.severity is Severity.UNVERIFIABLE for f in unsettled)
+
+
 def test_an_object_no_schema_alternative_accepts_is_caught(
     tmp_path: Path, clean_catalog: Any
 ) -> None:
