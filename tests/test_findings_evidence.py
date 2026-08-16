@@ -73,6 +73,29 @@ def _totals(survey: Path) -> Counter[str]:
     return totals
 
 
+def _severities(survey: Path) -> Counter[str]:
+    """Severity -> count, summed over every record's own severity summary."""
+    totals: Counter[str] = Counter()
+    for record in _records(survey):
+        totals.update(record.get("summary", {}))
+    return Counter({severity: count for severity, count in totals.items() if count})
+
+
+#: A row of the write-up's finding-totals table: code, severity, count.
+_SEVERITY_ROW = re.compile(
+    r"^\|\s*`([A-Z_]+)`\s*\|\s*(ERROR|WARNING|UNVERIFIABLE|INFO)\s*\|\s*([\d,]+)\s*\|$"
+)
+
+
+def _severity_rows(writeup: Path) -> list[tuple[str, str, int]]:
+    rows = []
+    for line in writeup.read_text(encoding="utf-8").splitlines():
+        match = _SEVERITY_ROW.match(line.strip())
+        if match:
+            rows.append((match[1], match[2], int(match[3].replace(",", ""))))
+    return rows
+
+
 def _headline(writeup: Path) -> dict[str, int]:
     """Label -> count, from the write-up's first table."""
     found: dict[str, int] = {}
@@ -147,11 +170,28 @@ def test_the_headline_numbers_match_the_evidence(survey: Path, writeup: Path) ->
 
 @pytest.mark.parametrize(("survey", "writeup"), PAIRS)
 def test_the_finding_totals_match_the_evidence(survey: Path, writeup: Path) -> None:
-    totals = _totals(survey)
-    text = writeup.read_text(encoding="utf-8")
-    for code in ("REFERENCE_UNRESOLVED", "UUID_NOT_UNIQUE", "CONSTRAINT_CARDINALITY"):
-        assert f"| `{code}` | ERROR | {totals[code]} |" in text, code
-    assert f"{totals['REFERENCE_UNVERIFIABLE']:,}" in text
+    """Every code, and the severity it was actually recorded at.
+
+    A code is not tied to one severity: a constraint finding carries the level
+    NIST declares on the constraint, so ``CONSTRAINT_CARDINALITY`` is emitted at
+    both ERROR and WARNING. Asserting a code's total against a severity typed
+    into the table is therefore not enough, and an earlier version of this test
+    did exactly that: it took the count from the evidence and the word ERROR
+    from nowhere, which let the write-ups publish ten warnings as errors. The
+    severity columns are now summed and checked against the per-severity totals
+    the run recorded, so the table cannot claim a severity the run did not.
+    """
+    rows = _severity_rows(writeup)
+    assert rows, "no finding-totals table found in the write-up"
+
+    by_code: Counter[str] = Counter()
+    by_severity: Counter[str] = Counter()
+    for code, severity, count in rows:
+        by_code[code] += count
+        by_severity[severity] += count
+
+    assert by_code == _totals(survey), "the table's per-code totals are not the evidence's"
+    assert by_severity == _severities(survey), "the table's severities are not the ones recorded"
 
 
 @pytest.mark.parametrize(("survey", "writeup"), PAIRS)

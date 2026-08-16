@@ -19,6 +19,16 @@ and this project adheres to
   survey: 29 false ERRORs removed, every one verified by hand against the
   document first. The imports-withheld run is unaffected, so the 2026-08-14
   evidence stands unchanged.
+- Both findings write-ups reported all eleven `CONSTRAINT_CARDINALITY` findings
+  as ERROR. One is: the run recorded ten of them at WARNING, because they fire
+  on `oscal-back-matter-resource-base64-rlink-cardinality`, which NIST declares
+  at `level="WARNING"`. Their ERROR columns therefore summed to ten findings
+  more than the runs recorded, against named organizations' documents. Both
+  tables now give every code at the severity it was recorded at, and cover all
+  twelve codes rather than eight, so the per-severity sums are the run's own.
+  `tests/test_findings_evidence.py` had pinned the mistake in place by taking
+  each count from the evidence and the word ERROR from nowhere; it now sums the
+  table by severity and checks it against the recorded severity totals.
 - `make sync` now runs `uv lock --check` before `uv sync --frozen`.
   `--frozen` installs from `uv.lock` without reading `pyproject.toml` and exits
   0 on a lock that no longer matches the manifest, so it was never the

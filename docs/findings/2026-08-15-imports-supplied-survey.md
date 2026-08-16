@@ -74,18 +74,32 @@ Every code that has nothing to do with cross-document references is unchanged,
 to the finding. That is the control on this experiment: supplying an imported
 catalog changed exactly what it should have changed and nothing else.
 
-Finding totals in this run:
+Finding totals in this run, by the severity each finding was actually recorded
+at. A constraint finding carries the severity NIST declares on the constraint,
+so one code can appear at two severities and `CONSTRAINT_CARDINALITY` does:
 
 | Code | Severity | Count |
 |---|---|---:|
 | `REFERENCE_UNRESOLVED` | ERROR | 746 |
 | `UUID_NOT_UNIQUE` | ERROR | 427 |
-| `CONSTRAINT_CARDINALITY` | ERROR | 11 |
 | `TYPE_MISMATCH` | ERROR | 8 |
 | `DATATYPE_MISMATCH` | ERROR | 6 |
 | `CONSTRAINT_NOT_UNIQUE` | ERROR | 2 |
+| `CONSTRAINT_CARDINALITY` | ERROR | 1 |
+| `OSCAL_VERSION_DIFFERS` | WARNING | 52 |
+| `CONSTRAINT_CARDINALITY` | WARNING | 10 |
+| `CONSTRAINT_NOT_EVALUATED` | UNVERIFIABLE | 312 |
 | `REFERENCE_UNVERIFIABLE` | UNVERIFIABLE | 107 |
+| `PATTERN_NOT_CHECKED` | UNVERIFIABLE | 50 |
+| `IMPORT_RESOLVED` | INFO | 100 |
 | `IMPORT_NOT_SUPPLIED` | INFO | 15 |
+
+1,190 ERROR, 62 WARNING, 469 UNVERIFIABLE and 115 INFO, which is every finding
+the run recorded. The ten `CONSTRAINT_CARDINALITY` warnings are all
+`oscal-back-matter-resource-base64-rlink-cardinality`, which NIST declares at
+`level="WARNING"`; the one error is
+`oscal-implemented-requirement-by-component-cardinality`, which declares no
+level and so takes the default.
 
 ## Method, and what it can and cannot support
 
@@ -155,7 +169,7 @@ them resolves:
 | `FedRAMP_rev5_LI-SaaS-baseline_profile.json` | 480 | 0 |
 | `FedRAMP_rev5_LOW-baseline_profile.json` | 329 | 0 |
 
-2,787 control references, none of them danglin g by a single identifier. The
+2,787 control references, none of them dangling by a single identifier. The
 same held for NIST's own four SP 800-53 rev 5 baselines in the first run, and
 it holds for FedRAMP's now. All nine FedRAMP documents in the sample went from
 zero with a complete effective data model to nine.

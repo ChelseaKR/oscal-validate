@@ -37,20 +37,36 @@ system security plans, 6 component definitions, 4 assessment plans, 4
 assessment results, 4 plans of action and milestones. No `mapping-collection`
 document was in the sample.
 
-Finding totals across the whole sample:
+Finding totals across the whole sample, by the severity each finding was
+actually recorded at. A constraint finding carries the severity NIST declares
+on the constraint, so one code can appear at two severities and
+`CONSTRAINT_CARDINALITY` does:
 
 | Code | Severity | Count |
 |---|---|---:|
 | `REFERENCE_UNRESOLVED` | ERROR | 568 |
 | `UUID_NOT_UNIQUE` | ERROR | 427 |
-| `CONSTRAINT_CARDINALITY` | ERROR | 11 |
 | `TYPE_MISMATCH` | ERROR | 8 |
 | `DATATYPE_MISMATCH` | ERROR | 6 |
 | `CONSTRAINT_NOT_UNIQUE` | ERROR | 2 |
+| `CONSTRAINT_CARDINALITY` | ERROR | 1 |
+| `OSCAL_VERSION_DIFFERS` | WARNING | 52 |
+| `CONSTRAINT_CARDINALITY` | WARNING | 10 |
 | `REFERENCE_UNVERIFIABLE` | UNVERIFIABLE | 5,501 |
+| `CONSTRAINT_NOT_EVALUATED` | UNVERIFIABLE | 312 |
+| `PATTERN_NOT_CHECKED` | UNVERIFIABLE | 50 |
 | `IMPORT_NOT_SUPPLIED` | INFO | 93 |
+| `IMPORT_RESOLVED` | INFO | 7 |
 
-That last pair is the important one and is discussed under
+1,012 ERROR, 62 WARNING, 5,863 UNVERIFIABLE and 100 INFO, which is every
+finding the run recorded. The ten `CONSTRAINT_CARDINALITY` warnings are all
+`oscal-back-matter-resource-base64-rlink-cardinality`, which NIST declares at
+`level="WARNING"`; the one error is
+`oscal-implemented-requirement-by-component-cardinality`, which declares no
+level and so takes the default.
+
+`REFERENCE_UNVERIFIABLE` and `IMPORT_NOT_SUPPLIED` are the important pair and
+are discussed under
 [Finding 5](#finding-5-most-of-what-a-validator-sees-it-cannot-settle).
 
 ## Method, and what it can and cannot support
