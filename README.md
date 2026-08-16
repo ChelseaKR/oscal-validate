@@ -135,6 +135,77 @@ imports the XML serialization of its catalog. Which file each import matched is
 reported, so an UNVERIFIABLE finding always comes with the reason it could not
 be settled.
 
+## GitHub Action
+
+If the documents you deliver live in a repository, [`action.yml`](action.yml)
+validates them on every pull request and annotates each finding on the file it
+came from:
+
+```yaml
+name: Validate OSCAL
+on: [pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Prefer a release tag or a commit SHA. `main` is shown because the
+      # action postdates v0.1.0 and no release carries it yet.
+      - uses: ChelseaKR/oscal-validate@main
+        with:
+          path: oscal/
+```
+
+`path` takes one document, a directory (searched recursively for `*.json`), or
+a glob such as `oscal/**/*.json`. Two further inputs, both optional:
+
+- `resolve`: space-separated documents or directories to resolve imports and
+  references against, passed through as repeated `--resolve`. Same rules as
+  the CLI, including the file-name matching described above, and nothing is
+  fetched.
+- `fail-on`: `error` (default), `warning`, or `info`. The CLI itself gates on
+  ERROR and only ERROR; a lower threshold is applied by the action, from the
+  counts in the CLI's own `--format json` summary. UNVERIFIABLE is gated at no
+  setting, because it marks what the supplied documents cannot settle and is
+  never a pass.
+
+```yaml
+      - uses: ChelseaKR/oscal-validate@main
+        id: oscal
+        with:
+          path: oscal/**/*.json
+          resolve: baselines/ NIST_SP-800-53_rev5_catalog.json
+          fail-on: warning
+      - run: echo "${{ steps.oscal.outputs.unverifiable-count }} finding(s) unsettled"
+```
+
+The counts are published as outputs: `error-count`, `warning-count`,
+`info-count`, `unverifiable-count`, and `files-validated`. Watch the
+unverifiable count: a run of a large package with imports withheld can be
+green and still have settled very little, and the number is how you see that.
+The exit codes are the CLI's, unchanged: 0 when nothing meets the threshold, 1
+when something does, 2 when a document could not be read. A `path` that
+matches no file at all is also exit 2, because a run that validated nothing is
+not a run that passed.
+
+There is no install step and no lock file to hash-pin, because there is
+nothing to install: `oscal-validate` has zero runtime dependencies and ships
+`python -m oscal_validate`, so the action runs the checked-out source directly,
+vendored NIST schema and metaschema included, and resolves nothing from PyPI
+while it runs. `actions/setup-python` is pinned to a commit SHA and to the same
+Python 3.12 the rest of this repository uses.
+
+The gate is tested in both directions, because a gate that cannot fail is
+worse than no gate: `tests/test_action_runner.py` asserts the exit code for
+clean documents, gated findings, unreadable input, and a `path` that matches
+nothing, and CI runs the composite action itself over the clean catalog and
+over a copy with one required property removed, failing the build if the
+broken copy passes.
+
 ## Methodology
 
 ### Severities, honestly defined

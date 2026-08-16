@@ -8,6 +8,27 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- `action.yml`: a composite GitHub Action that runs the CLI over a file, a
+  directory, or a glob and annotates each finding on the file it came from.
+  Inputs are `path`, `resolve`, and `fail-on`; counts are published as step
+  outputs, including `unverifiable-count`. Nothing is installed and nothing is
+  fetched: the package has no runtime dependencies, so the action runs the
+  checked-out source off `PYTHONPATH`, and `actions/setup-python` is pinned to
+  a commit SHA. The exit codes are the CLI's own, with two additions that
+  refuse to pass silently: a `path` matching no file is exit 2, and an
+  unreadable document is exit 2 even when every other document is clean.
+  `tests/test_action_runner.py` and a CI self-test prove the gate fails on a
+  catalog with a required property removed.
+
+### Changed
+
+- `test_every_action_is_pinned_to_a_full_commit_sha` now exempts a `uses: ./`
+  reference to this repository's own action, which is checked out at the
+  commit that runs it and has no SHA to pin. The exemption is not a hole: such
+  a reference must resolve to an `action.yml` in this repository.
+
 ## [0.1.0] - 2026-08-16
 
 ### Fixed

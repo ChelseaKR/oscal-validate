@@ -42,3 +42,53 @@ jobs:
 
       - name: Run the local verification gate
         run: make verify
+
+  # `make verify` covers the action's entry point (tests/test_action_runner.py).
+  # This job covers the composite wrapper around it: the inputs in action.yml,
+  # the interpreter it pins, and the exit code GitHub actually observes.
+  action-self-test:
+    name: action self-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: A clean document passes
+        uses: ./
+        with:
+          path: tests/fixtures/clean_catalog.json
+
+      # Start from the document just proven clean and remove exactly one
+      # required property, the same way tests/test_break_the_gate.py does.
+      - name: Break the clean catalog on purpose
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          catalog = json.loads(Path("tests/fixtures/clean_catalog.json").read_text())
+          del catalog["catalog"]["metadata"]["last-modified"]
+          Path("broken-catalog.json").write_text(json.dumps(catalog, indent=2))
+          PY
+
+      # The half of a gate that is easy to leave untested. `continue-on-error`
+      # here is not a bypass: the step after it fails the job unless this step
+      # failed, so the run is red both when the gate is broken and when the
+      # gate cannot break.
+      - name: The broken catalog must fail
+        id: broken
+        continue-on-error: true
+        uses: ./
+        with:
+          path: broken-catalog.json
+
+      - name: Fail if the gate let the broken catalog through
+        if: steps.broken.outcome != 'failure'
+        run: |
+          echo "::error::action.yml passed a catalog missing a required property"
+          exit 1

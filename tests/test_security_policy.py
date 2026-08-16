@@ -27,6 +27,14 @@ def test_every_action_is_pinned_to_a_full_commit_sha() -> None:
     for workflow in sorted(WORKFLOWS.glob("*.yml")):
         text = workflow.read_text(encoding="utf-8")
         for reference in re.findall(r"uses:\s*(\S+)", text):
+            if reference.startswith("./"):
+                # This repository's own composite action, which is checked out
+                # at the same commit as the workflow using it. There is no SHA
+                # to pin it to, and nothing third party to pin against; what
+                # is worth checking is that the path is really an action here.
+                local = ROOT / reference
+                assert (local / "action.yml").is_file(), f"{workflow.name}: {reference}"
+                continue
             assert re.search(r"@[0-9a-f]{40}$", reference), f"{workflow.name}: {reference}"
 
 

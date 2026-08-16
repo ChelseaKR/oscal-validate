@@ -1,0 +1,86 @@
+name: oscal-validate
+description: >-
+  Validate OSCAL documents against NIST's published schema and constraint
+  layer, and annotate the findings on the pull request.
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  path:
+    description: >-
+      An OSCAL JSON document, a directory of them (searched recursively for
+      *.json), or a glob such as oscal/**/*.json. Matching no file at all fails
+      the job rather than passing it.
+    required: true
+  resolve:
+    description: >-
+      Space-separated further documents or directories to resolve imports and
+      references against, passed through as repeated --resolve. This is how an
+      imported catalog or profile gets into the effective data model. Nothing
+      is fetched.
+    required: false
+    default: ""
+  fail-on:
+    description: >-
+      Fail the job on findings at or above this severity (error, warning, or
+      info). UNVERIFIABLE is gated at no setting: it marks what the supplied
+      documents cannot settle, and is never a pass. Read the
+      unverifiable-count output and decide whether to supply more documents
+      through `resolve`.
+    required: false
+    default: error
+
+outputs:
+  error-count:
+    description: Number of ERROR findings across every validated document.
+    value: ${{ steps.validate.outputs.error-count }}
+  warning-count:
+    description: Number of WARNING findings.
+    value: ${{ steps.validate.outputs.warning-count }}
+  info-count:
+    description: Number of INFO findings.
+    value: ${{ steps.validate.outputs.info-count }}
+  unverifiable-count:
+    description: >-
+      Number of UNVERIFIABLE findings: what the supplied documents could not
+      settle. Never gates the job, and never a pass.
+    value: ${{ steps.validate.outputs.unverifiable-count }}
+  files-validated:
+    description: Number of documents the run actually read.
+    value: ${{ steps.validate.outputs.files-validated }}
+
+runs:
+  using: composite
+  steps:
+    # Pinned to the same commit and the same interpreter version the rest of
+    # this repository's workflows use, so the action and the gate that proves
+    # it run on one Python.
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: "3.12"
+        check-latest: false
+
+    # There is no install step and no requirements lock to hash-pin, because
+    # there is nothing to install: oscal-validate declares zero runtime
+    # dependencies and ships `python -m oscal_validate`, so the action runs
+    # the checked-out source straight off PYTHONPATH, vendored NIST schema and
+    # metaschema files included. That keeps the promise a
+    # `pip install --require-hashes` makes -- nothing is ever resolved from
+    # PyPI while the action runs -- with no lock file that can go stale.
+    - name: Validate documents
+      id: validate
+      shell: bash
+      # Inputs reach the script through env: rather than being interpolated
+      # into the run: block. A caller of this action fully controls its `with:`
+      # values, and splicing them into the script text before the shell sees
+      # them would let a malicious caller inject arbitrary shell into this
+      # composite action (the zizmor/semgrep template-injection class).
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        PYTHONPATH: ${{ github.action_path }}/src
+        OSCAL_PATH: ${{ inputs.path }}
+        OSCAL_RESOLVE: ${{ inputs.resolve }}
+        OSCAL_FAIL_ON: ${{ inputs['fail-on'] }}
+      run: python3 "$ACTION_PATH/tools/action_runner.py"
