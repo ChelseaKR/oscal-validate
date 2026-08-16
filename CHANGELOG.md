@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-16
+
 ### Fixed
 
 - An `index-has-key` constraint whose index no evaluated `index` constraint
