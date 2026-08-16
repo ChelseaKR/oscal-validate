@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-16
+
 ### Added
 
 - `action.yml`: a composite GitHub Action that runs the CLI over a file, a
