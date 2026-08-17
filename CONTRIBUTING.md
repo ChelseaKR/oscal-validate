@@ -16,7 +16,7 @@ oscal-validate targets Python 3.12 (see `.python-version`) and uses
 [`uv`](https://docs.astral.sh/uv/) for a reproducible, locked environment:
 
 ```sh
-uv sync --frozen
+uv sync --locked
 uvx pre-commit install   # optional but recommended: ruff/mypy/gitleaks on commit
 ```
 

@@ -1,5 +1,5 @@
 <!--
-Thanks for a PR. CONTRIBUTING.md has the local gate: `uv sync --frozen`, then
+Thanks for a PR. CONTRIBUTING.md has the local gate: `uv sync --locked`, then
 `make verify`, which runs exactly what CI runs. Delete any section that does not
 apply; most PRs are not a new rule.
 -->
