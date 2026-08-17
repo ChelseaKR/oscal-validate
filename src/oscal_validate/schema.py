@@ -12,9 +12,10 @@ snapshot at load time.
 The schema is JSON Schema draft-07. This module does not implement draft-07.
 It implements the subset the OSCAL schema actually uses for structure --
 ``$ref``, ``properties``, ``required``, ``additionalProperties``, ``items``,
-``type``, ``pattern``, and the ``anyOf``/``allOf`` shapes NIST uses -- and it
-reports what it could not resolve rather than guessing. See the README's
-"Limits" section for the keywords it deliberately does not evaluate.
+``type``, ``pattern``, ``minItems``, ``minimum``, and the ``anyOf``/``allOf``
+shapes NIST uses -- and it reports what it could not resolve rather than
+guessing. See the README's "Limits" section for the keywords it deliberately
+does not evaluate.
 """
 
 from __future__ import annotations
@@ -42,6 +43,9 @@ class Datatype:
     description: str
     json_type: str | None
     pattern: str | None
+    #: The lowest value the schema permits, where it declares one. OSCAL's two
+    #: bounded integer datatypes are the only places it does.
+    minimum: float | None = None
 
     @property
     def compiled(self) -> re.Pattern[str] | None:
@@ -199,6 +203,30 @@ def _read_vendor(relpath: str) -> Any:
         return json.load(handle)
 
 
+def _referenced(branch: JsonObject, definitions: JsonObject) -> JsonObject:
+    """The definition an ``allOf`` branch refers to, or an empty node."""
+    ref = branch.get("$ref")
+    target = definitions.get(ref.rsplit("/", 1)[-1]) if isinstance(ref, str) else None
+    return target if isinstance(target, dict) else {}
+
+
+def _narrower(declared: Any, base: Any) -> str | None:
+    """The narrower of the two JSON types one ``allOf`` conjunction states.
+
+    An ``allOf`` requires every branch at once, so where a branch widens what
+    the referenced base datatype declares, the conjunction is still the base's.
+    OSCAL does this twice, in ``PositiveIntegerDatatype`` and
+    ``NonNegativeIntegerDatatype``: each is a ``$ref`` to ``IntegerDatatype``
+    beside a branch declaring ``"type": "number"``. Reading only the branch
+    loses the integer requirement, and a fractional port number then passes.
+    """
+    if "integer" in (declared, base):
+        return "integer"
+    if isinstance(declared, str):
+        return declared
+    return base if isinstance(base, str) else None
+
+
 def _index_datatypes(definitions: JsonObject) -> dict[str, Datatype]:
     datatypes: dict[str, Datatype] = {}
     for name, node in definitions.items():
@@ -206,15 +234,24 @@ def _index_datatypes(definitions: JsonObject) -> dict[str, Datatype]:
             continue
         pattern = node.get("pattern")
         json_type = node.get("type")
+        minimum = node.get("minimum")
         for branch in node.get("allOf", []):
-            if isinstance(branch, dict):
-                pattern = pattern or branch.get("pattern")
-                json_type = json_type or branch.get("type")
+            if not isinstance(branch, dict):  # pragma: no cover - hash-checked snapshot
+                continue
+            base = _referenced(branch, definitions)
+            # Deliberately not widened to the referenced base's pattern. An
+            # allOf conjunction requires both, and the branch's is the specific
+            # one: EmailAddressDatatype refs StringDatatype and then declares
+            # the email pattern beside it.
+            pattern = pattern or branch.get("pattern")
+            json_type = _narrower(json_type or branch.get("type"), base.get("type"))
+            minimum = minimum if minimum is not None else branch.get("minimum")
         datatypes[name] = Datatype(
             name=name,
             description=str(node.get("description", "")),
             json_type=json_type if isinstance(json_type, str) else None,
             pattern=pattern if isinstance(pattern, str) else None,
+            minimum=minimum if isinstance(minimum, int | float) else None,
         )
     return datatypes
 

@@ -3,13 +3,28 @@
 from __future__ import annotations
 
 import json
+import tomllib
 from pathlib import Path
 
 import pytest
 
+from oscal_validate import __version__
 from oscal_validate.cli import main
 
 from .conftest import fixture_path
+
+PYPROJECT = Path(__file__).resolve().parent.parent / "pyproject.toml"
+
+
+def test_the_version_the_tool_reports_is_the_version_it_is() -> None:
+    """``--version`` and every JSON report stamp ``__version__``, not the manifest.
+
+    They drifted: 0.2.0 shipped with the package still reporting 0.1.0 in
+    ``--version`` and in ``tool.version`` on every machine-readable report, so
+    a stored report named the wrong release of the rules that produced it.
+    """
+    manifest = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+    assert __version__ == manifest["project"]["version"]
 
 
 def test_clean_catalog_exits_zero(capsys: pytest.CaptureFixture[str]) -> None:
