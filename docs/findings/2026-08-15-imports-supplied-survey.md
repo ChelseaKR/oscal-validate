@@ -376,7 +376,7 @@ lost an ERROR. The ERROR set only grew.
 ## Reproducing this
 
 ```sh
-uv sync --frozen
+uv sync --locked
 uv run python tools/survey.py tools/survey-urls.txt out.json --cache .survey-cache
 ```
 

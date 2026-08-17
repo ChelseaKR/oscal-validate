@@ -390,16 +390,16 @@ Uses [`uv`](https://docs.astral.sh/uv/) with a locked toolchain
 (Python 3.12, see `.python-version`):
 
 ```sh
-uv sync --frozen
+uv sync --locked
 make verify   # lockfile check + lint + format + strict types + coverage-gated tests + pip-audit
 ```
 
 `make verify` is the exact gate CI runs; see [CONTRIBUTING.md](CONTRIBUTING.md)
-for the individual targets. Its first step is `uv lock --check`, not
-`uv sync --frozen`: `--frozen` installs from `uv.lock` without reading
-`pyproject.toml`, so it exits 0 on a lock that no longer matches the manifest
-and cannot be a drift gate. The comment in the `Makefile` records the
-measurement.
+for the individual targets. Its first step is `uv lock --check`, and the sync
+uses `--locked` rather than `--frozen`: `--frozen` installs from `uv.lock`
+without reading `pyproject.toml`, so it exits 0 on a lock that no longer
+matches the manifest and cannot be a drift gate. The comment in the `Makefile`
+records the measurement.
 
 ## Disclosure
 

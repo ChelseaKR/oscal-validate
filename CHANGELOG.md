@@ -8,6 +8,22 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- `make sync` now installs with `uv sync --locked` instead of `uv sync
+  --frozen`. `uv lock --check` was already the drift gate and still runs first;
+  this makes the install step incapable of passing on a stale lock on its own,
+  so invoking `uv sync` outside `make sync` is no longer a way past the gate.
+  The same swap is applied to the setup commands in `README.md`,
+  `CONTRIBUTING.md`, the pull-request template, and the two survey findings'
+  reproduction blocks.
+
+### Added
+
+- `CITATION.cff` now carries `version` and `date-released` for the current
+  release (0.2.0, tagged 2026-08-16). Both fields were absent, which left a
+  released package without a citable version.
+
 ## [0.2.0] - 2026-08-16
 
 ### Added
