@@ -8,6 +8,44 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- A scalar standing where the schema declares an assembly is now a
+  `TYPE_MISMATCH` error. It was silently recorded as an untyped scalar, so
+  everything below the substitution went unreachable and unreported: a catalog
+  whose `metadata` was `null`, `42`, `true`, or a string exited 0 with no ERROR
+  finding, and `{"catalog": null}` did the same for a document with no body at
+  all. The walk now carries the shape the schema declares into the scalar case,
+  including the 36 nodes that state `properties` without stating
+  `"type": "object"`.
+- `NonNegativeIntegerDatatype` and `PositiveIntegerDatatype` are each an
+  `allOf` over a `$ref` to `IntegerDatatype` and a branch declaring
+  `"type": "number"` with a `minimum`. The datatype index read only the branch,
+  so both facets were lost: the base's narrower `integer` and the bound. A port
+  range of `start: -1, end: 99.5` produced output byte for byte identical to
+  `start: 443, end: 443`. Values below the bound are now
+  `DATATYPE_BELOW_MINIMUM`, and a fractional value is a `TYPE_MISMATCH`.
+- `__version__` said `0.1.0` while the package was `0.2.0`, so `--version` and
+  the `tool.version` field on every JSON report named the wrong release of the
+  rules that produced them. `tests/test_cli.py` now pins it to `pyproject.toml`.
+
+### Added
+
+- `ARRAY_TOO_SHORT`: the schema declares `"minItems": 1` on 409 arrays and none
+  of them were evaluated, so an array present and empty read the same as one
+  that conforms.
+- Twelve gate-breaking tests for the above, each one failing before the fix,
+  plus a control asserting a port range inside its bounds stays clean.
+
+### Changed
+
+- README: the status line said no release had been tagged, and the GitHub
+  Action example said no release carried the action. `v0.1.0` and `v0.2.0` are
+  both tagged and `v0.2.0` carries it. Nothing is on PyPI, which is unchanged.
+- README "Limits": `minItems` and `minimum` moved out of the not-evaluated
+  list, and the keywords absent from the vendored schema are now named as
+  absent rather than listed as unevaluated.
+
 ## [0.2.0] - 2026-08-16
 
 ### Added

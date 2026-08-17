@@ -12,6 +12,12 @@ left unwalked and recorded as such. That is the difference between "checked and
 clean" and "not looked at", and the two are never merged: an unwalked subtree
 becomes an UNVERIFIABLE finding, not silence.
 
+The same rule governs a subtree that is not there. A scalar standing where the
+schema declares an assembly makes everything below it unreachable, so it is a
+type mismatch and reported as one. Filing it as an untyped scalar and walking
+on, which is what this did before, turns a document with no body into a clean
+report.
+
 This is deliberately not a JSON Schema implementation. See the README's
 "Limits" section for the keywords it does not evaluate.
 """
@@ -59,6 +65,29 @@ def escape(token: str) -> str:
     return token.replace("~", "~0").replace("/", "~1")
 
 
+#: Keywords that only ever describe an object, whatever the node says about
+#: ``type``. The OSCAL schema states ``"type": "object"`` on all 96 of its named
+#: assembly definitions, but only on 147 of the 183 nodes that carry
+#: ``properties``: the alternatives inside an ``anyOf`` leave it out.
+_OBJECT_ONLY_KEYWORDS = ("properties", "required", "additionalProperties")
+
+
+def declared_shape(node: JsonObject) -> str | None:
+    """The JSON type the schema declares at a node that names no OSCAL datatype.
+
+    ``type`` where the schema states one, and ``object`` where it states none
+    but uses a keyword that can only describe an object. Returning None here
+    means the schema really does constrain nothing, which is the only case a
+    bare scalar may stand at this position unchallenged.
+    """
+    declared = node.get("type")
+    if isinstance(declared, str):
+        return declared
+    if any(keyword in node for keyword in _OBJECT_ONLY_KEYWORDS):
+        return "object"
+    return None
+
+
 @dataclass(frozen=True)
 class Scalar:
     """A scalar value, with the schema's own account of what it is."""
@@ -81,6 +110,16 @@ class Note:
     detail: str
 
 
+@dataclass(frozen=True)
+class Shortfall:
+    """An array with fewer items than the schema's ``minItems`` permits."""
+
+    pointer: str
+    name: str
+    minimum: int
+    found: int
+
+
 @dataclass
 class Walked:
     model: str
@@ -91,6 +130,7 @@ class Walked:
     unwalked: list[Note] = field(default_factory=list)
     mistyped: list[Note] = field(default_factory=list)
     no_branch: list[Note] = field(default_factory=list)
+    short: list[Shortfall] = field(default_factory=list)
 
     def scalars_named(self, name: str) -> list[Scalar]:
         return [s for s in self.scalars if s.name == name]
@@ -159,7 +199,11 @@ class _Walker:
         elif isinstance(instance, list):
             self._walk_array(instance, resolved.node, pointer, name, declared, depth)
         else:
-            self._scalar(instance, resolved, pointer, name)
+            # Nothing below an assembly is reachable once a scalar stands where
+            # the assembly should be, so the shape the schema declares has to be
+            # carried in here. Reading the datatype alone leaves it None, and a
+            # None declaration accepts anything.
+            self._scalar(instance, resolved, pointer, name, declared_shape(resolved.node))
 
     def _walk_array(
         self,
@@ -173,6 +217,9 @@ class _Walker:
         if declared not in (None, "array"):
             self._mistyped(pointer, name, declared, "an array")
             return
+        minimum = node.get("minItems")
+        if isinstance(minimum, int) and not isinstance(minimum, bool) and len(instance) < minimum:
+            self.result.short.append(Shortfall(pointer, name, minimum, len(instance)))
         items = node.get("items")
         if not isinstance(items, dict):
             self.result.unwalked.append(
@@ -182,10 +229,22 @@ class _Walker:
         for index, element in enumerate(instance):
             self.walk(element, items, f"{pointer}/{index}", name, depth + 1)
 
-    def _scalar(self, instance: Any, resolved: Resolved, pointer: str, name: str) -> None:
-        """Record a value at a position the schema declares as a scalar datatype."""
+    def _scalar(
+        self,
+        instance: Any,
+        resolved: Resolved,
+        pointer: str,
+        name: str,
+        shape: str | None = None,
+    ) -> None:
+        """Record a value at a position the schema declares as a scalar datatype.
+
+        ``shape`` is the type the schema declares where the position names no
+        OSCAL datatype, which is how an assembly replaced by a scalar is caught
+        rather than filed as an untyped scalar and never looked at again.
+        """
         datatype = resolved.datatype
-        declared = datatype.json_type if datatype is not None else None
+        declared = datatype.json_type if datatype is not None else shape
         if isinstance(instance, dict | list):
             self._mistyped(
                 pointer, name, declared, "an object" if isinstance(instance, dict) else "an array"

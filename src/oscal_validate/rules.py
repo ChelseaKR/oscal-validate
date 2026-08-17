@@ -84,6 +84,29 @@ def datatype_rule(datatype: str, description: str, pattern: str) -> Rule:
     )
 
 
+def minimum_rule(datatype: str, description: str, minimum: str) -> Rule:
+    return Rule(
+        citation=(
+            f'{datatype} in {_SNAPSHOT}: "{description}" It declares '
+            f'"minimum": {minimum}, and this value is below it.'
+        ),
+        url=SCHEMA_URL,
+        retrieved=RETRIEVED,
+    )
+
+
+def min_items_rule(name: str, minimum: int) -> Rule:
+    return Rule(
+        citation=(
+            f'The schema declares "minItems": {minimum} on "{name}" in {_SNAPSHOT}. An array '
+            "present with fewer items than that does not conform; OSCAL's own convention is "
+            "to omit the property instead."
+        ),
+        url=SCHEMA_URL,
+        retrieved=RETRIEVED,
+    )
+
+
 UNCOMPILABLE_PATTERN = Rule(
     citation=(
         "oscal-validate policy: the schema declares a regular expression this tool cannot "

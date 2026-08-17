@@ -156,3 +156,113 @@ def test_an_object_no_schema_alternative_accepts_is_caught(
     # A group may hold controls or groups, never both.
     clean_catalog["catalog"]["groups"][0]["groups"] = [{"id": "sub", "title": "Sub"}]
     assert "NO_SCHEMA_ALTERNATIVE" in _errors(write(tmp_path, "c.json", clean_catalog))
+
+
+#: Every JSON scalar. A whole assembly replaced by any one of them is the same
+#: defect, and the walk reaches all four through one path.
+SCALARS = [None, "a string", 42, True]
+
+
+@pytest.mark.parametrize("scalar", SCALARS)
+def test_an_assembly_replaced_by_a_scalar_is_caught(
+    tmp_path: Path, clean_catalog: Any, scalar: Any
+) -> None:
+    """The gate that could not fail: a scalar standing in for a whole assembly.
+
+    ``metadata`` is required, and it carries four required properties of its
+    own. Replacing it with a scalar removes all of that from the document, and
+    nothing below the substitution is reachable to be checked. Before this was
+    fixed the walk filed the scalar as an untyped value and moved on, so the
+    report was 0 ERROR and the exit code 0: the same verdict as the clean
+    fixture this test's own baseline proves.
+    """
+    clean_catalog["catalog"]["metadata"] = scalar
+    assert "TYPE_MISMATCH" in _errors(write(tmp_path, "c.json", clean_catalog))
+
+
+@pytest.mark.parametrize("scalar", SCALARS)
+def test_a_model_root_replaced_by_a_scalar_is_caught(tmp_path: Path, scalar: Any) -> None:
+    """The same defect at the top: a document with no body at all.
+
+    ``{"catalog": null}`` names a model and then supplies nothing. It used to
+    exit 0 with no ERROR finding, which is a validator reporting a pass over a
+    document it never read.
+    """
+    findings = validate_file(write(tmp_path, "c.json", {"catalog": scalar}))
+    assert "TYPE_MISMATCH" in {f.code for f in findings if f.severity is Severity.ERROR}
+
+
+def test_a_value_below_the_schemas_declared_minimum_is_caught(tmp_path: Path) -> None:
+    """A rule the schema states as a bound rather than a pattern.
+
+    ``NonNegativeIntegerDatatype`` carries ``"minimum": 0`` in an ``allOf``
+    beside a ``$ref`` to ``IntegerDatatype``. The datatype check keyed off
+    ``pattern`` alone, so both facets were dropped: a port range of ``-1`` read
+    byte for byte like one of ``443``.
+    """
+    document = _component_definition(start=-1, end=443)
+    assert "DATATYPE_BELOW_MINIMUM" in _errors(write(tmp_path, "cd.json", document))
+
+
+def test_a_fractional_value_in_an_integer_datatype_is_caught(tmp_path: Path) -> None:
+    """The narrowing an ``allOf`` states, which reading one branch loses.
+
+    ``PositiveIntegerDatatype`` and ``NonNegativeIntegerDatatype`` are each a
+    ``$ref`` to ``IntegerDatatype`` beside a branch declaring ``"number"``. An
+    ``allOf`` requires both at once, so the conjunction is ``integer``.
+    """
+    document = _component_definition(start=443, end=99.5)
+    assert "TYPE_MISMATCH" in _errors(write(tmp_path, "cd.json", document))
+
+
+def test_a_valid_port_range_stays_clean(tmp_path: Path) -> None:
+    """The other direction, so the two tests above cannot pass by over-reporting."""
+    document = _component_definition(start=443, end=443)
+    assert not _errors(write(tmp_path, "cd.json", document))
+
+
+def test_an_array_the_schema_requires_items_in_is_caught_when_empty(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """``minItems`` is declared 409 times in the schema and was evaluated zero times.
+
+    OSCAL declares ``"minItems": 1`` on every array it defines. An array that is
+    present and empty is not the same document as one that omits the property,
+    and only the second conforms.
+    """
+    clean_catalog["catalog"]["groups"][0]["controls"] = []
+    assert "ARRAY_TOO_SHORT" in _errors(write(tmp_path, "c.json", clean_catalog))
+
+
+def _component_definition(start: float, end: float) -> dict[str, Any]:
+    """The smallest conforming document that reaches OSCAL's bounded integers.
+
+    ``port-range/start`` and ``port-range/end`` are the only two places the
+    published schema uses ``NonNegativeIntegerDatatype``.
+    """
+    return {
+        "component-definition": {
+            "uuid": "11111111-2222-4333-8444-555555555551",
+            "metadata": {
+                "title": "Ports",
+                "last-modified": "2026-08-14T00:00:00Z",
+                "version": "1",
+                "oscal-version": "1.2.3",
+            },
+            "components": [
+                {
+                    "uuid": "11111111-2222-4333-8444-555555555552",
+                    "type": "service",
+                    "title": "Example service",
+                    "description": "An example.",
+                    "protocols": [
+                        {
+                            "uuid": "11111111-2222-4333-8444-555555555553",
+                            "name": "https",
+                            "port-ranges": [{"start": start, "end": end, "transport": "TCP"}],
+                        }
+                    ],
+                }
+            ],
+        }
+    }
