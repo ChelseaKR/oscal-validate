@@ -14,7 +14,7 @@ from oscal_validate.cli import main
 from oscal_validate.document import _is_json_type, _json_type_of
 from oscal_validate.findings import Finding, Rule, counts, finalize, render_findings_text
 from oscal_validate.session import Session
-from oscal_validate.validator import build_session
+from oscal_validate.validator import build_session, validate
 
 from .conftest import fixture_path, load_fixture, write
 
@@ -89,6 +89,72 @@ def test_a_complete_session_has_nothing_to_say_about_incompleteness() -> None:
     )
     assert session.complete
     assert session.incompleteness == ""
+
+
+def _ambiguous_session(tmp_path: Path) -> Session:
+    """A profile handed two different catalogs that answer to the same name."""
+    catalog: Any = load_fixture("clean_catalog.json")
+    for directory, title in (("a", "One catalog"), ("b", "Another catalog")):
+        (tmp_path / directory).mkdir()
+        catalog["catalog"]["metadata"]["title"] = title
+        (tmp_path / directory / "clean_catalog.json").write_text(
+            json.dumps(catalog), encoding="utf-8"
+        )
+    profile = write(tmp_path, "p.json", load_fixture("clean_profile.json"))
+    return build_session(profile, [tmp_path / "a", tmp_path / "b"])
+
+
+def test_an_ambiguous_import_is_reported_as_ambiguous_not_as_missing(tmp_path: Path) -> None:
+    findings = validate(_ambiguous_session(tmp_path))
+    codes = {f.code for f in findings}
+    assert "IMPORT_AMBIGUOUS" in codes
+    assert "IMPORT_NOT_SUPPLIED" not in codes
+
+
+def test_an_ambiguous_import_names_every_candidate_and_the_fix(tmp_path: Path) -> None:
+    """A finding has to name the field, the constraint, and the fix.
+
+    The fix for ambiguity is the opposite of the fix for absence, so the one
+    sentence that used to serve both was wrong for this one.
+    """
+    finding = next(
+        f for f in validate(_ambiguous_session(tmp_path)) if f.code == "IMPORT_AMBIGUOUS"
+    )
+    assert finding.severity is Severity.INFO
+    assert str(tmp_path / "a" / "clean_catalog.json") in finding.message
+    assert str(tmp_path / "b" / "clean_catalog.json") in finding.message
+    assert "supplying it again will not help" in finding.message
+    assert "Pass it with --resolve" not in finding.message
+
+
+def test_an_unverifiable_reference_under_ambiguity_does_not_ask_for_the_file_again(
+    tmp_path: Path,
+) -> None:
+    session = _ambiguous_session(tmp_path)
+    reference = next(f for f in validate(session) if f.code == "REFERENCE_UNVERIFIABLE")
+    assert "were not supplied" not in reference.message
+    assert "Narrow --resolve" in reference.message
+    assert "Supply the imported document" not in reference.message
+
+
+def test_absence_and_ambiguity_are_both_named_when_both_happen(tmp_path: Path) -> None:
+    """The two reasons compose; neither is allowed to hide the other."""
+    profile: Any = load_fixture("clean_profile.json")
+    profile["profile"]["imports"].append({"href": "nowhere.json", "include-all": {}})
+    catalog: Any = load_fixture("clean_catalog.json")
+    for directory in ("a", "b"):
+        (tmp_path / directory).mkdir()
+        catalog["catalog"]["metadata"]["title"] = directory
+        (tmp_path / directory / "clean_catalog.json").write_text(
+            json.dumps(catalog), encoding="utf-8"
+        )
+    session = build_session(write(tmp_path, "p.json", profile), [tmp_path / "a", tmp_path / "b"])
+    assert "nowhere.json" in session.incompleteness
+    assert "clean_catalog.json" in session.incompleteness
+    assert "were not supplied" in session.incompleteness
+    assert "each matched more than one supplied file" in session.incompleteness
+    assert "Supply the missing document" in session.remedy
+    assert "narrow --resolve" in session.remedy
 
 
 def test_the_version_flag_exits_cleanly(capsys: pytest.CaptureFixture[str]) -> None:

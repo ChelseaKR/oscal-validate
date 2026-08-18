@@ -93,7 +93,7 @@ fetched.
 
 | # | Check | Codes | Rule source |
 |---|---|---|---|
-| 0 | Which imports were supplied, and which were not | `IMPORT_RESOLVED`, `IMPORT_NOT_SUPPLIED` | The report's own audit trail for every severity below |
+| 0 | Which imports were supplied, which were not, and which were supplied more than once | `IMPORT_RESOLVED`, `IMPORT_NOT_SUPPLIED`, `IMPORT_AMBIGUOUS` | The report's own audit trail for every severity below |
 | 1 | Document shape against the published JSON Schema: required properties, properties the schema forbids, JSON type, arrays shorter than `minItems`, and objects no declared alternative accepts | `REQUIRED_PROPERTY_MISSING`, `PROPERTY_UNDECLARED`, `TYPE_MISMATCH`, `ARRAY_TOO_SHORT`, `NO_SCHEMA_ALTERNATIVE`, `SUBTREE_NOT_READ` | [`oscal_complete_schema.json`](https://github.com/usnistgov/OSCAL/releases/tag/v1.2.3) |
 | 2 | Scalar values against the datatype the schema declares at that position: UUID form (v4 or v5), timestamps with a required timezone, URIs, non-empty markup lines, and the lower bounds on OSCAL's two integer datatypes | `DATATYPE_MISMATCH`, `DATATYPE_BELOW_MINIMUM`, `PATTERN_NOT_CHECKED` | the same schema's own datatype patterns and bounds |
 | 3 | NIST's constraint layer: `is-unique`, `index` uniqueness, `index-has-key` cross-references, `has-cardinality` | `CONSTRAINT_NOT_UNIQUE`, `CONSTRAINT_CARDINALITY`, `REFERENCE_UNRESOLVED`, `REFERENCE_UNVERIFIABLE`, `CONSTRAINT_NOT_EVALUATED` | the vendored `*_metaschema_RESOLVED.xml` modules, at NIST's declared severity |
@@ -135,6 +135,21 @@ its extension when that fails, because a JSON profile in the wild routinely
 imports the XML serialization of its catalog. Which file each import matched is
 reported, so an UNVERIFIABLE finding always comes with the reason it could not
 be settled.
+
+`--resolve` is repeatable and takes directories, so the same file reaches it
+twice for reasons that are not mistakes: a directory named twice, a directory
+and a file inside it, a path with and without a trailing slash. One file
+reached twice is one file, identified by its resolved path, and every one of
+those spellings produces the same report as passing the file once.
+
+What is left after that is real: **two different files answering to one name**,
+which happens as soon as two publishers' `catalog.json` are handed over
+together. That is `IMPORT_AMBIGUOUS`, and it is deliberately not
+`IMPORT_NOT_SUPPLIED`. The documents *were* supplied; what cannot be determined
+is which one the import means, so neither is admitted to the effective data
+model and references into it stay UNVERIFIABLE. The finding names every
+candidate path, and the fix is the opposite of the fix for a missing document —
+narrow `--resolve` rather than widen it — so the report says that instead.
 
 ## GitHub Action
 

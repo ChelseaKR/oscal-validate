@@ -28,6 +28,15 @@ and this project adheres to
 - `__version__` said `0.1.0` while the package was `0.2.0`, so `--version` and
   the `tool.version` field on every JSON report named the wrong release of the
   rules that produced them. `tests/test_cli.py` now pins it to `pyproject.toml`.
+- One document supplied twice is no longer read as two documents in conflict.
+  `--resolve` is repeatable and takes directories, so naming the same file
+  twice — a directory twice, a directory and a file inside it, a path with and
+  without a trailing slash — is ordinary usage; each of those made the import
+  match two supplied documents, which the tool reported as *no* document.
+  Passing a catalog twice therefore settled fewer references than passing it
+  once, and the report told the caller to supply a document they had just
+  supplied. Supplied paths are now deduplicated by resolved path, so every one
+  of those spellings gives the same report as passing the file once.
 
 ### Added
 
@@ -36,6 +45,14 @@ and this project adheres to
   that conforms.
 - Twelve gate-breaking tests for the above, each one failing before the fix,
   plus a control asserting a port range inside its bounds stays clean.
+- `IMPORT_AMBIGUOUS`: two *different* files answering to one import's file name
+  is the case that really cannot be settled, and it is not the same as no file
+  at all. The documents were supplied; which one the import means is what is
+  undetermined, so neither is admitted to the effective data model and
+  references into it stay UNVERIFIABLE. The finding names every candidate path,
+  and the remedy sentence carried by every reference finding now follows from
+  the reason: narrow `--resolve` for ambiguity, supply a document for absence,
+  both when both happened. Twelve further tests, each failing before the fix.
 - `CITATION.cff` now carries `version` and `date-released` for the current
   release (0.2.0, tagged 2026-08-16). Both fields were absent, which left a
   released package without a citable version.

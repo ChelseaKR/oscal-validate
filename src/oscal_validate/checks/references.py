@@ -132,8 +132,7 @@ def _unresolved(scalar: Scalar, what: str, complete: bool, session: Session) -> 
                 "Every document named by an import was supplied, so the effective data "
                 "model is complete and this reference resolves to nothing."
                 if complete
-                else f"{session.incompleteness}. Supply the imported document with "
-                "--resolve to settle this."
+                else f"{session.incompleteness}. {session.remedy}"
             )
         ),
         rule=rules.EFFECTIVE_DATA_MODEL if complete else rules.CROSS_INSTANCE_SCOPE,
