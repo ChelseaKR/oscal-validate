@@ -51,21 +51,33 @@ MODULES = (
     "oscal_mapping_metaschema_RESOLVED.xml",
 )
 
-#: Which OSCAL model each metaschema module governs. A module that governs one
+#: Which OSCAL models each metaschema module governs. A module that governs one
 #: model declares assemblies only that model has -- but assembly *names* repeat
 #: across models (an SSP and a component definition each define an assembly
-#: called ``implemented-requirement``, with different rules), so a constraint is
-#: only ever applied to a document of the model its module governs. The shared
-#: modules govern no single model and apply to every document.
-MODULE_MODELS: dict[str, str] = {
-    "oscal_catalog_metaschema_RESOLVED.xml": "catalog",
-    "oscal_profile_metaschema_RESOLVED.xml": "profile",
-    "oscal_ssp_metaschema_RESOLVED.xml": "system-security-plan",
-    "oscal_component_metaschema_RESOLVED.xml": "component-definition",
-    "oscal_assessment-plan_metaschema_RESOLVED.xml": "assessment-plan",
-    "oscal_assessment-results_metaschema_RESOLVED.xml": "assessment-results",
-    "oscal_poam_metaschema_RESOLVED.xml": "plan-of-action-and-milestones",
-    "oscal_mapping_metaschema_RESOLVED.xml": "mapping-collection",
+#: called ``implemented-requirement``, with different rules; a catalog's
+#: ``part`` is control-common's, not assessment-common's), so a constraint is
+#: only ever applied to a document of a model its module governs. The shared
+#: modules that serve one family of models govern exactly that family;
+#: ``metadata`` and ``control-common`` serve every model and are absent here.
+MODULE_MODELS: dict[str, tuple[str, ...]] = {
+    "oscal_catalog_metaschema_RESOLVED.xml": ("catalog",),
+    "oscal_profile_metaschema_RESOLVED.xml": ("profile",),
+    "oscal_ssp_metaschema_RESOLVED.xml": ("system-security-plan",),
+    "oscal_component_metaschema_RESOLVED.xml": ("component-definition",),
+    "oscal_implementation-common_metaschema_RESOLVED.xml": (
+        "system-security-plan",
+        "component-definition",
+    ),
+    "oscal_assessment-plan_metaschema_RESOLVED.xml": ("assessment-plan",),
+    "oscal_assessment-results_metaschema_RESOLVED.xml": ("assessment-results",),
+    "oscal_assessment-common_metaschema_RESOLVED.xml": (
+        "assessment-plan",
+        "assessment-results",
+        "plan-of-action-and-milestones",
+    ),
+    "oscal_poam_metaschema_RESOLVED.xml": ("plan-of-action-and-milestones",),
+    "oscal_mapping_metaschema_RESOLVED.xml": ("mapping-collection",),
+    "oscal_mapping-common_metaschema_RESOLVED.xml": ("mapping-collection",),
 }
 
 #: Constraint kinds this module knows how to evaluate at all.
@@ -85,13 +97,41 @@ USE_TAGS = (f"{NS}assembly", f"{NS}field", f"{NS}define-assembly", f"{NS}define-
 
 _NAME = re.compile(r"^[A-Za-z][A-Za-z0-9._-]*$")
 
+#: The namespace a ``prop`` or ``part`` carries when it declares no ``ns`` flag.
+#: NIST's metaschema declares this default on the ``ns`` flag itself.
+OSCAL_NS = "http://csrc.nist.gov/ns/oscal"
+
+
+@dataclass(frozen=True)
+class Predicate:
+    """One test inside a ``[...]`` predicate, from the enumerated bounded grammar.
+
+    The four kinds are exactly the shapes the vendored 1.2.3 modules use
+    (enumerated in ADR-0004, sized by evidence rather than by the Metapath
+    specification): a flag equal to one of a set of strings, a flag starting
+    with a prefix, ``has-oscal-namespace(...)``, and the existence of a child.
+    """
+
+    kind: str
+    name: str
+    values: tuple[str, ...]
+
 
 @dataclass(frozen=True)
 class Step:
-    """One step of a bounded Metapath target expression."""
+    """One step of a bounded Metapath target expression.
+
+    ``names`` empty means the context node itself (a ``.`` step): no traversal,
+    only the predicates are applied.
+    """
 
     names: tuple[str, ...]
     descendant: bool
+    predicates: tuple[Predicate, ...] = ()
+
+
+#: One parsed alternative of a target expression: a sequence of steps.
+Path = tuple[Step, ...]
 
 
 @dataclass(frozen=True)
@@ -124,7 +164,7 @@ class Constraint:
     key_fields: tuple[KeyField, ...]
     min_occurs: int | None
     max_occurs: int | None
-    steps: tuple[Step, ...] | None
+    paths: tuple[Path, ...] | None
     skipped: str
 
     @property
@@ -132,13 +172,13 @@ class Constraint:
         return not self.skipped
 
     @property
-    def model(self) -> str | None:
-        """The OSCAL model this constraint governs, or None for every model."""
+    def models(self) -> tuple[str, ...] | None:
+        """The OSCAL models this constraint governs, or None for every model."""
         return MODULE_MODELS.get(self.module)
 
     def applies_to(self, model: str) -> bool:
-        governed = self.model
-        return governed is None or governed == model
+        governed = self.models
+        return governed is None or model in governed
 
 
 @dataclass
@@ -214,51 +254,208 @@ def _read_module(name: str) -> ElementTree.Element:
     return ElementTree.fromstring(read_module_bytes(name))  # noqa: S314
 
 
-def parse_target(expression: str) -> tuple[Step, ...] | None:
+def parse_target(expression: str) -> tuple[Path, ...] | None:
     """Parse the bounded Metapath subset this tool evaluates, or return None.
 
-    Supported: ``.``, ``name``, ``a/b``, ``a|b``, ``//name``, ``.//name``, and
-    ``//(a|b|c)``. Everything else -- predicates, function calls, ``doc()``,
-    axes -- returns None and the constraint is reported as not evaluated.
+    The result is a union of paths: most targets are a single path, and a
+    top-level ``a|b/c`` union is every alternative, each parsed in full. A
+    union any alternative of which cannot be parsed is refused whole, because
+    evaluating a subset of a union changes what the constraint counts.
+
+    Supported: ``.``, ``name``, ``a/b``, ``a|b``, ``//name``, ``.//name``,
+    ``//(a|b|c)``, interior descendants (``a//b``), and the predicate forms
+    enumerated from the vendored modules (ADR-0004): ``[@flag='v']``,
+    ``[@flag=('v1','v2')]``, ``[starts-with(@flag,'v')]``,
+    ``[has-oscal-namespace(...)]``, ``[child-name]``, and conjunctions of
+    those with ``and``. Everything else -- other functions, ``doc()``, axes,
+    wildcards -- returns None and the constraint is reported as not evaluated.
     """
-    expression = expression.strip()
-    if expression == ".":
-        return ()
-    descendant, expression = _strip_descendant(expression)
-    if expression.startswith("("):
-        return _parse_union(expression, descendant)
-    if any(character in expression for character in "[]()@ :*"):
-        return None
-    if descendant:
-        return None if "/" in expression else _step(expression, descendant=True)
-    steps: list[Step] = []
-    for segment in expression.split("/"):
-        step = _step(segment, descendant=False)
-        if step is None:
+    parts = _split_top(expression.strip(), "|")
+    paths: list[Path] = []
+    for part in parts:
+        path = _parse_path(part.strip())
+        if path is None:
             return None
-        steps.extend(step)
+        paths.append(path)
+    return tuple(paths)
+
+
+def _split_top(text: str, separator: str) -> list[str]:
+    """Split on a separator character, ignoring any inside ``()`` or ``[]``."""
+    parts: list[str] = []
+    depth = 0
+    start = 0
+    for index, character in enumerate(text):
+        if character in "([":
+            depth += 1
+        elif character in ")]":
+            depth -= 1
+        elif character == separator and depth == 0:
+            parts.append(text[start:index])
+            start = index + 1
+    parts.append(text[start:])
+    return parts
+
+
+def _parse_path(text: str) -> Path | None:
+    if text == ".":
+        return ()
+    descendant_next = False
+    if text.startswith(".//"):
+        descendant_next, text = True, text[3:]
+    elif text.startswith("//"):
+        descendant_next, text = True, text[2:]
+    elif text.startswith("./") and not text.startswith(".//"):
+        text = text[2:]
+    if not text:
+        return None
+    steps: list[Step] = []
+    segments = _split_top(text, "/")
+    for index, raw_segment in enumerate(segments):
+        segment = raw_segment.strip()
+        if not segment:
+            # An empty segment is the gap inside an interior ``//``.
+            if descendant_next or index in (0, len(segments) - 1):
+                return None
+            descendant_next = True
+            continue
+        step = _parse_segment(segment, descendant_next)
+        if step is None or (not step.names and index > 0):
+            return None
+        steps.append(step)
+        descendant_next = False
     return tuple(steps)
 
 
-def _strip_descendant(expression: str) -> tuple[bool, str]:
-    if expression.startswith(".//"):
-        return True, expression[3:]
-    if expression.startswith("//"):
-        return True, expression[2:]
-    return False, expression
-
-
-def _parse_union(expression: str, descendant: bool) -> tuple[Step, ...] | None:
-    if not descendant or not expression.endswith(")"):
+def _parse_segment(segment: str, descendant: bool) -> Step | None:
+    bracket = segment.find("[")
+    name_part = segment if bracket == -1 else segment[:bracket]
+    groups = [] if bracket == -1 else _bracket_groups(segment[bracket:])
+    if groups is None:
         return None
-    return _step(expression[1:-1], descendant=True)
-
-
-def _step(segment: str, descendant: bool) -> tuple[Step, ...] | None:
-    names = tuple(part.strip() for part in segment.split("|"))
+    predicates: list[Predicate] = []
+    for group in groups:
+        parsed = _parse_conjunction(group)
+        if parsed is None:
+            return None
+        predicates.extend(parsed)
+    name_part = name_part.strip()
+    if name_part == ".":
+        return None if descendant else Step((), False, tuple(predicates))
+    if name_part.startswith("(") and name_part.endswith(")"):
+        if not descendant:
+            return None
+        names = tuple(part.strip() for part in name_part[1:-1].split("|"))
+    else:
+        names = (name_part,)
     if not all(_NAME.match(name) for name in names):
         return None
-    return (Step(names=names, descendant=descendant),)
+    return Step(names, descendant, tuple(predicates))
+
+
+def _bracket_groups(text: str) -> list[str] | None:
+    """The contents of consecutive balanced ``[...]`` groups, or None."""
+    groups: list[str] = []
+    while text:
+        if not text.startswith("["):
+            return None
+        depth = 0
+        for index, character in enumerate(text):
+            if character == "[":
+                depth += 1
+            elif character == "]":
+                depth -= 1
+                if depth == 0:
+                    groups.append(text[1:index])
+                    text = text[index + 1 :]
+                    break
+        else:
+            return None
+    return groups
+
+
+_FLAG_EQUALS = re.compile(r"@([A-Za-z][A-Za-z0-9._-]*)\s*=\s*(.+)$", re.DOTALL)
+_STARTS_WITH = re.compile(
+    r"starts-with\(\s*@([A-Za-z][A-Za-z0-9._-]*)\s*,\s*('[^']*'|\"[^\"]*\")\s*\)$"
+)
+_HAS_NAMESPACE = re.compile(r"has-oscal-namespace\((.+)\)$", re.DOTALL)
+
+
+def _parse_conjunction(text: str) -> list[Predicate] | None:
+    predicates: list[Predicate] = []
+    for clause in _split_top_word(text, " and "):
+        predicate = _parse_test(clause.strip())
+        if predicate is None:
+            return None
+        predicates.append(predicate)
+    return predicates
+
+
+def _split_top_word(text: str, separator: str) -> list[str]:
+    """Split on a separator word, ignoring any inside ``()`` or quotes."""
+    parts: list[str] = []
+    depth = 0
+    quote = ""
+    start = 0
+    index = 0
+    while index < len(text):
+        character = text[index]
+        if quote:
+            if character == quote:
+                quote = ""
+        elif character in "'\"":
+            quote = character
+        elif character in "([":
+            depth += 1
+        elif character in ")]":
+            depth -= 1
+        elif depth == 0 and text.startswith(separator, index):
+            parts.append(text[start:index])
+            index += len(separator)
+            start = index
+            continue
+        index += 1
+    parts.append(text[start:])
+    return parts
+
+
+def _parse_test(text: str) -> Predicate | None:
+    match = _STARTS_WITH.fullmatch(text)
+    if match:
+        return Predicate("flag-starts-with", match.group(1), (match.group(2)[1:-1],))
+    match = _HAS_NAMESPACE.fullmatch(text)
+    if match:
+        values = _string_or_set(match.group(1))
+        return Predicate("oscal-namespace", "", values) if values else None
+    match = _FLAG_EQUALS.fullmatch(text)
+    if match:
+        values = _string_or_set(match.group(2))
+        return Predicate("flag-equals", match.group(1), values) if values else None
+    if _NAME.match(text):
+        return Predicate("child-exists", text, ())
+    return None
+
+
+def _string_or_set(text: str) -> tuple[str, ...] | None:
+    text = text.strip()
+    if text.startswith("(") and text.endswith(")"):
+        text = text[1:-1]
+    values: list[str] = []
+    for raw_piece in text.split(","):
+        piece = raw_piece.strip()
+        # A piece must be one whole quoted string. An embedded quote means the
+        # text only looked like one -- ``'a' or @name='b'`` must not be read as
+        # the value ``a' or @name='b``.
+        if (
+            len(piece) >= 2
+            and piece[0] == piece[-1]
+            and piece[0] in "'\""
+            and piece[0] not in piece[1:-1]
+        ):
+            values.append(piece[1:-1])
+        else:
+            return None
+    return tuple(values) if values else None
 
 
 def _integer(value: str | None) -> int | None:
@@ -270,10 +467,15 @@ def _integer(value: str | None) -> int | None:
         return None
 
 
-def _skip_reason(kind: str, steps: tuple[Step, ...] | None, target: str, context: str) -> str:
+def _skip_reason(kind: str, paths: tuple[Path, ...] | None, target: str, context: str) -> str:
     if kind in UNEVALUATED_KINDS:
         return UNEVALUATED_KINDS[kind]
-    if steps is None:
+    if paths is None:
+        if "doc(" in target:
+            return (
+                "its target dereferences a second document through doc(), which this tool "
+                f"does not implement: {target}"
+            )
         return f"its target expression is outside the Metapath subset this tool parses: {target}"
     if not context:
         return "it is declared outside any assembly this tool can locate in a document"
@@ -307,7 +509,7 @@ def _constraints_in(element: ElementTree.Element, module: str, context: str) -> 
         if kind not in EVALUATED_KINDS and kind not in UNEVALUATED_KINDS:
             continue
         target = str(child.attrib.get("target", "."))
-        steps = parse_target(target) if kind in EVALUATED_KINDS else None
+        paths = parse_target(target) if kind in EVALUATED_KINDS else None
         key_fields = tuple(
             KeyField(source=str(k.attrib.get("target", ".")), pattern=k.attrib.get("pattern"))
             for k in child
@@ -325,8 +527,8 @@ def _constraints_in(element: ElementTree.Element, module: str, context: str) -> 
                 key_fields=key_fields,
                 min_occurs=_integer(child.attrib.get("min-occurs")),
                 max_occurs=_integer(child.attrib.get("max-occurs")),
-                steps=steps,
-                skipped=_skip_reason(kind, steps, target, context),
+                paths=paths,
+                skipped=_skip_reason(kind, paths, target, context),
             )
         )
     return found
@@ -343,7 +545,16 @@ def _json_names(
                 if child.tag not in USE_TAGS:
                     continue
                 ref = str(child.attrib.get("ref", ""))
-                own = _effective_name(child) if not ref else effective.get(ref, ref)
+                # A use-site ``use-name`` renames the node at that use: the
+                # SSP uses ``system-component`` under the name ``component``,
+                # and that is the name NIST's constraint targets select by.
+                use_name = _text_of(child, "use-name")
+                if use_name:
+                    own = use_name
+                elif ref:
+                    own = effective.get(ref, ref)
+                else:
+                    own = _effective_name(child)
                 if not own:
                     continue
                 group = child.find(f"{NS}group-as")
@@ -381,17 +592,76 @@ class Located:
     value: Any
 
 
-def select(
-    node: Any, pointer: str, steps: tuple[Step, ...], metaschema: Metaschema
-) -> list[Located]:
-    """Apply a parsed target expression to a node."""
+def select(node: Any, pointer: str, steps: Path, metaschema: Metaschema) -> list[Located]:
+    """Apply one parsed path to a node."""
     current = [Located(pointer, node)]
     for step in steps:
-        properties = frozenset().union(*(metaschema.properties_for(n) for n in step.names))
-        current = (
-            _descendants(current, properties) if step.descendant else _children(current, properties)
-        )
+        if step.names:
+            properties = frozenset().union(*(metaschema.properties_for(n) for n in step.names))
+            current = (
+                _descendants(current, properties)
+                if step.descendant
+                else _children(current, properties)
+            )
+        if step.predicates:
+            current = [
+                located
+                for located in current
+                if _admits(located.value, step.predicates, metaschema)
+            ]
     return current
+
+
+def select_paths(
+    node: Any, pointer: str, paths: tuple[Path, ...], metaschema: Metaschema
+) -> list[Located]:
+    """Apply a union of paths, deduplicated by location.
+
+    Deduplication is what makes a union target safe to count: the alternatives
+    of ``responsible-role|statement/responsible-role|.//by-component//responsible-role``
+    overlap, and a node reached twice must be one entry in a uniqueness index
+    and one occurrence in a cardinality count, not two.
+    """
+    found: list[Located] = []
+    seen: set[str] = set()
+    for path in paths:
+        for located in select(node, pointer, path, metaschema):
+            if located.pointer in seen:
+                continue
+            seen.add(located.pointer)
+            found.append(located)
+    return found
+
+
+def _admits(value: Any, predicates: tuple[Predicate, ...], metaschema: Metaschema) -> bool:
+    """Whether one node satisfies every predicate of a step."""
+    return all(_admits_one(value, predicate, metaschema) for predicate in predicates)
+
+
+def _admits_one(value: Any, predicate: Predicate, metaschema: Metaschema) -> bool:
+    if predicate.kind == "flag-equals":
+        if not isinstance(value, dict) or predicate.name not in value:
+            return False
+        flag = value[predicate.name]
+        return not isinstance(flag, dict | list) and str(flag) in predicate.values
+    if predicate.kind == "flag-starts-with":
+        if not isinstance(value, dict):
+            return False
+        flag = value.get(predicate.name)
+        return isinstance(flag, str) and flag.startswith(predicate.values[0])
+    if predicate.kind == "oscal-namespace":
+        namespace = value.get("ns", OSCAL_NS) if isinstance(value, dict) else OSCAL_NS
+        return isinstance(namespace, str) and namespace in predicate.values
+    # child-exists: the named child selects at least one node under any of its
+    # JSON property names. An empty array is a property with zero nodes.
+    if not isinstance(value, dict):
+        return False
+    for name in metaschema.properties_for(predicate.name):
+        child = value.get(name)
+        if child is None or (isinstance(child, list) and not child):
+            continue
+        return True
+    return False
 
 
 def _expand(pointer: str, value: Any) -> list[Located]:
@@ -463,15 +733,19 @@ __all__ = [
     "EVALUATED_KINDS",
     "FORBIDDEN_MARKUP",
     "MODULES",
+    "OSCAL_NS",
     "UNEVALUATED_KINDS",
     "Constraint",
     "KeyField",
     "Located",
     "Metaschema",
+    "Path",
+    "Predicate",
     "Step",
     "key_values",
     "load_metaschema",
     "parse_target",
     "read_module_bytes",
     "select",
+    "select_paths",
 ]

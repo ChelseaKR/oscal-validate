@@ -12,29 +12,36 @@ where it does not, the reason.
 
 ## Summary
 
-78 of 340 published constraints are evaluated.
+102 of 340 published constraints are evaluated.
 
 | Constraint kind | Published | Evaluated |
 |---|---:|---:|
 | `allowed-values` | 200 | 0 |
 | `expect` | 12 | 0 |
-| `has-cardinality` | 11 | 5 |
-| `index` | 20 | 15 |
-| `index-has-key` | 24 | 10 |
+| `has-cardinality` | 11 | 11 |
+| `index` | 20 | 19 |
+| `index-has-key` | 24 | 24 |
 | `is-unique` | 48 | 48 |
 | `matches` | 25 | 0 |
-| **total** | **340** | **78** |
+| **total** | **340** | **102** |
 
 ## Evaluated
 
 | Constraint | Kind | Level | Declared on | Target |
 |---|---|---|---|---|
+| `oscal-activity-type-cardinality` | has-cardinality | ERROR | `activity` | `prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='method']` |
+| `oscal-assesment-part-objective-cardinality` | has-cardinality | ERROR | `part` | `.[@name='objective']/prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='method']` |
+| `oscal-assessment-method-cardinality` | has-cardinality | ERROR | `local-objective` | `part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('assessment','assessment-method')]/prop[has-oscal-namespace(('http://csrc.nist.gov/ns/oscal','http://csrc.nist.gov/ns/rmf')) and @name='method']` |
+| `oscal-assessment-method-id-cardinality` | has-cardinality | ERROR | `local-objective` | `part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('objective','assessment-objective')]/prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='method-id']` |
+| `oscal-assessment-objective-cardinality` | has-cardinality | ERROR | `local-objective` | `part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('objective','assessment-objective')]` |
+| `oscal-assessment-objects-cardinality` | has-cardinality | ERROR | `local-objective` | `part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('assessment','assessment-method')]/part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('objects','assessment-objects')]` |
 | `oscal-back-matter-resource-base64-rlink-cardinality` | has-cardinality | WARNING | `resource` | `rlink|base64` |
 | `oscal-by-component-export-provided-responsibility-cardinality` | has-cardinality | ERROR | `export` | `provided|responsibility` |
 | `oscal-implemented-requirement-by-component-cardinality` | has-cardinality | ERROR | `implemented-requirement` | `.//by-component` |
 | `oscal-metadata-location-address-cardinality` | has-cardinality | WARNING | `location` | `address` |
 | `oscal-metadata-location-title-address-email-address-telephone-cardinality` | has-cardinality | ERROR | `location` | `title|address|email-address|telephone-number` |
 | `oscal-back-matter-resource-uuid-index` | index | ERROR | `back-matter` | `resource` |
+| `oscal-by-component-export-provided-uuid-index` | index | ERROR | `control-implementation` | `implemented-requirement//by-component/export/provided` |
 | `oscal-catalog-controls` | index | ERROR | `catalog` | `//control` |
 | `oscal-catalog-groups` | index | ERROR | `catalog` | `//group` |
 | `oscal-catalog-groups-controls-parts` | index | ERROR | `catalog` | `//(control|group|part)` |
@@ -42,23 +49,40 @@ where it does not, the reason.
 | `oscal-catalog-parts` | index | ERROR | `catalog` | `//part` |
 | `oscal-catalog-props` | index | ERROR | `catalog` | `//prop` |
 | `oscal-index-metadata-location-uuid` | index | ERROR | `metadata` | `location` |
+| `oscal-index-metadata-party-organizations-uuid` | index | ERROR | `metadata` | `party[@type='organization']` |
 | `oscal-index-metadata-party-uuid` | index | ERROR | `metadata` | `party` |
 | `oscal-index-metadata-property-uuid` | index | ERROR | `metadata` | `.//prop` |
 | `oscal-index-metadata-role-id` | index | ERROR | `metadata` | `role` |
 | `oscal-index-metadata-roles` | index | ERROR | `metadata` | `role` |
 | `oscal-index-system-component-uuid` | index | ERROR | `component-definition` | `component` |
+| `oscal-index-system-implementation-component-uuid-service` | index | ERROR | `system-implementation` | `component[@type='service']` |
 | `oscal-system-implementation-component-leveraged-authorization-uuid-index` | index | ERROR | `system-implementation` | `leveraged-authorization` |
 | `oscal-system-implementation-component-uuid-index` | index | ERROR | `system-implementation` | `component` |
+| `oscal-system-implementation-component-validation-uuid-index` | index | ERROR | `system-implementation` | `component[@type='validation']` |
 | `oscal-by-component-export-provided-uuid-index` | index-has-key | ERROR | `export` | `responsibility` |
+| `oscal-by-component-uuid-index` | index-has-key | ERROR | `by-component` | `link[@rel='provided-by']` |
+| `oscal-catalog-groups-controls-parts` | index-has-key | WARNING | `control` | `link[@rel=('related','required','incorporated-into','moved-to') and starts-with(@href,'#')]` |
+| `oscal-component-prop-physical-location` | index-has-key | ERROR | `system-component` | `prop[@name='physical-location']` |
+| `oscal-diagram-index-back-matter-resource-link-rel` | index-has-key | ERROR | `diagram` | `link[@rel='diagram' and starts-with(@href,'#')]` |
+| `oscal-implemented-requirement-index-metadata-party-uuid` | index-has-key | ERROR | `implemented-requirement` | `responsible-role[party-uuid]|statement/responsible-role[party-uuid]|.//by-component//responsible-role[party-uuid]` |
+| `oscal-implemented-requirement-index-metadata-role-id` | index-has-key | ERROR | `implemented-requirement` | `responsible-role|statement/responsible-role|.//by-component//responsible-role` |
 | `oscal-index-inventory-item-responsible-party-party-uuid` | index-has-key | ERROR | `inventory-item` | `responsible-party` |
 | `oscal-index-inventory-item-responsible-party-role-id` | index-has-key | ERROR | `inventory-item` | `responsible-party` |
 | `oscal-index-metadata-location-uuid` | index-has-key | ERROR | `location-uuid` | `.` |
+| `oscal-index-metadata-location-uuid` | index-has-key | ERROR | `defined-component` | `prop[@name='physical-location']` |
 | `oscal-index-metadata-party-organizations-uuid` | index-has-key | ERROR | `member-of-organization` | `.` |
 | `oscal-index-metadata-party-uuid` | index-has-key | ERROR | `party-uuid` | `.` |
 | `oscal-index-metadata-role-id` | index-has-key | ERROR | `role-id` | `.` |
+| `oscal-index-system-implementation-component-uuid-service` | index-has-key | ERROR | `system-implementation` | `component/link[@rel='uses-service']` |
+| `oscal-leveraged-authorization-index-back-matter-resource-ssp` | index-has-key | ERROR | `leveraged-authorization` | `link[@rel='system-security-plan' and starts-with(@href,'#')]` |
 | `oscal-metadata-action-name-index-metadata-party-uuid` | index-has-key | ERROR | `action` | `responsible-party` |
 | `oscal-metadata-action-name-index-metadata-role-id` | index-has-key | ERROR | `action` | `responsible-party` |
+| `oscal-metadata-link-reference-index-back-matter-resource` | index-has-key | ERROR | `link` | `.[@rel=('reference') and starts-with(@href,'#')]` |
 | `oscal-metadata-responsible-party-index-metadata-role-id` | index-has-key | ERROR | `responsible-party` | `.` |
+| `oscal-system-implementation-component-depends-on-link-index` | index-has-key | ERROR | `system-implementation` | `component/link[@rel='depends-on']` |
+| `oscal-system-implementation-component-prop-leveraged-authorization-uuid-index` | index-has-key | ERROR | `system-implementation` | `component/prop[@name='leveraged-authorization-uuid']` |
+| `oscal-system-implementation-validation-index` | index-has-key | ERROR | `system-implementation` | `component/link[@rel='validation' and starts-with(@href,'#')]` |
+| `oscal-system-information-index-back-matter-resource-pia-link-rel` | index-has-key | ERROR | `system-information` | `link[@rel='privacy-impact-assessment' and starts-with(@href,'#')]` |
 | `oscal-metadata-unique-document-id` | is-unique | ERROR | `metadata` | `document-id` |
 | `oscal-unique-activity-responsible-role` | is-unique | ERROR | `activity` | `responsible-role` |
 | `oscal-unique-ap-local-definitions-component` | is-unique | ERROR | `local-definitions` | `component` |
@@ -114,8 +138,7 @@ These constraints are parsed and run, and they can never produce a definite answ
 
 | Constraint | Declared on | Reads index | Populated by |
 |---|---|---|---|
-| `oscal-by-component-export-provided-uuid-index` | `export` | `by-component-export-provided-uuid` | `oscal-by-component-export-provided-uuid-index`, skipped |
-| `oscal-index-metadata-party-organizations-uuid` | `member-of-organization` | `index-metadata-party-organizations-uuid` | `oscal-index-metadata-party-organizations-uuid`, skipped |
+| `oscal-by-component-uuid-index` | `by-component` | `by-component-uuid` | `oscal-ssp-by-component-uuid-index`, skipped |
 
 ## Not evaluated
 
@@ -335,31 +358,7 @@ Neither passed nor failed. A document that this tool reports no findings for may
 | `oscal-parameter-depends-on-deprecated` | expect | `param` | the test is a Metapath expression, which this tool does not implement |
 | `oscal-poam-item-uuid` | expect | `poam-item` | the test is a Metapath expression, which this tool does not implement |
 | `oscal-profile-req-merge-combine` | expect | `combine` | the test is a Metapath expression, which this tool does not implement |
-| `oscal-activity-type-cardinality` | has-cardinality | `activity` | its target expression is outside the Metapath subset this tool parses: prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='method'] |
-| `oscal-assesment-part-objective-cardinality` | has-cardinality | `part` | its target expression is outside the Metapath subset this tool parses: .[@name='objective']/prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='method'] |
-| `oscal-assessment-method-cardinality` | has-cardinality | `local-objective` | its target expression is outside the Metapath subset this tool parses: part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('assessment','assessment-method')]/prop[has-oscal-namespace(('http://csrc.nist.gov/ns/oscal','http://csrc.nist.gov/ns/rmf')) and @name='method'] |
-| `oscal-assessment-method-id-cardinality` | has-cardinality | `local-objective` | its target expression is outside the Metapath subset this tool parses: part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('objective','assessment-objective')]/prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='method-id'] |
-| `oscal-assessment-objective-cardinality` | has-cardinality | `local-objective` | its target expression is outside the Metapath subset this tool parses: part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('objective','assessment-objective')] |
-| `oscal-assessment-objects-cardinality` | has-cardinality | `local-objective` | its target expression is outside the Metapath subset this tool parses: part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('assessment','assessment-method')]/part[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name=('objects','assessment-objects')] |
-| `oscal-by-component-export-provided-uuid-index` | index | `control-implementation` | its target expression is outside the Metapath subset this tool parses: implemented-requirement//by-component/export/provided |
-| `oscal-index-metadata-party-organizations-uuid` | index | `metadata` | its target expression is outside the Metapath subset this tool parses: party[@type='organization'] |
-| `oscal-index-system-implementation-component-uuid-service` | index | `system-implementation` | its target expression is outside the Metapath subset this tool parses: component[@type='service'] |
-| `oscal-ssp-by-component-uuid-index` | index | `system-security-plan` | its target expression is outside the Metapath subset this tool parses: control-implementation/implemented-requirement//by-component|doc(system-implementation/leveraged-authorization/link[@rel='system-security-plan']/@href)/system-security-plan/control-implementation/implemented-requirement//by-component |
-| `oscal-system-implementation-component-validation-uuid-index` | index | `system-implementation` | its target expression is outside the Metapath subset this tool parses: component[@type='validation'] |
-| `oscal-by-component-uuid-index` | index-has-key | `by-component` | its target expression is outside the Metapath subset this tool parses: link[@rel='provided-by'] |
-| `oscal-catalog-groups-controls-parts` | index-has-key | `control` | its target expression is outside the Metapath subset this tool parses: link[@rel=('related','required','incorporated-into','moved-to') and starts-with(@href,'#')] |
-| `oscal-component-prop-physical-location` | index-has-key | `system-component` | its target expression is outside the Metapath subset this tool parses: prop[@name='physical-location'] |
-| `oscal-diagram-index-back-matter-resource-link-rel` | index-has-key | `diagram` | its target expression is outside the Metapath subset this tool parses: link[@rel='diagram' and starts-with(@href,'#')] |
-| `oscal-implemented-requirement-index-metadata-party-uuid` | index-has-key | `implemented-requirement` | its target expression is outside the Metapath subset this tool parses: responsible-role[party-uuid]|statement/responsible-role[party-uuid]|.//by-component//responsible-role[party-uuid] |
-| `oscal-implemented-requirement-index-metadata-role-id` | index-has-key | `implemented-requirement` | its target expression is outside the Metapath subset this tool parses: responsible-role|statement/responsible-role|.//by-component//responsible-role |
-| `oscal-index-metadata-location-uuid` | index-has-key | `defined-component` | its target expression is outside the Metapath subset this tool parses: prop[@name='physical-location'] |
-| `oscal-index-system-implementation-component-uuid-service` | index-has-key | `system-implementation` | its target expression is outside the Metapath subset this tool parses: component/link[@rel='uses-service'] |
-| `oscal-leveraged-authorization-index-back-matter-resource-ssp` | index-has-key | `leveraged-authorization` | its target expression is outside the Metapath subset this tool parses: link[@rel='system-security-plan' and starts-with(@href,'#')] |
-| `oscal-metadata-link-reference-index-back-matter-resource` | index-has-key | `link` | its target expression is outside the Metapath subset this tool parses: .[@rel=('reference') and starts-with(@href,'#')] |
-| `oscal-system-implementation-component-depends-on-link-index` | index-has-key | `system-implementation` | its target expression is outside the Metapath subset this tool parses: component/link[@rel='depends-on'] |
-| `oscal-system-implementation-component-prop-leveraged-authorization-uuid-index` | index-has-key | `system-implementation` | its target expression is outside the Metapath subset this tool parses: component/prop[@name='leveraged-authorization-uuid'] |
-| `oscal-system-implementation-validation-index` | index-has-key | `system-implementation` | its target expression is outside the Metapath subset this tool parses: component/link[@rel='validation' and starts-with(@href,'#')] |
-| `oscal-system-information-index-back-matter-resource-pia-link-rel` | index-has-key | `system-information` | its target expression is outside the Metapath subset this tool parses: link[@rel='privacy-impact-assessment' and starts-with(@href,'#')] |
+| `oscal-ssp-by-component-uuid-index` | index | `system-security-plan` | its target dereferences a second document through doc(), which this tool does not implement: control-implementation/implemented-requirement//by-component|doc(system-implementation/leveraged-authorization/link[@rel='system-security-plan']/@href)/system-security-plan/control-implementation/implemented-requirement//by-component |
 | `oscal-back-matter-resource-prop-published-datatype` | matches | `resource` | the value constraint is applied through Metapath datatype coercion |
 | `oscal-check-hash-length-SHA2-3-224` | matches | `hash` | the value constraint is applied through Metapath datatype coercion |
 | `oscal-check-hash-length-SHA2-3-256` | matches | `hash` | the value constraint is applied through Metapath datatype coercion |

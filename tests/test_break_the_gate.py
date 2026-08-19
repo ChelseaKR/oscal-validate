@@ -115,39 +115,93 @@ def test_a_profile_control_reference_that_misses_is_caught_only_with_the_catalog
     assert "REFERENCE_UNRESOLVED" in _errors(path, [catalog])
 
 
-def test_a_lookup_into_an_index_that_was_never_built_is_never_an_error(
+def test_a_member_of_organizations_that_names_no_organization_is_caught(
     tmp_path: Path, clean_catalog: Any
 ) -> None:
-    """The other direction of the same rule: a skipped constraint accuses nobody.
+    """A gate that only exists since predicate targets parse (ADR-0004).
 
     NIST builds ``index-metadata-party-organizations-uuid`` with an ``index``
-    constraint whose target is ``party[@type='organization']``, a predicate
-    outside the Metapath subset this tool parses, so that index is never
-    populated. The ``index-has-key`` constraint that reads it *is* evaluated. A
-    lookup into an empty index misses every key, so reporting the miss as a
-    failure would report a rule this tool did not evaluate as a defect in
-    someone's document. Here the organization named is the one the fixture
-    declares, and it must not be an ERROR.
+    constraint whose target is ``party[@type='organization']``. Until the
+    bounded predicate grammar, that index was never populated and every lookup
+    into it was UNVERIFIABLE. Now it is built, so a person claiming membership
+    of an organization the document does not declare is a caught ERROR -- and
+    membership of the organization it does declare stays clean.
     """
     organization = clean_catalog["catalog"]["metadata"]["parties"][0]
-    clean_catalog["catalog"]["metadata"]["parties"].append(
-        {
-            "uuid": "5c2b0d18-2b7a-4f6e-9a0e-2c1d3e4f5a60",
-            "type": "person",
-            "name": "Example Person",
-            "member-of-organizations": [organization["uuid"]],
-        }
+    person = {
+        "uuid": "5c2b0d18-2b7a-4f6e-9a0e-2c1d3e4f5a60",
+        "type": "person",
+        "name": "Example Person",
+        "member-of-organizations": [organization["uuid"]],
+    }
+    clean_catalog["catalog"]["metadata"]["parties"].append(person)
+    path = write(tmp_path, "resolves.json", clean_catalog)
+    findings = validate_file(path)
+    assert "REFERENCE_UNRESOLVED" not in {f.code for f in findings}
+    assert not [f for f in findings if "index-metadata-party-organizations-uuid" in f.message], (
+        "a membership the index resolves must produce no finding at all"
     )
-    path = write(tmp_path, "c.json", clean_catalog)
-    assert "REFERENCE_UNRESOLVED" not in _errors(path)
+
+    person["member-of-organizations"] = ["11111111-2222-4333-8444-555555555555"]
+    dangling = _errors(write(tmp_path, "dangles.json", clean_catalog))
+    assert "REFERENCE_UNRESOLVED" in dangling, (
+        "a membership naming no declared organization must be caught now that "
+        "the party[@type='organization'] index is built"
+    )
+
+
+def test_a_lookup_into_an_index_that_was_never_built_is_never_an_error(tmp_path: Path) -> None:
+    """A skipped constraint accuses nobody.
+
+    One published index is still never built: ``by-component-uuid``,
+    whose target dereferences a second document through ``doc()``. The
+    ``index-has-key`` on ``link[@rel='provided-by']`` that reads it *is*
+    evaluated, and a lookup into an index that was never populated misses
+    every key. Reporting the miss as a failure would report a rule this tool
+    did not evaluate as a defect in someone's document, so it is UNVERIFIABLE
+    and names the index.
+    """
+    ssp = {
+        "system-security-plan": {
+            "uuid": "7b1d6c8a-4a5e-4b3c-8d2f-1e0a9b8c7d61",
+            "metadata": {
+                "title": "Gate fixture",
+                "last-modified": "2026-08-19T00:00:00Z",
+                "version": "1",
+                "oscal-version": "1.2.3",
+            },
+            "import-profile": {"href": "#11111111-2222-4333-8444-555555555555"},
+            "control-implementation": {
+                "description": "One by-component whose provided-by cannot be looked up.",
+                "implemented-requirements": [
+                    {
+                        "uuid": "9c8b7a6d-5e4f-4321-9876-0a1b2c3d4e5f",
+                        "control-id": "ac-1",
+                        "by-components": [
+                            {
+                                "component-uuid": "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d",
+                                "uuid": "1f2e3d4c-5b6a-4978-8695-a4b3c2d1e0f9",
+                                "description": "x",
+                                "links": [{"href": "#dead", "rel": "provided-by"}],
+                            }
+                        ],
+                    }
+                ],
+            },
+        }
+    }
+    path = write(tmp_path, "ssp.json", ssp)
+    findings = validate_file(path)
     unsettled = [
         f
-        for f in validate_file(path)
-        if f.code == "REFERENCE_UNVERIFIABLE"
-        and "index-metadata-party-organizations-uuid" in f.message
+        for f in findings
+        if f.code == "REFERENCE_UNVERIFIABLE" and "by-component-uuid" in f.message
     ]
     assert unsettled, "the unbuilt index must be named, not silently passed"
     assert all(f.severity is Severity.UNVERIFIABLE for f in unsettled)
+    assert not [
+        f for f in findings if f.code == "REFERENCE_UNRESOLVED" and "by-component-uuid" in f.message
+    ]
 
 
 def test_an_object_no_schema_alternative_accepts_is_caught(
