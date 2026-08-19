@@ -330,8 +330,31 @@ relative path into a directory the publishing repository does not have; one
 imports a back-matter UUID it never declares. And 29 were this tool's fault, a
 defect the run exposed and the write-up describes.
 
-The survey harness and its target list are in [`tools/`](tools/), and both runs
-are reproducible.
+Those two runs shared one sample, and it had two limits they both stated: seven
+of the eight models, and 30 of 52 documents from NIST.
+[`docs/findings/2026-08-19-widening-the-corpus-survey.md`](docs/findings/2026-08-19-widening-the-corpus-survey.md)
+is 43 more documents from twenty-one publishers none of the first two reached —
+the German BSI, the Australian Cyber Security Centre, NIST's BLOSSOM programme,
+GSA, the OSCAL Plugfest, the Linux Foundation's OSCAL Compass, Red Hat, MITRE and
+others — taking the corpus to **95 documents and all eight models**. Nine carried
+at least one ERROR, each verified by hand: four UUIDs used twice in one SSP, 35
+implemented requirements with no `description`, 13 control titles with newlines
+in a field declared as one line, three catalog groups that hold both subgroups
+and controls where NIST's schema permits either but not both, and Go's zero-value
+timestamp published as a date.
+
+The eighth model arrived with a result attached. All seven mapping collections
+reported `SUBTREE_NOT_READ` at `/mapping-collection/mappings` — the whole
+substance of the model is outside what this tool resolves, and it says so on
+every document rather than reporting a clean run. Three of the seven also declare
+an `oscal-version` from before OSCAL 1.2, a release whose schema has no mapping
+model at all; that was measured against NIST's own published v1.1.2 schema, not
+assumed.
+
+The survey harness and its target lists are in [`tools/`](tools/), and all three
+runs are reproducible: the findings a run records are now independent of where
+its cache lives, which they were not before, and `--provenance` carries a
+document's retrieval record forward into any later run that reads it from cache.
 
 ## Limits
 

@@ -37,6 +37,21 @@ and this project adheres to
   once, and the report told the caller to supply a document they had just
   supplied. Supplied paths are now deduplicated by resolved path, so every one
   of those spellings gives the same report as passing the file once.
+- **The survey harness recorded a bookkeeping field that depended on where it
+  was run.** It writes one example location per finding code, taking the first
+  finding of that code in the validator's order; `Finding.sort_key` leads with
+  the location, and a finding in a supporting document is located by the path
+  that document was read from. So the ordering was a fact about one laptop, and
+  moving the cache directory moved the recorded example. Measured on the
+  2026-08-15 sample: **7 of 52 records changed when the cache moved**, and the
+  committed evidence differed from a re-run in 9. Counts never varied. The fix
+  is to rewrite the location to its URL *before* sorting rather than after, so
+  the key is the validator's own with only the machine-specific axis removed.
+  The committed 2026-08-15 evidence now reproduces from any cache path with zero
+  differences across every content field, and needed no edit to do it — the
+  harness was what could not reproduce it. `tests/test_determinism.py` pins the
+  invariant against two cache spellings that straddle the primary document's own
+  pointers, and fails on the previous code.
 
 ### Added
 
@@ -56,6 +71,30 @@ and this project adheres to
 - `CITATION.cff` now carries `version` and `date-released` for the current
   release (0.2.0, tagged 2026-08-16). Both fields were absent, which left a
   released package without a citable version.
+- `docs/findings/2026-08-19-widening-the-corpus-survey.md` and its JSON: a third
+  survey run, over 43 published documents from **twenty-one publishers** none of
+  the first two runs reached, taking the corpus to **95 documents and all eight
+  OSCAL models**. `mapping-collection` had never appeared; the German BSI, the
+  Australian Cyber Security Centre, NIST's BLOSSOM programme, GSA, the OSCAL
+  Plugfest, the Linux Foundation's OSCAL Compass, Red Hat, MITRE and thirteen
+  others had not either. Targets are in `tools/survey-urls-2026-08-19.txt`; the
+  two target lists are disjoint and a test enforces it, so the corpus total is a
+  sum rather than a double-count.
+- The run reached four checks that 52 NIST and FedRAMP documents never had:
+  `NO_SCHEMA_ALTERNATIVE`, `PROPERTY_UNDECLARED`, `REQUIRED_PROPERTY_MISSING`
+  and `SUBTREE_NOT_READ` were all implemented and all unexercised by real
+  published content until now.
+- 100 ERROR findings in 9 of the 43 documents, each verified by hand against the
+  source before publication, and two verified against the OSCAL release the
+  document itself declares by fetching NIST's schema for that release. One is
+  published as **unverified** against its declared version rather than counted
+  quietly: `splunk-demo.json` declares `1.0.0-rc1`, for which NIST publishes no
+  standalone schema.
+- `survey.py --provenance`: carries the `fetch` record an earlier run wrote for
+  a URL into a later run's own record for it. A fetch happens once and the cache
+  answers ever after, so without it a reused document's HTTP status, final URL,
+  redirect chain and `robots.txt` outcome stayed in whichever run first reached
+  the network. This narrows a limitation the corpus data card already named.
 
 ### Changed
 

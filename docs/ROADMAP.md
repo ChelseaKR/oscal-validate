@@ -94,6 +94,22 @@ rather than be filled with invented zeroes.
   the specification with its own test suite upstream. REVIEW, owner: maintainer.
 - Re-run the survey against the same targets after the next OSCAL release, and
   record whether the findings persist.
+- Decide what to do about `/mapping-collection/mappings`, which no rule in this
+  tool reads. The 2026-08-19 run put all seven public mapping collections in the
+  corpus and every one of them reported `SUBTREE_NOT_READ` there, so the eighth
+  model is represented and its content is unchecked. Until that changes,
+  `tests/test_break_the_gate.py` cannot seed a corruption inside a mapping and
+  watch it get caught, which means the model has no gate to break. REVIEW,
+  owner: maintainer.
+- Decide how a document that declares an older `oscal-version` should be
+  reported. Everything is validated against the vendored 1.2.3 schema and
+  `OSCAL_VERSION_DIFFERS` warns about the gap, which was sufficient while every
+  ERROR in the corpus was version-independent. The 2026-08-19 run produced the
+  first ERRORs that turn on the difference: three mapping collections declare a
+  release that has no mapping model at all, and one component definition declares
+  a pre-1.0 release candidate whose schema NIST does not publish standalone.
+  Checking each finding against its document's declared version is currently a
+  manual step in the write-up. REVIEW, owner: maintainer.
 - Register this repository in the portfolio's `applicability.yml`. It is public
   and it is absent from the manifest on `main`, which the manifest's own header
   calls a loud failure of the weekly conformance run. An entry exists on the

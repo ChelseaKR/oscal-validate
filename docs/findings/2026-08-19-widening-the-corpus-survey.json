@@ -1,0 +1,1824 @@
+{
+  "records": [
+    {
+      "bytes": 70381,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PROPERTY_UNDECLARED": 2,
+        "SUBTREE_NOT_READ": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/mapping-collection",
+        "OSCAL_VERSION_DIFFERS": "/mapping-collection/metadata/oscal-version",
+        "PROPERTY_UNDECLARED": "/mapping-collection/provenance",
+        "SUBTREE_NOT_READ": "/mapping-collection/mappings"
+      },
+      "fetch": {
+        "bytes": 70381,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Mappings/ISO-27001-zu-GSpp/ISO27001-AnnexA-to-GS%2B%2B-mapping_collection.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Mappings/ISO-27001-zu-GSpp/ISO27001-AnnexA-to-GS%2B%2B-mapping_collection.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "bsi",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "mapping-collection",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Mappings/ISO-27001-zu-GSpp/ISO27001-AnnexA-to-GS%2B%2B-mapping_collection.json"
+    },
+    {
+      "bytes": 33776,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 33776,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Risikomanagement/BSI-Anforderungen-zum-Risikomanagement-catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Risikomanagement/BSI-Anforderungen-zum-Risikomanagement-catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "bsi",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Risikomanagement/BSI-Anforderungen-zum-Risikomanagement-catalog.json"
+    },
+    {
+      "bytes": 47790,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 47790,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Mindeststandard-TLS/Entwurf-Mindeststandard-TLS-catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Mindeststandard-TLS/Entwurf-Mindeststandard-TLS-catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "bsi",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Mindeststandard-TLS/Entwurf-Mindeststandard-TLS-catalog.json"
+    },
+    {
+      "bytes": 54724,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 3,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 43
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 54724,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/implementation_layer/Keycloak/Keycloak-component_definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/implementation_layer/Keycloak/Keycloak-component_definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "bsi",
+      "imports": 3,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 3,
+        "UNVERIFIABLE": 50,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/implementation_layer/Keycloak/Keycloak-component_definition.json"
+    },
+    {
+      "bytes": 74246,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 3,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 25
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/capabilities/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/capabilities/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 74246,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/implementation_layer/AWS%20Beispiel-Components/AWS%20Security%20Hub-component_definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/implementation_layer/AWS%20Beispiel-Components/AWS%20Security%20Hub-component_definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "bsi",
+      "imports": 3,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 3,
+        "UNVERIFIABLE": 32,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/implementation_layer/AWS%20Beispiel-Components/AWS%20Security%20Hub-component_definition.json"
+    },
+    {
+      "bytes": 2545493,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "group": "acsc",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "read from cache",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json"
+    },
+    {
+      "bytes": 6066,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "fetch": {
+        "bytes": 6066,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_E8_ML1-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_E8_ML1-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "acsc",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "resolve": [
+        "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_E8_ML1-baseline_profile.json"
+    },
+    {
+      "bytes": 18433,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "fetch": {
+        "bytes": 18433,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_PROTECTED-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_PROTECTED-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "acsc",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "profile",
+      "outcome": "fetched",
+      "resolve": [
+        "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_PROTECTED-baseline_profile.json"
+    },
+    {
+      "bytes": 42979,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 41
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json#/profile/imports/0/href",
+        "IMPORT_RESOLVED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 42979,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/ssp/blossom_admin_member_ssp.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/ssp/blossom_admin_member_ssp.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "blossom",
+      "imports": 2,
+      "imports_resolved": 1,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "resolve": [
+        "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 2,
+        "UNVERIFIABLE": 48,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/ssp/blossom_admin_member_ssp.json"
+    },
+    {
+      "bytes": 174121,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 287,
+        "UUID_NOT_UNIQUE": 4
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json#/profile/imports/0/href",
+        "IMPORT_RESOLVED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id",
+        "UUID_NOT_UNIQUE": "/system-security-plan/control-implementation/implemented-requirements/1/statements/0/by-components/0/export/responsibilities/0/uuid"
+      },
+      "fetch": {
+        "bytes": 174121,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/ssp/aws_leveraged_authorization_ssp.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/ssp/aws_leveraged_authorization_ssp.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "blossom",
+      "imports": 2,
+      "imports_resolved": 1,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "resolve": [
+        "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json"
+      ],
+      "summary": {
+        "ERROR": 4,
+        "INFO": 2,
+        "UNVERIFIABLE": 294,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/ssp/aws_leveraged_authorization_ssp.json"
+    },
+    {
+      "bytes": 3748,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 2,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_RESOLVED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile"
+      },
+      "group": "blossom",
+      "imports": 2,
+      "imports_resolved": 2,
+      "model": "profile",
+      "outcome": "read from cache",
+      "resolve": [
+        "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json",
+        "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 2,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json"
+    },
+    {
+      "bytes": 5250,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_RESOLVED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition"
+      },
+      "fetch": {
+        "bytes": 5250,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/GSA-TTS/cg-egress-proxy/main/docs/compliance/component-definitions/cg-egress-proxy/component-definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/GSA-TTS/cg-egress-proxy/main/docs/compliance/component-definitions/cg-egress-proxy/component-definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "gsa",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [
+        "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/GSA-TTS/cg-egress-proxy/main/docs/compliance/component-definitions/cg-egress-proxy/component-definition.json"
+    },
+    {
+      "bytes": 910,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-plan",
+        "IMPORT_NOT_SUPPLIED": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json#/system-security-plan/import-profile/href",
+        "IMPORT_RESOLVED": "/assessment-plan/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-plan",
+        "REFERENCE_UNVERIFIABLE": "/assessment-plan/reviewed-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "group": "gsa",
+      "imports": 2,
+      "imports_resolved": 1,
+      "model": "assessment-plan",
+      "outcome": "read from cache",
+      "resolve": [
+        "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 2,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-plans/ms-01-assessment-plan.json"
+    },
+    {
+      "bytes": 2370,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "IMPORT_RESOLVED": 2,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-results",
+        "IMPORT_NOT_SUPPLIED": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json#/system-security-plan/import-profile/href",
+        "IMPORT_RESOLVED": "/assessment-results/import-ap/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-results/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-results",
+        "REFERENCE_UNVERIFIABLE": "/assessment-results/results/0/reviewed-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 2370,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-results/ms-01-assessment-result.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-results/ms-01-assessment-result.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "gsa",
+      "imports": 3,
+      "imports_resolved": 2,
+      "model": "assessment-results",
+      "outcome": "fetched",
+      "resolve": [
+        "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-plans/ms-01-assessment-plan.json",
+        "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 3,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-results/ms-01-assessment-result.json"
+    },
+    {
+      "bytes": 25461,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 4
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "group": "plugfest",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "read from cache",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/SSP/Valid/Entra_ID_system-security-plan.json"
+    },
+    {
+      "bytes": 19885,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 1,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 10
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/assessment-plan/back-matter/resources/0",
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-plan",
+        "IMPORT_NOT_SUPPLIED": "/assessment-plan/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-plan",
+        "REFERENCE_UNVERIFIABLE": "/assessment-plan/local-definitions/activities/0/related-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 19885,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/AP/Valid/Entra_ID_assessment-plan.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/AP/Valid/Entra_ID_assessment-plan.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "plugfest",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-plan",
+      "outcome": "fetched",
+      "resolve": [
+        "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/SSP/Valid/Entra_ID_system-security-plan.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 17,
+        "WARNING": 2
+      },
+      "url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/AP/Valid/Entra_ID_assessment-plan.json"
+    },
+    {
+      "bytes": 39165,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 14
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-results",
+        "IMPORT_NOT_SUPPLIED": "/assessment-results/import-ap/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-results/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-results",
+        "REFERENCE_UNVERIFIABLE": "/assessment-results/results/0/reviewed-controls/control-selections/0/include-controls/0/control-id"
+      },
+      "fetch": {
+        "bytes": 39165,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/AR/Valid/assessment-results_kansa_valid.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/AR/Valid/assessment-results_kansa_valid.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "plugfest",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-results",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/AR/Valid/assessment-results_kansa_valid.json"
+    },
+    {
+      "bytes": 33976,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 1,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNRESOLVED": 5,
+        "REFERENCE_UNVERIFIABLE": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/plan-of-action-and-milestones/back-matter/resources/1",
+        "CONSTRAINT_NOT_EVALUATED": "/plan-of-action-and-milestones",
+        "OSCAL_VERSION_DIFFERS": "/plan-of-action-and-milestones/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/plan-of-action-and-milestones",
+        "REFERENCE_UNRESOLVED": "/plan-of-action-and-milestones/metadata/parties/1/links/1/href",
+        "REFERENCE_UNVERIFIABLE": "/plan-of-action-and-milestones/metadata/parties/3/member-of-organizations/0"
+      },
+      "fetch": {
+        "bytes": 33976,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/POAM/Valid/valid_oscal_poam_1.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/POAM/Valid/valid_oscal_poam_1.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "plugfest",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "plan-of-action-and-milestones",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 5,
+        "INFO": 0,
+        "UNVERIFIABLE": 8,
+        "WARNING": 2
+      },
+      "url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/POAM/Valid/valid_oscal_poam_1.json"
+    },
+    {
+      "bytes": 83325,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 83325,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/Catalog/Untested/FedRAMP%20RFC-0006%2020x%20Phase%20One%20Key%20Security%20Indicators.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/Catalog/Untested/FedRAMP%20RFC-0006%2020x%20Phase%20One%20Key%20Security%20Indicators.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "plugfest",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/Catalog/Untested/FedRAMP%20RFC-0006%2020x%20Phase%20One%20Key%20Security%20Indicators.json"
+    },
+    {
+      "bytes": 39254,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "SUBTREE_NOT_READ": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/mapping-collection",
+        "OSCAL_VERSION_DIFFERS": "/mapping-collection/metadata/oscal-version",
+        "SUBTREE_NOT_READ": "/mapping-collection/mappings"
+      },
+      "fetch": {
+        "bytes": 39254,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/mapping-collections/nist_ai_rmf_to_iso_42001/mapping-collection.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/mapping-collections/nist_ai_rmf_to_iso_42001/mapping-collection.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "compass",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "mapping-collection",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/mapping-collections/nist_ai_rmf_to_iso_42001/mapping-collection.json"
+    },
+    {
+      "bytes": 2412,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "SUBTREE_NOT_READ": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/mapping-collection",
+        "OSCAL_VERSION_DIFFERS": "/mapping-collection/metadata/oscal-version",
+        "SUBTREE_NOT_READ": "/mapping-collection/mappings"
+      },
+      "fetch": {
+        "bytes": 2412,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/examples-direct-mapping/mapping-collections/PCI_v4-to-NIST_800-53_rev4/mapping-collection.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/examples-direct-mapping/mapping-collections/PCI_v4-to-NIST_800-53_rev4/mapping-collection.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "compass",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "mapping-collection",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/examples-direct-mapping/mapping-collections/PCI_v4-to-NIST_800-53_rev4/mapping-collection.json"
+    },
+    {
+      "bytes": 2537,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "NO_SCHEMA_ALTERNATIVE": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "SUBTREE_NOT_READ": 1,
+        "TYPE_MISMATCH": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/mapping-collection",
+        "NO_SCHEMA_ALTERNATIVE": "/mapping-collection/provenance/confidence-score",
+        "OSCAL_VERSION_DIFFERS": "/mapping-collection/metadata/oscal-version",
+        "SUBTREE_NOT_READ": "/mapping-collection/mappings",
+        "TYPE_MISMATCH": "/mapping-collection/provenance/method"
+      },
+      "fetch": {
+        "bytes": 2537,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/examples-harmonized-mapping/mapping-collections/NIST-800-53_rev4-to-Harmonized_V1.0/mapping-collection.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/examples-harmonized-mapping/mapping-collections/NIST-800-53_rev4-to-Harmonized_V1.0/mapping-collection.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "compass",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "mapping-collection",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/examples-harmonized-mapping/mapping-collections/NIST-800-53_rev4-to-Harmonized_V1.0/mapping-collection.json"
+    },
+    {
+      "bytes": 310872,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "group": "compass",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "read from cache",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/nist_ai_rmf_gen_ai/1.0.0/catalog.json"
+    },
+    {
+      "bytes": 214513,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "DATATYPE_MISMATCH": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "DATATYPE_MISMATCH": "/catalog/metadata/last-modified",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 214513,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/hipaa-2.0.0/catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/hipaa-2.0.0/catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "compass",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/hipaa-2.0.0/catalog.json"
+    },
+    {
+      "bytes": 85890,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_RESOLVED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_RESOLVED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition"
+      },
+      "fetch": {
+        "bytes": 85890,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/component-definitions/ai-platform/1.0.0/component-definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/component-definitions/ai-platform/1.0.0/component-definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "compass",
+      "imports": 1,
+      "imports_resolved": 1,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [
+        "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/nist_ai_rmf_gen_ai/1.0.0/catalog.json"
+      ],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/component-definitions/ai-platform/1.0.0/component-definition.json"
+    },
+    {
+      "bytes": 100003,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 34
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/system-security-plan",
+        "IMPORT_NOT_SUPPLIED": "/system-security-plan/import-profile/href",
+        "OSCAL_VERSION_DIFFERS": "/system-security-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/system-security-plan",
+        "REFERENCE_UNVERIFIABLE": "/system-security-plan/control-implementation/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 100003,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/e2e-demo-ssp/main/system-security-plans/Ubuntu_Linux_24_04_LTS/system-security-plan.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/e2e-demo-ssp/main/system-security-plans/Ubuntu_Linux_24_04_LTS/system-security-plan.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "compass",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "system-security-plan",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 41,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/e2e-demo-ssp/main/system-security-plans/Ubuntu_Linux_24_04_LTS/system-security-plan.json"
+    },
+    {
+      "bytes": 26823,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "DATATYPE_MISMATCH": 32,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REQUIRED_PROPERTY_MISSING": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-results",
+        "DATATYPE_MISMATCH": "/assessment-results/results/0/local-definitions/inventory-items/0/uuid",
+        "IMPORT_NOT_SUPPLIED": "/assessment-results/import-ap/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-results/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-results",
+        "REQUIRED_PROPERTY_MISSING": "/assessment-results/results/0"
+      },
+      "fetch": {
+        "bytes": 26823,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/compliance-to-policy-go/main/docs/ocm/final-outputs/assessment-results.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/compliance-to-policy-go/main/docs/ocm/final-outputs/assessment-results.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "compass",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-results",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 33,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/compliance-to-policy-go/main/docs/ocm/final-outputs/assessment-results.json"
+    },
+    {
+      "bytes": 7264,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "SUBTREE_NOT_READ": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/mapping-collection",
+        "OSCAL_VERSION_DIFFERS": "/mapping-collection/metadata/oscal-version",
+        "SUBTREE_NOT_READ": "/mapping-collection/mappings"
+      },
+      "fetch": {
+        "bytes": 7264,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/compliance-trestle/develop/tests/data/mapping-collections/soc2/mapping-collection.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/compliance-trestle/develop/tests/data/mapping-collections/soc2/mapping-collection.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "compass",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "mapping-collection",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oscal-compass/compliance-trestle/develop/tests/data/mapping-collections/soc2/mapping-collection.json"
+    },
+    {
+      "bytes": 53062,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "SUBTREE_NOT_READ": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/mapping-collection",
+        "OSCAL_VERSION_DIFFERS": "/mapping-collection/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/mapping-collection",
+        "SUBTREE_NOT_READ": "/mapping-collection/mappings"
+      },
+      "fetch": {
+        "bytes": 53062,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/nickmahl/oscal-trestle-viewer/main/build/mapping-collections/iso27001-nistcsf/mapping-collection.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/nickmahl/oscal-trestle-viewer/main/build/mapping-collections/iso27001-nistcsf/mapping-collection.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "mapping-collection",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/nickmahl/oscal-trestle-viewer/main/build/mapping-collections/iso27001-nistcsf/mapping-collection.json"
+    },
+    {
+      "bytes": 64279,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "SUBTREE_NOT_READ": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/mapping-collection",
+        "OSCAL_VERSION_DIFFERS": "/mapping-collection/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/mapping-collection",
+        "SUBTREE_NOT_READ": "/mapping-collection/mappings"
+      },
+      "fetch": {
+        "bytes": 64279,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/sam-aydlette/samaydlette.com/main/data/mappings/SP800-171r2-to-SP800-53r4.mapping.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/sam-aydlette/samaydlette.com/main/data/mappings/SP800-171r2-to-SP800-53r4.mapping.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "mapping-collection",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/sam-aydlette/samaydlette.com/main/data/mappings/SP800-171r2-to-SP800-53r4.mapping.json"
+    },
+    {
+      "bytes": 2360,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 2360,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/RedHatProductSecurity/trestle-demo/main/component-definitions/hello-world-pvp/component-definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/RedHatProductSecurity/trestle-demo/main/component-definitions/hello-world-pvp/component-definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/RedHatProductSecurity/trestle-demo/main/component-definitions/hello-world-pvp/component-definition.json"
+    },
+    {
+      "bytes": 205151,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 783
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_NOT_SUPPLIED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile",
+        "REFERENCE_UNVERIFIABLE": "/profile/imports/0/include-controls/0/with-ids/0"
+      },
+      "fetch": {
+        "bytes": 205151,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/RedHatProductSecurity/oscal-profiles/main/profiles/fedramp_rev5_high/profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/RedHatProductSecurity/oscal-profiles/main/profiles/fedramp_rev5_high/profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "profile",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 790,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/RedHatProductSecurity/oscal-profiles/main/profiles/fedramp_rev5_high/profile.json"
+    },
+    {
+      "bytes": 5643,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/plan-of-action-and-milestones",
+        "IMPORT_NOT_SUPPLIED": "/plan-of-action-and-milestones/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/plan-of-action-and-milestones/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/plan-of-action-and-milestones",
+        "REFERENCE_UNVERIFIABLE": "/plan-of-action-and-milestones/import-ssp/href"
+      },
+      "fetch": {
+        "bytes": 5643,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/mitre/hdf-libs/main/hdf-converters/converters/hdf-to-oscal-poam/fixtures/expected/uc-01-fixed.oscal-poam.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/mitre/hdf-libs/main/hdf-converters/converters/hdf-to-oscal-poam/fixtures/expected/uc-01-fixed.oscal-poam.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "plan-of-action-and-milestones",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/mitre/hdf-libs/main/hdf-converters/converters/hdf-to-oscal-poam/fixtures/expected/uc-01-fixed.oscal-poam.json"
+    },
+    {
+      "bytes": 3273,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 81
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/profile",
+        "IMPORT_NOT_SUPPLIED": "/profile/imports/0/href",
+        "OSCAL_VERSION_DIFFERS": "/profile/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/profile",
+        "REFERENCE_UNVERIFIABLE": "/profile/imports/0/include-controls/0/with-ids/0"
+      },
+      "fetch": {
+        "bytes": 3273,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/NTT-Data-Deutschland-SE/Grundschutz-Plus-Plus-Tools/main/ED23-Baustein-profile/DE/anwendungen_APP.1.4_mobile_anwendungen_apps.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/NTT-Data-Deutschland-SE/Grundschutz-Plus-Plus-Tools/main/ED23-Baustein-profile/DE/anwendungen_APP.1.4_mobile_anwendungen_apps.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "profile",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 88,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/NTT-Data-Deutschland-SE/Grundschutz-Plus-Plus-Tools/main/ED23-Baustein-profile/DE/anwendungen_APP.1.4_mobile_anwendungen_apps.json"
+    },
+    {
+      "bytes": 7250,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 2,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 25
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 7250,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/NTTDATA-DACH/BSI-GS-Benutzerdefinierte-Edition23-OSCAL/main/BS_GK_OSCAL_JSON_DATA/components_benutzerdefinierte/APP.1.1.component.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/NTTDATA-DACH/BSI-GS-Benutzerdefinierte-Edition23-OSCAL/main/BS_GK_OSCAL_JSON_DATA/components_benutzerdefinierte/APP.1.1.component.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 2,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 2,
+        "UNVERIFIABLE": 32,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/NTTDATA-DACH/BSI-GS-Benutzerdefinierte-Edition23-OSCAL/main/BS_GK_OSCAL_JSON_DATA/components_benutzerdefinierte/APP.1.1.component.json"
+    },
+    {
+      "bytes": 56201,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 84
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 56201,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/CivicActions/oscal-component-definitions/main/aws/oscal/aws.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/CivicActions/oscal-component-definitions/main/aws/oscal/aws.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 91,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/CivicActions/oscal-component-definitions/main/aws/oscal/aws.json"
+    },
+    {
+      "bytes": 18867,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "TYPE_MISMATCH": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "TYPE_MISMATCH": "/component-definition/components"
+      },
+      "fetch": {
+        "bytes": 18867,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/GovReady/components-stig/master/components_govready_demo_01/splunk-demo.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/GovReady/components-stig/master/components_govready_demo_01/splunk-demo.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/GovReady/components-stig/master/components_govready_demo_01/splunk-demo.json"
+    },
+    {
+      "bytes": 303771,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 1,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "DATATYPE_MISMATCH": 13,
+        "NO_SCHEMA_ALTERNATIVE": 3,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": true,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/catalog/back-matter/resources/3",
+        "CONSTRAINT_NOT_EVALUATED": "/catalog",
+        "DATATYPE_MISMATCH": "/catalog/groups/1/controls/10/title",
+        "NO_SCHEMA_ALTERNATIVE": "/catalog/groups/0",
+        "OSCAL_VERSION_DIFFERS": "/catalog/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/catalog"
+      },
+      "fetch": {
+        "bytes": 303771,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/sbomify/OSCAL/master/catalogs/cyber-essentials/danzell-v16/catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/sbomify/OSCAL/master/catalogs/cyber-essentials/danzell-v16/catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 0,
+      "imports_resolved": 0,
+      "model": "catalog",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 16,
+        "INFO": 0,
+        "UNVERIFIABLE": 7,
+        "WARNING": 2
+      },
+      "url": "https://raw.githubusercontent.com/sbomify/OSCAL/master/catalogs/cyber-essentials/danzell-v16/catalog.json"
+    },
+    {
+      "bytes": 12230,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/plan-of-action-and-milestones",
+        "IMPORT_NOT_SUPPLIED": "/plan-of-action-and-milestones/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/plan-of-action-and-milestones/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/plan-of-action-and-milestones"
+      },
+      "fetch": {
+        "bytes": 12230,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/ContainerSolutions/oscal-neo4j/main/plan_of_action_and_milestones/plan_of_action_and_milestones.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/ContainerSolutions/oscal-neo4j/main/plan_of_action_and_milestones/plan_of_action_and_milestones.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "plan-of-action-and-milestones",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/ContainerSolutions/oscal-neo4j/main/plan_of_action_and_milestones/plan_of_action_and_milestones.json"
+    },
+    {
+      "bytes": 55783,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 4,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 111
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 55783,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/l3montree-dev/devguard/main/compliance/oscal/components/component-definition-gs-mapping.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/l3montree-dev/devguard/main/compliance/oscal/components/component-definition-gs-mapping.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 4,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 4,
+        "UNVERIFIABLE": 118,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/l3montree-dev/devguard/main/compliance/oscal/components/component-definition-gs-mapping.json"
+    },
+    {
+      "bytes": 61668,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "DATATYPE_MISMATCH": 1,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 70,
+        "REQUIRED_PROPERTY_MISSING": 35
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "DATATYPE_MISMATCH": "/component-definition/metadata/document-ids/0/scheme",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id",
+        "REQUIRED_PROPERTY_MISSING": "/component-definition/components/0/control-implementations/0/implemented-requirements/0"
+      },
+      "fetch": {
+        "bytes": 61668,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/dfetch-org/dfetch/main/security/dfetch.component-definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/dfetch-org/dfetch/main/security/dfetch.component-definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 36,
+        "INFO": 1,
+        "UNVERIFIABLE": 77,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/dfetch-org/dfetch/main/security/dfetch.component-definition.json"
+    },
+    {
+      "bytes": 7939,
+      "codes": {
+        "CONSTRAINT_CARDINALITY": 3,
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 1
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_CARDINALITY": "/assessment-plan/back-matter/resources/0",
+        "CONSTRAINT_NOT_EVALUATED": "/assessment-plan",
+        "IMPORT_NOT_SUPPLIED": "/assessment-plan/import-ssp/href",
+        "OSCAL_VERSION_DIFFERS": "/assessment-plan/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/assessment-plan",
+        "REFERENCE_UNVERIFIABLE": "/assessment-plan/import-ssp/href"
+      },
+      "fetch": {
+        "bytes": 7939,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/pqctoday-org/pqctoday-hub/main/public/data/pqctoday-oscal-assessment-plan.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/pqctoday-org/pqctoday-hub/main/public/data/pqctoday-oscal-assessment-plan.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "assessment-plan",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 4
+      },
+      "url": "https://raw.githubusercontent.com/pqctoday-org/pqctoday-hub/main/public/data/pqctoday-oscal-assessment-plan.json"
+    },
+    {
+      "bytes": 3745,
+      "codes": {
+        "CONSTRAINT_NOT_EVALUATED": 6,
+        "IMPORT_NOT_SUPPLIED": 1,
+        "OSCAL_VERSION_DIFFERS": 1,
+        "PATTERN_NOT_CHECKED": 1,
+        "REFERENCE_UNVERIFIABLE": 2
+      },
+      "effective_model_complete": false,
+      "example_location": {
+        "CONSTRAINT_NOT_EVALUATED": "/component-definition",
+        "IMPORT_NOT_SUPPLIED": "/component-definition/components/0/control-implementations/0/source",
+        "OSCAL_VERSION_DIFFERS": "/component-definition/metadata/oscal-version",
+        "PATTERN_NOT_CHECKED": "/component-definition",
+        "REFERENCE_UNVERIFIABLE": "/component-definition/components/0/control-implementations/0/implemented-requirements/0/control-id"
+      },
+      "fetch": {
+        "bytes": 3745,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oasis-open/openc2-jadn-software/master/Data/OSCAL/example-component-definition.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oasis-open/openc2-jadn-software/master/Data/OSCAL/example-component-definition.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "group": "vendor",
+      "imports": 1,
+      "imports_resolved": 0,
+      "model": "component-definition",
+      "outcome": "fetched",
+      "resolve": [],
+      "summary": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 9,
+        "WARNING": 1
+      },
+      "url": "https://raw.githubusercontent.com/oasis-open/openc2-jadn-software/master/Data/OSCAL/example-component-definition.json"
+    }
+  ],
+  "summary": {
+    "blocked": 0,
+    "codes": {
+      "CONSTRAINT_CARDINALITY": 6,
+      "CONSTRAINT_NOT_EVALUATED": 258,
+      "DATATYPE_MISMATCH": 47,
+      "IMPORT_NOT_SUPPLIED": 30,
+      "IMPORT_RESOLVED": 11,
+      "NO_SCHEMA_ALTERNATIVE": 4,
+      "OSCAL_VERSION_DIFFERS": 43,
+      "PATTERN_NOT_CHECKED": 38,
+      "PROPERTY_UNDECLARED": 2,
+      "REFERENCE_UNRESOLVED": 5,
+      "REFERENCE_UNVERIFIABLE": 1620,
+      "REQUIRED_PROPERTY_MISSING": 36,
+      "SUBTREE_NOT_READ": 7,
+      "TYPE_MISMATCH": 2,
+      "UUID_NOT_UNIQUE": 4
+    },
+    "import_edges": 41,
+    "import_edges_resolved": 11,
+    "models": {
+      "assessment-plan": 3,
+      "assessment-results": 3,
+      "catalog": 7,
+      "component-definition": 11,
+      "mapping-collection": 7,
+      "plan-of-action-and-milestones": 3,
+      "profile": 5,
+      "system-security-plan": 4
+    },
+    "not_read": 0,
+    "supporting_documents": 8,
+    "supporting_not_also_targets": 3,
+    "targets": 43,
+    "validated": 43,
+    "with_complete_effective_model": 21,
+    "with_errors": 9
+  },
+  "supporting": [
+    {
+      "bytes": 2545493,
+      "fetch": {
+        "bytes": 2545493,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "outcome": "fetched",
+      "url": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json"
+    },
+    {
+      "bytes": 3748,
+      "fetch": {
+        "bytes": 3748,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "outcome": "fetched",
+      "url": "https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json"
+    },
+    {
+      "bytes": 10498,
+      "fetch": {
+        "bytes": 10498,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "outcome": "read from cache",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json"
+    },
+    {
+      "bytes": 10442037,
+      "fetch": {
+        "bytes": 10442037,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "outcome": "read from cache",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
+    },
+    {
+      "bytes": 4127,
+      "fetch": {
+        "bytes": 4127,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "outcome": "fetched",
+      "url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json"
+    },
+    {
+      "bytes": 910,
+      "fetch": {
+        "bytes": 910,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-plans/ms-01-assessment-plan.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-plans/ms-01-assessment-plan.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "outcome": "fetched",
+      "url": "https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-plans/ms-01-assessment-plan.json"
+    },
+    {
+      "bytes": 25461,
+      "fetch": {
+        "bytes": 25461,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/SSP/Valid/Entra_ID_system-security-plan.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/SSP/Valid/Entra_ID_system-security-plan.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "outcome": "fetched",
+      "url": "https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/SSP/Valid/Entra_ID_system-security-plan.json"
+    },
+    {
+      "bytes": 310872,
+      "fetch": {
+        "bytes": 310872,
+        "content_type": "text/plain; charset=utf-8",
+        "final_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/nist_ai_rmf_gen_ai/1.0.0/catalog.json",
+        "redirects": [],
+        "requested_url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/nist_ai_rmf_gen_ai/1.0.0/catalog.json",
+        "robots": "none published at https://raw.githubusercontent.com/robots.txt (HTTP 404); RFC 9309 2.3.1.3 allows it",
+        "status": 200
+      },
+      "outcome": "fetched",
+      "url": "https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/nist_ai_rmf_gen_ai/1.0.0/catalog.json"
+    }
+  ]
+}
