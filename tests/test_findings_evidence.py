@@ -22,14 +22,29 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 TARGETS = ROOT / "tools" / "survey-urls.txt"
+WIDENED_TARGETS = ROOT / "tools" / "survey-urls-2026-08-19.txt"
 FINDINGS = ROOT / "docs" / "findings"
 
 WITHHELD = FINDINGS / "2026-08-14-published-oscal-survey.json"
 WITHHELD_WRITEUP = FINDINGS / "2026-08-14-published-oscal-survey.md"
 SUPPLIED = FINDINGS / "2026-08-15-imports-supplied-survey.json"
 SUPPLIED_WRITEUP = FINDINGS / "2026-08-15-imports-supplied-survey.md"
+WIDENED = FINDINGS / "2026-08-19-widening-the-corpus-survey.json"
+WIDENED_WRITEUP = FINDINGS / "2026-08-19-widening-the-corpus-survey.md"
 
-PAIRS = [(WITHHELD, WITHHELD_WRITEUP), (SUPPLIED, SUPPLIED_WRITEUP)]
+PAIRS = [
+    (WITHHELD, WITHHELD_WRITEUP),
+    (SUPPLIED, SUPPLIED_WRITEUP),
+    (WIDENED, WIDENED_WRITEUP),
+]
+
+#: Which target list each run was drawn from. The 2026-08-14 and 2026-08-15 runs
+#: share one; the 2026-08-19 run widens the corpus and has its own, so that a
+#: dated artifact keeps naming the exact inputs it ran on rather than whatever
+#: the list has grown into since.
+DRAWN_FROM = {WITHHELD: TARGETS, SUPPLIED: TARGETS, WIDENED: WIDENED_TARGETS}
+
+TARGET_LISTS = [TARGETS, WIDENED_TARGETS]
 
 #: Everything a survey record is allowed to carry. The survey reports on whether
 #: published documents conform, so it records codes, counts, and JSON Pointers;
@@ -106,20 +121,21 @@ def _headline(writeup: Path) -> dict[str, int]:
     return found
 
 
-def _target_lines() -> list[list[str]]:
+def _target_lines(targets: Path = TARGETS) -> list[list[str]]:
     return [
         line.split("\t")
-        for line in TARGETS.read_text(encoding="utf-8").splitlines()
+        for line in targets.read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.startswith("#")
     ]
 
 
-def _targets() -> list[str]:
-    return [parts[1] for parts in _target_lines()]
+def _targets(targets: Path = TARGETS) -> list[str]:
+    return [parts[1] for parts in _target_lines(targets)]
 
 
-def test_the_target_list_is_well_formed() -> None:
-    for line in TARGETS.read_text(encoding="utf-8").splitlines():
+@pytest.mark.parametrize("targets", TARGET_LISTS)
+def test_the_target_list_is_well_formed(targets: Path) -> None:
+    for line in targets.read_text(encoding="utf-8").splitlines():
         if not line.strip() or line.startswith("#"):
             continue
         parts = line.split("\t")
@@ -129,16 +145,26 @@ def test_the_target_list_is_well_formed() -> None:
         for resolve in parts[2].split(",") if len(parts) > 2 else []:
             assert resolve.startswith("https://"), resolve
             assert resolve != parts[1], f"a document cannot resolve against itself: {resolve}"
-    urls = _targets()
+    urls = _targets(targets)
     assert len(set(urls)) == len(urls), "a duplicate URL would double-count a document"
 
 
-@pytest.mark.parametrize("survey", [WITHHELD, SUPPLIED])
+def test_no_document_is_surveyed_by_two_runs() -> None:
+    """The corpus grows by addition. A target counted twice is counted twice.
+
+    The write-ups add their denominators together to state a corpus size, which
+    is only honest while the target lists are disjoint.
+    """
+    first, second = set(_targets(TARGETS)), set(_targets(WIDENED_TARGETS))
+    assert not first & second, sorted(first & second)
+
+
+@pytest.mark.parametrize("survey", [WITHHELD, SUPPLIED, WIDENED])
 def test_every_target_appears_in_the_survey_exactly_once(survey: Path) -> None:
-    assert [record["url"] for record in _records(survey)] == _targets()
+    assert [record["url"] for record in _records(survey)] == _targets(DRAWN_FROM[survey])
 
 
-@pytest.mark.parametrize("survey", [WITHHELD, SUPPLIED])
+@pytest.mark.parametrize("survey", [WITHHELD, SUPPLIED, WIDENED])
 def test_the_evidence_carries_no_document_content(survey: Path) -> None:
     for record in _records(survey):
         unexpected = set(record) - RECORD_KEYS
@@ -203,7 +229,7 @@ def test_every_document_the_writeup_names_as_failing_did_fail(survey: Path, writ
             assert name in text, f"{name} carried ERRORs and is not named in the write-up"
 
 
-@pytest.mark.parametrize("writeup", [WITHHELD_WRITEUP, SUPPLIED_WRITEUP])
+@pytest.mark.parametrize("writeup", [WITHHELD_WRITEUP, SUPPLIED_WRITEUP, WIDENED_WRITEUP])
 def test_the_writeup_never_claims_conformance_from_a_clean_run(writeup: Path) -> None:
     text = writeup.read_text(encoding="utf-8")
     assert "has not been shown to conform" in text
@@ -213,11 +239,11 @@ def test_the_writeup_never_claims_conformance_from_a_clean_run(writeup: Path) ->
 # -- the second run, whose subject is the difference ------------------------
 
 
-def test_the_supplied_run_used_exactly_the_resolve_column() -> None:
-    declared = {
-        parts[1]: parts[2].split(",") if len(parts) > 2 else [] for parts in _target_lines()
-    }
-    for record in _records(SUPPLIED):
+@pytest.mark.parametrize("survey", [SUPPLIED, WIDENED])
+def test_a_run_supplied_exactly_what_its_resolve_column_declared(survey: Path) -> None:
+    lines = _target_lines(DRAWN_FROM[survey])
+    declared = {parts[1]: parts[2].split(",") if len(parts) > 2 else [] for parts in lines}
+    for record in _records(survey):
         assert record["resolve"] == declared[record["url"]], record["url"]
 
 
@@ -232,9 +258,11 @@ def test_the_withheld_run_supplied_only_what_its_own_column_declared() -> None:
     assert withheld_edges < supplied_edges
 
 
-def test_every_supporting_document_is_named_by_some_target() -> None:
-    named = {url for parts in _target_lines() if len(parts) > 2 for url in parts[2].split(",")}
-    listed = {entry["url"] for entry in _payload(SUPPLIED)["supporting"]}
+@pytest.mark.parametrize("survey", [SUPPLIED, WIDENED])
+def test_every_supporting_document_is_named_by_some_target(survey: Path) -> None:
+    lines = _target_lines(DRAWN_FROM[survey])
+    named = {url for parts in lines if len(parts) > 2 for url in parts[2].split(",")}
+    listed = {entry["url"] for entry in _payload(survey)["supporting"]}
     assert listed == named
 
 
@@ -283,3 +311,72 @@ def test_the_documents_that_stayed_unsettled_are_all_named() -> None:
     for record in incomplete:
         name = record["url"].rsplit("/", 1)[-1]
         assert name in text, f"{name} stayed incomplete and is not named in the write-up"
+
+
+# -- the third run, whose subject is the corpus itself -----------------------
+
+
+def _model_roots() -> set[str]:
+    """OSCAL's model root elements, read off the vendored schema rather than typed.
+
+    The eighth is the point of the third run, and a list of eight names in a
+    test is exactly the kind of thing that silently becomes a list of seven.
+    """
+    schema = json.loads(
+        (ROOT / "src" / "oscal_validate" / "vendor" / "oscal" / "complete_schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    return {
+        name
+        for alternative in schema["oneOf"]
+        for name in alternative["properties"]
+        if name != "$schema"
+    }
+
+
+def test_the_corpus_covers_every_model_the_vendored_schema_accepts() -> None:
+    surveyed = {record["model"] for survey in (SUPPLIED, WIDENED) for record in _records(survey)}
+    missing = _model_roots() - surveyed
+    assert not missing, f"no real published document in the corpus uses {sorted(missing)}"
+
+
+def test_the_eighth_model_arrived_with_the_widened_run() -> None:
+    """The claim the 2026-08-19 write-up is built on, kept true by measurement."""
+    before = {record["model"] for record in _records(SUPPLIED)}
+    after = {record["model"] for record in _records(WIDENED)}
+    assert _model_roots() - before == {"mapping-collection"}
+    assert "mapping-collection" in after
+
+
+def test_the_model_table_is_the_sum_of_both_samples() -> None:
+    """Every row of the widened write-up's model table, recomputed from the JSONs."""
+    before: Counter[str] = Counter()
+    after: Counter[str] = Counter()
+    for record in _records(SUPPLIED):
+        before[record["model"]] += 1
+    for record in _records(WIDENED):
+        after[record["model"]] += 1
+    text = WIDENED_WRITEUP.read_text(encoding="utf-8")
+    for model in sorted(_model_roots()):
+        highlight = "**" if model == "mapping-collection" else ""
+        row = (
+            f"| `{model}` | {highlight}{before[model]}{highlight} | "
+            f"{highlight}{after[model]}{highlight} | "
+            f"{highlight}{before[model] + after[model]}{highlight} |"
+        )
+        assert row in text, f"model row missing or wrong for {model}: expected {row!r}"
+
+
+def test_the_unread_mapping_subtree_is_reported_on_every_mapping_collection() -> None:
+    """Finding 1: the eighth model's content is not read, and says so every time.
+
+    If a future change makes the walker resolve that subtree, this test fails and
+    the write-up has to be corrected rather than left claiming a limit that is no
+    longer there. A stale limitation is as misleading as a stale number.
+    """
+    mappings = [r for r in _records(WIDENED) if r["model"] == "mapping-collection"]
+    assert mappings, "the widened run exists to put this model in the corpus"
+    for record in mappings:
+        assert record["codes"].get("SUBTREE_NOT_READ"), record["url"]
+        assert record["example_location"]["SUBTREE_NOT_READ"] == "/mapping-collection/mappings"

@@ -26,6 +26,15 @@ target's effective data model, and it is never counted as a document the survey
 reports on. A resolve URL that cannot be fetched stops the run rather than
 quietly turning its target into an unreadable one, because a survey that
 silently dropped a target would misreport its own denominator.
+
+``--provenance`` carries the ``fetch`` block a previous run recorded for a URL
+into this run's record for it. A fetch happens once and the cache answers ever
+after, so without it a document retrieved by an earlier run reports only ``read
+from cache``: the HTTP status, the final URL, the redirect chain and what
+``robots.txt`` said all live in whichever run first reached the network, one
+indirection away from the run that used the bytes. The flag takes the committed
+findings JSON that recorded those fetches, so every record can carry its own
+retrieval evidence.
 """
 
 from __future__ import annotations
@@ -45,7 +54,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fetch import BlockedError, Fetcher, FetchError  # noqa: E402
 
 from oscal_validate.document import DocumentError  # noqa: E402
-from oscal_validate.findings import counts  # noqa: E402
+from oscal_validate.findings import Finding, counts  # noqa: E402
 from oscal_validate.schema import SchemaError  # noqa: E402
 from oscal_validate.validator import build_session, validate  # noqa: E402
 
@@ -93,12 +102,32 @@ def _by_url(location: str, source_of: dict[str, str]) -> str:
     return f"{source_of.get(head, head)}{separator}{tail}"
 
 
+def _example_key(finding: Finding, source_of: dict[str, str]) -> tuple[str, ...]:
+    """The validator's own ordering, applied to the *rewritten* location.
+
+    ``Finding.sort_key`` leads with ``location``, and for a finding in a
+    supporting document that location is a cache path. So the validator's
+    deterministic order is deterministic per machine and not across machines,
+    and the first finding of a given code -- the one recorded below as that
+    code's example -- moved when the cache moved. Measured on the 2026-08-15
+    sample: 7 of 52 records changed with the cache path, and the committed
+    evidence differed from a re-run in 9. Counts never varied. One bookkeeping
+    field is still enough to stop a committed artifact reproducing.
+
+    Rewriting to the URL before sorting rather than after settles it. The key is
+    otherwise the validator's, so the tie-breaks are unchanged: this reorders
+    only the axis that was a fact about a laptop.
+    """
+    location, prop, code, value, severity, message = finding.sort_key()
+    return (_by_url(location, source_of), prop, code, value, severity, message)
+
+
 def _validate(path: Path, resolve: list[Path], source_of: dict[str, str]) -> dict[str, Any]:
     session = build_session(path, resolve)
     findings = validate(session)
     by_code: Counter[str] = Counter(finding.code for finding in findings)
     example: dict[str, str] = {}
-    for finding in findings:
+    for finding in sorted(findings, key=lambda f: _example_key(f, source_of)):
         example.setdefault(finding.code, _by_url(finding.location, source_of))
     return {
         "model": session.corpus.primary.walked.model,
@@ -111,19 +140,51 @@ def _validate(path: Path, resolve: list[Path], source_of: dict[str, str]) -> dic
     }
 
 
-def _acquire(fetcher: Fetcher, cache: Path, url: str, offline: bool) -> tuple[Path, dict[str, Any]]:
+def read_provenance(paths: list[Path]) -> dict[str, dict[str, Any]]:
+    """URL -> the ``fetch`` block some earlier run recorded for it.
+
+    Read from previous findings JSON, which is where a fetch that has already
+    happened is written down. Targets and supporting documents both carry one,
+    and a URL that is a target in one run and a supporting document in another
+    is the same retrieval either way.
+    """
+    recorded: dict[str, dict[str, Any]] = {}
+    for path in paths:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for entry in list(payload.get("records", [])) + list(payload.get("supporting", [])):
+            fetch = entry.get("fetch")
+            if fetch is not None:
+                recorded.setdefault(entry["url"], fetch)
+    return recorded
+
+
+def _acquire(
+    fetcher: Fetcher,
+    cache: Path,
+    url: str,
+    offline: bool,
+    provenance: dict[str, dict[str, Any]],
+) -> tuple[Path, dict[str, Any]]:
     """The cached bytes for one URL, fetched if they are not there yet."""
     path = cache_path(cache, url)
     path.parent.mkdir(parents=True, exist_ok=True)
     if offline or path.exists():
-        return path, {"outcome": "read from cache"}
+        recorded = provenance.get(url)
+        cached: dict[str, Any] = {"outcome": "read from cache"}
+        if recorded is not None:
+            cached["fetch"] = recorded
+        return path, cached
     result = fetcher.fetch(url)
     path.write_bytes(result.body)
     return path, {"outcome": "fetched", "fetch": result.to_dict()}
 
 
 def supporting(
-    targets: list[tuple[str, str, list[str]]], cache: Path, offline: bool, fetcher: Fetcher
+    targets: list[tuple[str, str, list[str]]],
+    cache: Path,
+    offline: bool,
+    fetcher: Fetcher,
+    provenance: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """Acquire every document any target names in its ``--resolve`` column.
 
@@ -144,7 +205,7 @@ def supporting(
             if url in done:
                 continue
             done.add(url)
-            path, outcome = _acquire(fetcher, cache, url, offline)
+            path, outcome = _acquire(fetcher, cache, url, offline, provenance or {})
             if not path.exists():
                 raise FetchError(f"{url}: named with --resolve and not in the cache")
             print(f"  {outcome['outcome']:18} {url}  (--resolve)", file=sys.stderr)
@@ -153,12 +214,16 @@ def supporting(
 
 
 def run(
-    targets: list[tuple[str, str, list[str]]], cache: Path, offline: bool, fetcher: Fetcher
+    targets: list[tuple[str, str, list[str]]],
+    cache: Path,
+    offline: bool,
+    fetcher: Fetcher,
+    provenance: dict[str, dict[str, Any]] | None = None,
 ) -> Iterator[dict[str, Any]]:
     for group, url, resolve in targets:
         record: dict[str, Any] = {"group": group, "url": url, "resolve": list(resolve)}
         try:
-            path, outcome = _acquire(fetcher, cache, url, offline)
+            path, outcome = _acquire(fetcher, cache, url, offline, provenance or {})
             record.update(outcome)
             record["bytes"] = path.stat().st_size
             supporting = {str(cache_path(cache, other)): other for other in resolve}
@@ -203,13 +268,22 @@ def main() -> int:
     parser.add_argument("output", type=Path, help="where to write the survey JSON")
     parser.add_argument("--cache", type=Path, default=Path(".survey-cache"))
     parser.add_argument("--offline", action="store_true", help="use the cache only")
+    parser.add_argument(
+        "--provenance",
+        type=Path,
+        action="append",
+        default=[],
+        metavar="FINDINGS.json",
+        help="carry forward the fetch records an earlier run wrote for these URLs",
+    )
     args = parser.parse_args()
 
     targets = read_targets(args.targets)
+    provenance = read_provenance(args.provenance)
     args.cache.mkdir(parents=True, exist_ok=True)
     fetcher = Fetcher()
-    supplied = supporting(targets, args.cache, args.offline, fetcher)
-    records = list(run(targets, args.cache, args.offline, fetcher))
+    supplied = supporting(targets, args.cache, args.offline, fetcher, provenance)
+    records = list(run(targets, args.cache, args.offline, fetcher, provenance))
     payload = {
         "summary": summarize(records, supplied),
         "supporting": supplied,
