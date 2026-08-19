@@ -366,16 +366,21 @@ approximate.
 an assessment was performed, whether evidence supports a claim: none of that is
 visible in a document's structure, and nothing in this tool looks at it.
 
-**It evaluates 78 of NIST's 340 published constraints.** Every one of the other
-262 is listed with its reason in
+**It evaluates 102 of NIST's 340 published constraints.** Every one of the
+other 238 is listed with its reason in
 [`docs/CONSTRAINT-COVERAGE.md`](docs/CONSTRAINT-COVERAGE.md), which is generated
 from the vendored files and checked by a test so it cannot drift. In summary:
 200 `allowed-values` sets mostly declare `allow-other`, so a value outside them
 is not necessarily a violation; 25 `matches` and 12 `expect` constraints need a
-Metapath evaluator this tool does not implement; 25 have target expressions with
-predicates or function calls outside the Metapath subset it parses. A
-constraint is also only applied to documents of the model its module governs,
-since assembly names repeat across models.
+Metapath evaluator this tool does not implement; and exactly one target remains
+outside the parsed subset — `oscal-ssp-by-component-uuid-index`, which
+dereferences a second document through `doc()`. The predicate and
+interior-descendant targets that used to block 25 constraints are parsed under
+the bounded grammar of
+[ADR-0004](docs/adr/0004-bounded-predicate-grammar.md), enumerated from the
+vendored files rather than the Metapath specification. A constraint is also
+only applied to documents of the models its module governs, since assembly
+names repeat across models and a catalog's `part` is not assessment-common's.
 
 **It does not check the `TokenDatatype` pattern.** OSCAL's token pattern uses
 the ECMA-262 Unicode property escapes `\p{L}` and `\p{N}`, which Python's `re`

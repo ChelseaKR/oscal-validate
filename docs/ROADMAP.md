@@ -76,18 +76,17 @@ rather than be filled with invented zeroes.
   channel `SECURITY.md` prefers is actually on.
 - Decide whether to cut a first tagged release and whether to publish to PyPI.
   Nothing is published anywhere today.
-- Decide whether to widen the Metapath subset. 25 constraints are skipped
-  because their target expressions are outside it, and that sentence used to
-  say "purely because their targets carry predicates", which is not true. Read
-  off the vendored files: 23 of the 25 carry a predicate, 9 of those also carry
-  a function call (`starts-with`, `has-oscal-namespace`, and one `doc()`), and
-  **two carry no predicate at all**. `implemented-requirement//by-component/
-  export/provided` is blocked only by a descendant step in the middle of a path,
-  and `responsible-role|statement/responsible-role|.//by-component//responsible-role`
-  is blocked by a union of multi-step paths. Those two need no predicate
-  evaluation of any kind and are the cheapest thing in the list. Widening the
-  path grammar and widening the predicate grammar are separate decisions and
-  should be taken separately. REVIEW, owner: maintainer.
+- ~~Decide whether to widen the Metapath subset.~~ Decided and done 2026-08-19
+  (ADR-0004): a bounded predicate and path grammar, enumerated from the
+  vendored files, reaches 24 of the 25 — coverage is 102 of 340 and the
+  regenerated `docs/CONSTRAINT-COVERAGE.md` carries the split. The one
+  survivor is `oscal-ssp-by-component-uuid-index`, whose target dereferences a
+  second document through `doc()`; implementing `doc()` is a separate decision
+  that stays open. Measured on the widened corpus before any new document was
+  supplied: the 24 found zero new violations and settled 108 previously
+  unverifiable references through newly buildable indexes
+  (`docs/findings/2026-08-19-constraints-reached-survey.md`). REVIEW closed;
+  the `doc()` decision remains with the maintainer.
 - Decide whether to implement profile resolution. It would make `by-id` and
   `objective-id` references checkable and would let an SSP be checked against a
   resolved baseline rather than an unresolved profile. It is a large piece of
