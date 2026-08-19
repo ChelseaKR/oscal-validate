@@ -31,20 +31,33 @@ SUPPLIED = FINDINGS / "2026-08-15-imports-supplied-survey.json"
 SUPPLIED_WRITEUP = FINDINGS / "2026-08-15-imports-supplied-survey.md"
 WIDENED = FINDINGS / "2026-08-19-widening-the-corpus-survey.json"
 WIDENED_WRITEUP = FINDINGS / "2026-08-19-widening-the-corpus-survey.md"
+CONSTRAINTS_REACHED = FINDINGS / "2026-08-19-constraints-reached-survey.json"
+CONSTRAINTS_REACHED_WRITEUP = FINDINGS / "2026-08-19-constraints-reached-survey.md"
+IMPORTS_REACHED = FINDINGS / "2026-08-19-imports-reached-survey.json"
+IMPORTS_REACHED_WRITEUP = FINDINGS / "2026-08-19-imports-reached-survey.md"
 
 PAIRS = [
     (WITHHELD, WITHHELD_WRITEUP),
     (SUPPLIED, SUPPLIED_WRITEUP),
     (WIDENED, WIDENED_WRITEUP),
+    (CONSTRAINTS_REACHED, CONSTRAINTS_REACHED_WRITEUP),
+    (IMPORTS_REACHED, IMPORTS_REACHED_WRITEUP),
 ]
 
 #: Which target list each run was drawn from. The 2026-08-14 and 2026-08-15 runs
 #: share one; the 2026-08-19 run widens the corpus and has its own, so that a
 #: dated artifact keeps naming the exact inputs it ran on rather than whatever
 #: the list has grown into since.
-DRAWN_FROM = {WITHHELD: TARGETS, SUPPLIED: TARGETS, WIDENED: WIDENED_TARGETS}
+IMPORTS_TARGETS = ROOT / "tools" / "survey-urls-2026-08-19-imports.txt"
+DRAWN_FROM = {
+    WITHHELD: TARGETS,
+    SUPPLIED: TARGETS,
+    WIDENED: WIDENED_TARGETS,
+    CONSTRAINTS_REACHED: WIDENED_TARGETS,
+    IMPORTS_REACHED: IMPORTS_TARGETS,
+}
 
-TARGET_LISTS = [TARGETS, WIDENED_TARGETS]
+TARGET_LISTS = [TARGETS, WIDENED_TARGETS, IMPORTS_TARGETS]
 
 #: Everything a survey record is allowed to carry. The survey reports on whether
 #: published documents conform, so it records codes, counts, and JSON Pointers;
@@ -159,7 +172,9 @@ def test_no_document_is_surveyed_by_two_runs() -> None:
     assert not first & second, sorted(first & second)
 
 
-@pytest.mark.parametrize("survey", [WITHHELD, SUPPLIED, WIDENED])
+@pytest.mark.parametrize(
+    "survey", [WITHHELD, SUPPLIED, WIDENED, CONSTRAINTS_REACHED, IMPORTS_REACHED]
+)
 def test_every_target_appears_in_the_survey_exactly_once(survey: Path) -> None:
     assert [record["url"] for record in _records(survey)] == _targets(DRAWN_FROM[survey])
 
@@ -229,7 +244,16 @@ def test_every_document_the_writeup_names_as_failing_did_fail(survey: Path, writ
             assert name in text, f"{name} carried ERRORs and is not named in the write-up"
 
 
-@pytest.mark.parametrize("writeup", [WITHHELD_WRITEUP, SUPPLIED_WRITEUP, WIDENED_WRITEUP])
+@pytest.mark.parametrize(
+    "writeup",
+    [
+        WITHHELD_WRITEUP,
+        SUPPLIED_WRITEUP,
+        WIDENED_WRITEUP,
+        CONSTRAINTS_REACHED_WRITEUP,
+        IMPORTS_REACHED_WRITEUP,
+    ],
+)
 def test_the_writeup_never_claims_conformance_from_a_clean_run(writeup: Path) -> None:
     text = writeup.read_text(encoding="utf-8")
     assert "has not been shown to conform" in text
@@ -239,7 +263,7 @@ def test_the_writeup_never_claims_conformance_from_a_clean_run(writeup: Path) ->
 # -- the second run, whose subject is the difference ------------------------
 
 
-@pytest.mark.parametrize("survey", [SUPPLIED, WIDENED])
+@pytest.mark.parametrize("survey", [SUPPLIED, WIDENED, CONSTRAINTS_REACHED, IMPORTS_REACHED])
 def test_a_run_supplied_exactly_what_its_resolve_column_declared(survey: Path) -> None:
     lines = _target_lines(DRAWN_FROM[survey])
     declared = {parts[1]: parts[2].split(",") if len(parts) > 2 else [] for parts in lines}
@@ -258,7 +282,7 @@ def test_the_withheld_run_supplied_only_what_its_own_column_declared() -> None:
     assert withheld_edges < supplied_edges
 
 
-@pytest.mark.parametrize("survey", [SUPPLIED, WIDENED])
+@pytest.mark.parametrize("survey", [SUPPLIED, WIDENED, CONSTRAINTS_REACHED, IMPORTS_REACHED])
 def test_every_supporting_document_is_named_by_some_target(survey: Path) -> None:
     lines = _target_lines(DRAWN_FROM[survey])
     named = {url for parts in lines if len(parts) > 2 for url in parts[2].split(",")}
@@ -380,3 +404,88 @@ def test_the_unread_mapping_subtree_is_reported_on_every_mapping_collection() ->
     for record in mappings:
         assert record["codes"].get("SUBTREE_NOT_READ"), record["url"]
         assert record["example_location"]["SUBTREE_NOT_READ"] == "/mapping-collection/mappings"
+
+
+# -- the fourth and fifth runs: the engine, then the imports ------------------
+
+
+def _delta_rows_present(before_path: Path, after_path: Path, writeup: Path) -> None:
+    before, after = _totals(before_path), _totals(after_path)
+    text = writeup.read_text(encoding="utf-8")
+    codes = sorted(set(before) | set(after))
+    assert codes, "no finding codes in either run"
+    for code in codes:
+        change = after[code] - before[code]
+        row = (
+            f"| `{code}` | {before[code]:,} | {after[code]:,} | "
+            f"{'+' if change > 0 else ''}{change:,} |"
+        )
+        assert row in text, f"delta row missing or wrong for {code}: expected {row!r}"
+
+
+def _settled_split_present(before_path: Path, after_path: Path, writeup: Path) -> None:
+    before, after = _totals(before_path), _totals(after_path)
+    unsettled_before = before["REFERENCE_UNVERIFIABLE"]
+    still_unsettled = after["REFERENCE_UNVERIFIABLE"]
+    became_errors = after["REFERENCE_UNRESOLVED"] - before["REFERENCE_UNRESOLVED"]
+    resolved_clean = unsettled_before - still_unsettled - became_errors
+    assert became_errors >= 0 and resolved_clean >= 0
+    text = writeup.read_text(encoding="utf-8")
+    for label, value in (
+        ("resolved to something that exists", resolved_clean),
+        ("resolved to nothing, and are now ERROR", became_errors),
+        ("still cannot be settled", still_unsettled),
+    ):
+        assert f"| {label} | {value:,} |" in text, f"{label} should be {value:,}"
+
+
+def test_the_engine_delta_table_is_the_difference_between_the_two_runs() -> None:
+    """The constraints run's subject is the engine; its tables are recomputed here."""
+    _delta_rows_present(WIDENED, CONSTRAINTS_REACHED, CONSTRAINTS_REACHED_WRITEUP)
+    _settled_split_present(WIDENED, CONSTRAINTS_REACHED, CONSTRAINTS_REACHED_WRITEUP)
+
+
+def test_the_engine_run_found_no_new_violations_and_says_so() -> None:
+    """The constraints run's headline claim, kept true by measurement.
+
+    Zero new ERRORs from 24 newly reached constraints is a strong sentence, and
+    it must fall out of the evidence rather than out of enthusiasm: the ERROR
+    totals of the two runs must be equal, and the write-up must say zero.
+    """
+    before, after = _severities(WIDENED), _severities(CONSTRAINTS_REACHED)
+    assert before["ERROR"] == after["ERROR"]
+    text = CONSTRAINTS_REACHED_WRITEUP.read_text(encoding="utf-8").replace("\n", " ")
+    assert "zero new violations" in text
+
+
+def test_the_imports_delta_table_is_the_difference_between_the_two_runs() -> None:
+    """The imports run's subject is the resolve column; its tables are recomputed here."""
+    _delta_rows_present(CONSTRAINTS_REACHED, IMPORTS_REACHED, IMPORTS_REACHED_WRITEUP)
+    _settled_split_present(CONSTRAINTS_REACHED, IMPORTS_REACHED, IMPORTS_REACHED_WRITEUP)
+
+
+def test_the_imports_run_documents_that_stayed_unsettled_are_all_named() -> None:
+    text = IMPORTS_REACHED_WRITEUP.read_text(encoding="utf-8")
+    incomplete = [
+        r for r in _records(IMPORTS_REACHED) if not r.get("effective_model_complete", True)
+    ]
+    assert incomplete, "the whole point is that some documents could not be completed"
+    for record in incomplete:
+        name = record["url"].rsplit("/", 1)[-1]
+        assert name in text, f"{name} stayed incomplete and is not named in the write-up"
+
+
+def test_the_paired_runs_share_their_corpus_and_differ_only_where_stated() -> None:
+    """The engine pair shares bytes; the imports pair shares bytes and engine.
+
+    Both comparisons above are only attributable because everything else is
+    pinned: the three runs survey the same 43 URLs, and the per-record byte
+    counts are identical across all three.
+    """
+    by_url = {}
+    for survey in (WIDENED, CONSTRAINTS_REACHED, IMPORTS_REACHED):
+        by_url[survey] = {r["url"]: r["bytes"] for r in _records(survey)}
+    assert by_url[WIDENED].keys() == by_url[CONSTRAINTS_REACHED].keys()
+    assert by_url[WIDENED].keys() == by_url[IMPORTS_REACHED].keys()
+    assert by_url[WIDENED] == by_url[CONSTRAINTS_REACHED]
+    assert by_url[WIDENED] == by_url[IMPORTS_REACHED]

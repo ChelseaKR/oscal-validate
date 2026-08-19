@@ -75,7 +75,7 @@ def test_an_error_finding_fails_the_job(tmp_path: Path) -> None:
 
 def test_unverifiable_never_gates_at_any_threshold(tmp_path: Path) -> None:
     # UNVERIFIABLE is never a pass and never a fail. The clean catalog reports
-    # seven of them and nothing else, so it passes even at the lowest setting.
+    # five of them and nothing else, so it passes even at the lowest setting.
     for threshold in ("error", "warning", "info"):
         code, _, outputs = _run(
             tmp_path,
@@ -83,7 +83,7 @@ def test_unverifiable_never_gates_at_any_threshold(tmp_path: Path) -> None:
             OSCAL_FAIL_ON=threshold,
         )
         assert code == 0, threshold
-        assert outputs["unverifiable-count"] == "7"
+        assert outputs["unverifiable-count"] == "5"
 
 
 def test_lowering_the_threshold_gates_on_an_informational_finding(tmp_path: Path) -> None:

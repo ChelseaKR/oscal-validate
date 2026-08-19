@@ -8,6 +8,40 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- **24 constraints NIST already wrote, reached by parsing what they stand on
+  (ADR-0004).** A bounded predicate and path grammar — flag equality,
+  `starts-with`, `has-oscal-namespace` with the metaschema's declared default,
+  child existence resolved through JSON name grouping, conjunctions, unions of
+  paths, and interior descendants — enumerated from the vendored 1.2.3 files
+  rather than the Metapath specification. Constraint coverage moves from 78 to
+  102 of NIST's 340; the one survivor dereferences a second document through
+  `doc()` and its skip reason now says so. Measured on the widened corpus with
+  nothing else changed, the 24 found zero new violations and settled 108
+  previously unverifiable references through indexes the engine could not
+  previously build (`docs/findings/2026-08-19-constraints-reached-survey.md`).
+  Reaching them exposed and fixed two latent gaps: shared family modules
+  (assessment-common, implementation-common, mapping-common) now govern
+  exactly their model family instead of every document, and a use-site
+  `use-name` now renames the node it uses, which is how the SSP's
+  `system-component` answers to `component`.
+- **Eleven public documents settle a thousand unknowns
+  (`docs/findings/2026-08-19-imports-reached-survey.md`).** The widened
+  corpus re-run with every locatable import supplied: complete effective data
+  models 21 → 30 of 43, 1,001 unverifiable references settled — 947 resolve to
+  something that exists, and 54, each verified by hand against the source
+  bytes, resolve to nothing. Among them: 17 control references dangling
+  against the catalog the publisher's own import names, 35 statement
+  references dangling by a `-stmt` suffix their catalog never declares, and a
+  control id (`sa-39`) that no revision of SP 800-53 defines. The nineteen
+  imports nobody can fetch are published in classes that are themselves
+  results: fragment-only imports, XML with no JSON twin, a private `gs://`
+  bucket, a literal `http://...` placeholder, a bare `#`, and a bare name.
+  Both runs reproduce offline, byte for byte, from the committed cache
+  provenance, and every table in both write-ups is recomputed from the
+  evidence by `tests/test_findings_evidence.py`.
+
 ### Fixed
 
 - A scalar standing where the schema declares an assembly is now a

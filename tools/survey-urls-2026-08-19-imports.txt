@@ -1,0 +1,105 @@
+# Targets for the 2026-08-19 run, which widens the corpus. Same format as
+# tools/survey-urls.txt:
+#   group<TAB>url<TAB>comma-separated URLs to hand this target with --resolve
+#
+# The 2026-08-14 and 2026-08-15 runs shared one target list of 52 documents from
+# seven publishers, and covered seven of OSCAL's eight models. Two things were
+# missing and this list is those two things.
+#
+# First, the eighth model. OSCAL 1.1 added `mapping-collection`, and no document
+# in the original sample used it, so a whole model's worth of the vendored schema
+# had never been run against a real file. Public mapping collections turn out to
+# be scarce -- a search of public GitHub found four publishers with original
+# ones, several other copies of those four, and nothing outside GitHub -- and all
+# four are here.
+#
+# Second, publisher spread. Thirty of the original 52 documents were NIST's, and
+# two of the four third-party publishers derived their samples from NIST's
+# examples, so their findings were not independent. This list is deliberately
+# the other way round: no target here is published by NIST's oscal-content
+# repository, and NIST appears only as a supporting document that other people's
+# profiles import. Two national cyber-security agencies outside the US, three US
+# federal sources, an interoperability plugfest, and eleven vendors and
+# open-source projects.
+#
+# Licences are recorded in docs/data/published-oscal-corpus.md. Several of these
+# repositories publish no licence at all. As with the first two runs, nothing but
+# metadata and finding codes is recorded from any of them, and no value read from
+# any document is committed to this repository.
+#
+# Retrieved 2026-08-19. Provenance for every fetch is in the run's own JSON.
+#
+# -- Bundesamt fuer Sicherheit in der Informationstechnik (BSI), Germany -----
+# The German federal information-security agency. CC-BY-SA-4.0. Its Grundschutz++
+# library is the largest non-US-government OSCAL corpus found. The `+` in these
+# paths is percent-encoded; raw.githubusercontent.com does not accept it bare.
+bsi	https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Mappings/ISO-27001-zu-GSpp/ISO27001-AnnexA-to-GS%2B%2B-mapping_collection.json
+bsi	https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Risikomanagement/BSI-Anforderungen-zum-Risikomanagement-catalog.json
+bsi	https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Mindeststandard-TLS/Entwurf-Mindeststandard-TLS-catalog.json
+bsi	https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/implementation_layer/Keycloak/Keycloak-component_definition.json
+bsi	https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/implementation_layer/AWS%20Beispiel-Components/AWS%20Security%20Hub-component_definition.json	https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/main/control_layer/Grundschutz%2B%2B/sources/catalogs/Kernel/BSI-Stand-der-Technik-Kernel-G0-catalog.json
+#
+# -- Australian Cyber Security Centre / Australian Signals Directorate ------
+# The Australian federal cyber-security agency's Information Security Manual.
+# The GitHub repository states no licence and describes itself as a mirror of
+# cyber.gov.au/ism/oscal, which is where the profiles' imports point.
+acsc	https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json
+acsc	https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_E8_ML1-baseline_profile.json	https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json
+acsc	https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_PROTECTED-baseline_profile.json	https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json
+#
+# -- US federal, outside usnistgov/oscal-content ----------------------------
+# NIST's BLOSSOM programme publishes system security plans, which is the model
+# real authorization packages are written in and the one with the fewest public
+# examples. Its imports name the XML serialisation of documents it publishes as
+# JSON alongside; the stem match is what connects them, and it is reported.
+blossom	https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/ssp/blossom_admin_member_ssp.json	https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json
+blossom	https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/ssp/aws_leveraged_authorization_ssp.json	https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json
+blossom	https://raw.githubusercontent.com/usnistgov/blossom-oscal/main/oscal-content/json/profile/blossom_moderate_profile.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json,https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+gsa	https://raw.githubusercontent.com/GSA-TTS/cg-egress-proxy/main/docs/compliance/component-definitions/cg-egress-proxy/component-definition.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+gsa	https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-plans/ms-01-assessment-plan.json	https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json,https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/profiles/csp_poc_profile.json,https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/catalogs/800-63-poc-catalog.json
+gsa	https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-results/ms-01-assessment-result.json	https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/assessment-plans/ms-01-assessment-plan.json,https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/system-security-plans/CSP_POC_ssp.json,https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/profiles/csp_poc_profile.json,https://raw.githubusercontent.com/rsherwood-gsa/OSCAL-CSP/main/catalogs/800-63-poc-catalog.json
+#
+# -- OSCAL Plugfest 2025, published by SunStone Secure LLC ------------------
+# Interoperability-event content, produced by several different tools and sorted
+# by its publisher into Valid, Not Valid, Partial and Untested directories. Only
+# documents the publisher files under Valid are targets here, so that a finding
+# against one is a finding against something somebody meant to be conformant.
+# The one exception is named: the Untested KSI catalog, taken deliberately.
+# No licence is stated on the repository.
+plugfest	https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/SSP/Valid/Entra_ID_system-security-plan.json
+plugfest	https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/AP/Valid/Entra_ID_assessment-plan.json	https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/SSP/Valid/Entra_ID_system-security-plan.json
+plugfest	https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/AR/Valid/assessment-results_kansa_valid.json
+plugfest	https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/POAM/Valid/valid_oscal_poam_1.json
+plugfest	https://raw.githubusercontent.com/SunStone-Secure-LLC/OSCAL-Plugfest-2025/main/Catalog/Untested/FedRAMP%20RFC-0006%2020x%20Phase%20One%20Key%20Security%20Indicators.json
+#
+# -- OSCAL Compass, a Linux Foundation project (Apache-2.0) -----------------
+# The successor to IBM's compliance-trestle ecosystem, and the only publisher
+# with more than one original mapping collection.
+compass	https://raw.githubusercontent.com/oscal-compass/oscal-content/main/mapping-collections/nist_ai_rmf_to_iso_42001/mapping-collection.json
+compass	https://raw.githubusercontent.com/oscal-compass/oscal-content/main/examples-direct-mapping/mapping-collections/PCI_v4-to-NIST_800-53_rev4/mapping-collection.json
+compass	https://raw.githubusercontent.com/oscal-compass/oscal-content/main/examples-harmonized-mapping/mapping-collections/NIST-800-53_rev4-to-Harmonized_V1.0/mapping-collection.json
+compass	https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/nist_ai_rmf_gen_ai/1.0.0/catalog.json
+compass	https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/hipaa-2.0.0/catalog.json
+compass	https://raw.githubusercontent.com/oscal-compass/oscal-content/main/component-definitions/ai-platform/1.0.0/component-definition.json	https://raw.githubusercontent.com/oscal-compass/oscal-content/main/catalogs/nist_ai_rmf_gen_ai/1.0.0/catalog.json
+compass	https://raw.githubusercontent.com/oscal-compass/e2e-demo-ssp/main/system-security-plans/Ubuntu_Linux_24_04_LTS/system-security-plan.json	https://raw.githubusercontent.com/oscal-compass/e2e-demo-ssp/main/profiles/NIST_800-53_rev5_selected/profile.json,https://raw.githubusercontent.com/oscal-compass/e2e-demo-ssp/main/catalogs/NIST_800-53_rev5/catalog.json
+compass	https://raw.githubusercontent.com/oscal-compass/compliance-to-policy-go/main/docs/ocm/final-outputs/assessment-results.json
+compass	https://raw.githubusercontent.com/oscal-compass/compliance-trestle/develop/tests/data/mapping-collections/soc2/mapping-collection.json
+#
+# -- Other publishers of mapping collections --------------------------------
+vendor	https://raw.githubusercontent.com/nickmahl/oscal-trestle-viewer/main/build/mapping-collections/iso27001-nistcsf/mapping-collection.json
+vendor	https://raw.githubusercontent.com/sam-aydlette/samaydlette.com/main/data/mappings/SP800-171r2-to-SP800-53r4.mapping.json
+#
+# -- Vendors and open-source projects ---------------------------------------
+vendor	https://raw.githubusercontent.com/RedHatProductSecurity/trestle-demo/main/component-definitions/hello-world-pvp/component-definition.json	https://raw.githubusercontent.com/RedHatProductSecurity/trestle-demo/main/profiles/ACME_internal_profile/profile.json
+vendor	https://raw.githubusercontent.com/RedHatProductSecurity/oscal-profiles/main/profiles/fedramp_rev5_high/profile.json	https://raw.githubusercontent.com/RedHatProductSecurity/oscal-profiles/main/catalogs/nist_rev5_800_53/catalog.json
+vendor	https://raw.githubusercontent.com/mitre/hdf-libs/main/hdf-converters/converters/hdf-to-oscal-poam/fixtures/expected/uc-01-fixed.oscal-poam.json
+vendor	https://raw.githubusercontent.com/NTT-Data-Deutschland-SE/Grundschutz-Plus-Plus-Tools/main/ED23-Baustein-profile/DE/anwendungen_APP.1.4_mobile_anwendungen_apps.json
+vendor	https://raw.githubusercontent.com/NTTDATA-DACH/BSI-GS-Benutzerdefinierte-Edition23-OSCAL/main/BS_GK_OSCAL_JSON_DATA/components_benutzerdefinierte/APP.1.1.component.json
+vendor	https://raw.githubusercontent.com/CivicActions/oscal-component-definitions/main/aws/oscal/aws.json	https://raw.githubusercontent.com/usnistgov/oscal-content/v1.0.0/nist.gov/SP800-53/rev4/json/NIST_SP-800-53_rev4_catalog.json
+vendor	https://raw.githubusercontent.com/GovReady/components-stig/master/components_govready_demo_01/splunk-demo.json
+vendor	https://raw.githubusercontent.com/sbomify/OSCAL/master/catalogs/cyber-essentials/danzell-v16/catalog.json
+vendor	https://raw.githubusercontent.com/ContainerSolutions/oscal-neo4j/main/plan_of_action_and_milestones/plan_of_action_and_milestones.json
+vendor	https://raw.githubusercontent.com/l3montree-dev/devguard/main/compliance/oscal/components/component-definition-gs-mapping.json
+vendor	https://raw.githubusercontent.com/dfetch-org/dfetch/main/security/dfetch.component-definition.json	https://raw.githubusercontent.com/dfetch-org/dfetch/main/security/cra_pren_4000014_oscal_catalog.json
+vendor	https://raw.githubusercontent.com/pqctoday-org/pqctoday-hub/main/public/data/pqctoday-oscal-assessment-plan.json
+vendor	https://raw.githubusercontent.com/oasis-open/openc2-jadn-software/master/Data/OSCAL/example-component-definition.json	https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json,https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json

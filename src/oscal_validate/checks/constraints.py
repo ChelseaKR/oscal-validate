@@ -38,6 +38,7 @@ from ..metaschema import (
     Step,
     key_values,
     select,
+    select_paths,
 )
 from ..session import Session
 
@@ -113,11 +114,11 @@ def build_indexes(session: Session) -> dict[tuple[str, Key], str]:
     for document in session.corpus.reachable:
         payload = {document.walked.model: document.walked.root}
         for constraint in session.metaschema.evaluated(document.walked.model):
-            if constraint.kind != "index" or constraint.steps is None:
+            if constraint.kind != "index" or constraint.paths is None:
                 continue
             for context in _contexts(payload, constraint, session.metaschema):
-                for located in select(
-                    context.value, context.pointer, constraint.steps, session.metaschema
+                for located in select_paths(
+                    context.value, context.pointer, constraint.paths, session.metaschema
                 ):
                     for key in keys_for(located.value, constraint, session.metaschema):
                         if all(part is None for part in key):
@@ -152,10 +153,12 @@ def check(session: Session) -> list[Finding]:
     walked = session.corpus.primary.walked
     payload: dict[str, object] = {walked.model: walked.root}
     for constraint in session.metaschema.evaluated(walked.model):
-        if constraint.steps is None:  # pragma: no cover - evaluated implies parsed
+        if constraint.paths is None:  # pragma: no cover - evaluated implies parsed
             continue
         for context in _contexts(payload, constraint, session.metaschema):
-            selected = select(context.value, context.pointer, constraint.steps, session.metaschema)
+            selected = select_paths(
+                context.value, context.pointer, constraint.paths, session.metaschema
+            )
             if constraint.kind in ("is-unique", "index"):
                 findings.extend(_uniqueness(constraint, selected, session))
             elif constraint.kind == "index-has-key":
