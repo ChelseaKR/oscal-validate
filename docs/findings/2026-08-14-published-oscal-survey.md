@@ -325,9 +325,25 @@ uv run python tools/survey.py tools/survey-urls.txt out.json --cache .survey-cac
 ```
 
 It fetches each document once, honoring `robots.txt`, at two seconds per host,
-and caches the bytes so a second run needs no network (`--offline`). The
-numbers will drift as the repositories change; the JSON alongside this file is
-the run of 2026-08-14. To inspect one document:
+and caches the bytes so a second run needs no network (`--offline`).
+
+**One correction, added 2026-08-19.** That command no longer reproduces *this*
+run. When it was written, the target list's third column named a supporting
+document for only seven of the 52 targets; the 2026-08-15 run filled the rest of
+the column in, and the file at `tools/survey-urls.txt` today is the fuller one.
+Running the command above against the current list reproduces the 2026-08-15
+sample's imports, not this one. To reproduce this run, take the target list as it
+stood at the commit that published it:
+
+```sh
+git show aee1a9e:tools/survey-urls.txt > /tmp/survey-urls-2026-08-14.txt
+uv run python tools/survey.py /tmp/survey-urls-2026-08-14.txt out.json \
+  --cache .survey-cache --offline \
+  --provenance docs/findings/2026-08-14-published-oscal-survey.json
+```
+
+The numbers will drift as the repositories change; the JSON alongside this file
+is the run of 2026-08-14. To inspect one document:
 
 ```sh
 oscal-validate <file.json> --resolve <imported-catalog.json>
