@@ -69,6 +69,24 @@ def check(session: Session) -> list[Finding]:
             )
         )
 
+    for short in walked.short:
+        findings.append(
+            Finding(
+                code="ARRAY_TOO_SHORT",
+                severity=Severity.ERROR,
+                location=short.pointer,
+                prop=short.name,
+                value=f"{short.found} item(s)",
+                message=(
+                    f"The schema requires at least {short.minimum} item(s) in "
+                    f"{short.name!r}, and this array has {short.found}. An array present "
+                    "but empty is not the same as the property being absent, and the "
+                    "schema permits only the second."
+                ),
+                rule=rules.min_items_rule(short.name, short.minimum),
+            )
+        )
+
     for note in walked.mistyped:
         findings.append(
             Finding(

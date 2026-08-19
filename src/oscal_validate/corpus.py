@@ -65,10 +65,25 @@ class ImportEdge:
     #: fragment this tool could not turn into a file name.
     target_name: str | None
     resolved_to: str | None
+    #: Every distinct supplied file this href's name matched. Empty when
+    #: nothing was supplied for it, one entry when it resolved, and more than
+    #: one when the name was supplied more than once by different files.
+    candidates: tuple[str, ...] = ()
 
     @property
     def resolved(self) -> bool:
         return self.resolved_to is not None
+
+    @property
+    def ambiguous(self) -> bool:
+        """More than one distinct supplied document answers to this name.
+
+        Distinct from "not supplied", and it must never be reported as that.
+        The documents were handed over; what cannot be determined is which one
+        the import means, so the effective data model is undetermined rather
+        than absent, and the fix is to name a file rather than to supply one.
+        """
+        return len(self.candidates) > 1
 
 
 @dataclass
@@ -90,6 +105,16 @@ class Corpus:
     def unresolved_imports(self) -> tuple[ImportEdge, ...]:
         return tuple(edge for edge in self.edges if not edge.resolved)
 
+    @property
+    def absent_imports(self) -> tuple[ImportEdge, ...]:
+        """Imports for which nothing at all was supplied."""
+        return tuple(edge for edge in self.edges if not edge.resolved and not edge.ambiguous)
+
+    @property
+    def ambiguous_imports(self) -> tuple[ImportEdge, ...]:
+        """Imports more than one distinct supplied document answers to."""
+        return tuple(edge for edge in self.edges if edge.ambiguous)
+
     def scalars(self) -> list[Scalar]:
         out: list[Scalar] = []
         for document in self.reachable:
@@ -110,13 +135,33 @@ def load_document(path: Path, schema: SchemaIndex) -> LoadedDocument:
 
 
 def collect_paths(paths: list[Path]) -> list[Path]:
-    """Expand directories into the ``.json`` files directly inside them."""
+    """Expand directories into the ``.json`` files directly inside them.
+
+    One file reached twice is one file. ``--resolve`` is repeatable and takes
+    directories as well as files, so the same document arrives twice for
+    reasons that are not mistakes: a directory named twice, a directory and a
+    file inside it, the same path with and without a trailing slash. Counting
+    those as two documents made a name look supplied twice and therefore
+    undetermined, which turned an ordinary invocation into a strictly worse
+    run than passing the file once. Identity is the resolved path, so symlinks
+    and ``..`` do not smuggle a duplicate past it; the first spelling seen is
+    the one kept, so the reported path is the one the caller typed.
+    """
     found: list[Path] = []
+    seen: set[Path] = set()
     for path in paths:
-        if path.is_dir():
-            found.extend(sorted(p for p in path.iterdir() if p.suffix == ".json"))
-        else:
-            found.append(path)
+        candidates = (
+            sorted(p for p in path.iterdir() if p.suffix == ".json") if path.is_dir() else [path]
+        )
+        for candidate in candidates:
+            try:
+                identity = candidate.resolve()
+            except OSError:  # pragma: no cover - resolve() is strict=False
+                identity = candidate.absolute()
+            if identity in seen:
+                continue
+            seen.add(identity)
+            found.append(candidate)
     return found
 
 
@@ -228,6 +273,7 @@ def build_corpus(primary: Path, supporting_paths: list[Path], schema: SchemaInde
                     href=href,
                     target_name=name,
                     resolved_to=target.path if target is not None else None,
+                    candidates=tuple(match.path for match in matches),
                 )
             )
             if target is not None and target.path not in seen:

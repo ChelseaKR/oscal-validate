@@ -8,6 +8,55 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- A scalar standing where the schema declares an assembly is now a
+  `TYPE_MISMATCH` error. It was silently recorded as an untyped scalar, so
+  everything below the substitution went unreachable and unreported: a catalog
+  whose `metadata` was `null`, `42`, `true`, or a string exited 0 with no ERROR
+  finding, and `{"catalog": null}` did the same for a document with no body at
+  all. The walk now carries the shape the schema declares into the scalar case,
+  including the 36 nodes that state `properties` without stating
+  `"type": "object"`.
+- `NonNegativeIntegerDatatype` and `PositiveIntegerDatatype` are each an
+  `allOf` over a `$ref` to `IntegerDatatype` and a branch declaring
+  `"type": "number"` with a `minimum`. The datatype index read only the branch,
+  so both facets were lost: the base's narrower `integer` and the bound. A port
+  range of `start: -1, end: 99.5` produced output byte for byte identical to
+  `start: 443, end: 443`. Values below the bound are now
+  `DATATYPE_BELOW_MINIMUM`, and a fractional value is a `TYPE_MISMATCH`.
+- `__version__` said `0.1.0` while the package was `0.2.0`, so `--version` and
+  the `tool.version` field on every JSON report named the wrong release of the
+  rules that produced them. `tests/test_cli.py` now pins it to `pyproject.toml`.
+- One document supplied twice is no longer read as two documents in conflict.
+  `--resolve` is repeatable and takes directories, so naming the same file
+  twice — a directory twice, a directory and a file inside it, a path with and
+  without a trailing slash — is ordinary usage; each of those made the import
+  match two supplied documents, which the tool reported as *no* document.
+  Passing a catalog twice therefore settled fewer references than passing it
+  once, and the report told the caller to supply a document they had just
+  supplied. Supplied paths are now deduplicated by resolved path, so every one
+  of those spellings gives the same report as passing the file once.
+
+### Added
+
+- `ARRAY_TOO_SHORT`: the schema declares `"minItems": 1` on 409 arrays and none
+  of them were evaluated, so an array present and empty read the same as one
+  that conforms.
+- Twelve gate-breaking tests for the above, each one failing before the fix,
+  plus a control asserting a port range inside its bounds stays clean.
+- `IMPORT_AMBIGUOUS`: two *different* files answering to one import's file name
+  is the case that really cannot be settled, and it is not the same as no file
+  at all. The documents were supplied; which one the import means is what is
+  undetermined, so neither is admitted to the effective data model and
+  references into it stay UNVERIFIABLE. The finding names every candidate path,
+  and the remedy sentence carried by every reference finding now follows from
+  the reason: narrow `--resolve` for ambiguity, supply a document for absence,
+  both when both happened. Twelve further tests, each failing before the fix.
+- `CITATION.cff` now carries `version` and `date-released` for the current
+  release (0.2.0, tagged 2026-08-16). Both fields were absent, which left a
+  released package without a citable version.
+
 ### Changed
 
 - `make sync` now installs with `uv sync --locked` instead of `uv sync
@@ -17,12 +66,12 @@ and this project adheres to
   The same swap is applied to the setup commands in `README.md`,
   `CONTRIBUTING.md`, the pull-request template, and the two survey findings'
   reproduction blocks.
-
-### Added
-
-- `CITATION.cff` now carries `version` and `date-released` for the current
-  release (0.2.0, tagged 2026-08-16). Both fields were absent, which left a
-  released package without a citable version.
+- README: the status line said no release had been tagged, and the GitHub
+  Action example said no release carried the action. `v0.1.0` and `v0.2.0` are
+  both tagged and `v0.2.0` carries it. Nothing is on PyPI, which is unchanged.
+- README "Limits": `minItems` and `minimum` moved out of the not-evaluated
+  list, and the keywords absent from the vendored schema are now named as
+  absent rather than listed as unevaluated.
 
 ## [0.2.0] - 2026-08-16
 

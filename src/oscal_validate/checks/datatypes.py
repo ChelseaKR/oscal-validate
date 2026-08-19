@@ -16,7 +16,9 @@ from __future__ import annotations
 from collections import Counter
 
 from .. import rules
+from ..document import Scalar
 from ..findings import Finding, Severity
+from ..schema import Datatype
 from ..session import Session
 
 
@@ -30,7 +32,10 @@ def check(session: Session) -> list[Finding]:
         if scalar.datatype is None:
             continue
         datatype = schema.datatypes.get(scalar.datatype)
-        if datatype is None or datatype.pattern is None:  # pragma: no cover - see below
+        if datatype is None:  # pragma: no cover - every datatype name comes from the schema
+            continue
+        findings.extend(_below_minimum(scalar, datatype))
+        if datatype.pattern is None:
             continue
         if not isinstance(scalar.value, str):
             continue
@@ -78,6 +83,40 @@ def check(session: Session) -> list[Finding]:
         )
 
     return findings
+
+
+def _below_minimum(scalar: Scalar, datatype: Datatype) -> list[Finding]:
+    """A numeric value under the lowest one its datatype permits.
+
+    The bound is not a pattern, so before this the two datatypes that carry one
+    fell out of the loop above and were reported neither as checked nor as
+    skipped: a port range starting at -1 read exactly like one starting at 443.
+    """
+    minimum = datatype.minimum
+    if minimum is None or isinstance(scalar.value, bool):
+        return []
+    if not isinstance(scalar.value, int | float) or scalar.value >= minimum:
+        return []
+    return [
+        Finding(
+            code="DATATYPE_BELOW_MINIMUM",
+            severity=Severity.ERROR,
+            location=scalar.pointer,
+            prop=scalar.name,
+            value=str(scalar.value),
+            message=(
+                f"The schema declares this value as {datatype.name} "
+                f"({datatype.description}) and its lowest permitted value is "
+                f"{_number(minimum)}."
+            ),
+            rule=rules.minimum_rule(datatype.name, datatype.description, _number(minimum)),
+        )
+    ]
+
+
+def _number(value: float) -> str:
+    """A schema bound rendered as the schema writes it: 0 and 1, not 0.0."""
+    return str(int(value)) if float(value).is_integer() else str(value)
 
 
 def _shorten(value: str, limit: int = 120) -> str:

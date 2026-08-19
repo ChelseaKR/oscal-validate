@@ -25,9 +25,10 @@ document it was not given: every one of those is reported **UNVERIFIABLE**, and
 UNVERIFIABLE is never rendered as a pass. A clean report always lists what was
 not checked, alongside what was.
 
-**Status:** Beta. No release has been tagged and nothing is published to PyPI.
-This is a demonstration and reference implementation. It is not affiliated
-with, endorsed by, or reviewed by NIST, FedRAMP, or StateRAMP.
+**Status:** Beta. Tagged `v0.1.0` and `v0.2.0`; nothing is published to PyPI,
+so installation is from source. This is a demonstration and reference
+implementation. It is not affiliated with, endorsed by, or reviewed by NIST,
+FedRAMP, or StateRAMP.
 
 ```console
 $ oscal-validate my-catalog.json
@@ -92,9 +93,9 @@ fetched.
 
 | # | Check | Codes | Rule source |
 |---|---|---|---|
-| 0 | Which imports were supplied, and which were not | `IMPORT_RESOLVED`, `IMPORT_NOT_SUPPLIED` | The report's own audit trail for every severity below |
-| 1 | Document shape against the published JSON Schema: required properties, properties the schema forbids, JSON type, and objects no declared alternative accepts | `REQUIRED_PROPERTY_MISSING`, `PROPERTY_UNDECLARED`, `TYPE_MISMATCH`, `NO_SCHEMA_ALTERNATIVE`, `SUBTREE_NOT_READ` | [`oscal_complete_schema.json`](https://github.com/usnistgov/OSCAL/releases/tag/v1.2.3) |
-| 2 | Scalar values against the datatype the schema declares at that position: UUID form (v4 or v5), timestamps with a required timezone, URIs, non-empty markup lines | `DATATYPE_MISMATCH`, `PATTERN_NOT_CHECKED` | the same schema's own datatype patterns |
+| 0 | Which imports were supplied, which were not, and which were supplied more than once | `IMPORT_RESOLVED`, `IMPORT_NOT_SUPPLIED`, `IMPORT_AMBIGUOUS` | The report's own audit trail for every severity below |
+| 1 | Document shape against the published JSON Schema: required properties, properties the schema forbids, JSON type, arrays shorter than `minItems`, and objects no declared alternative accepts | `REQUIRED_PROPERTY_MISSING`, `PROPERTY_UNDECLARED`, `TYPE_MISMATCH`, `ARRAY_TOO_SHORT`, `NO_SCHEMA_ALTERNATIVE`, `SUBTREE_NOT_READ` | [`oscal_complete_schema.json`](https://github.com/usnistgov/OSCAL/releases/tag/v1.2.3) |
+| 2 | Scalar values against the datatype the schema declares at that position: UUID form (v4 or v5), timestamps with a required timezone, URIs, non-empty markup lines, and the lower bounds on OSCAL's two integer datatypes | `DATATYPE_MISMATCH`, `DATATYPE_BELOW_MINIMUM`, `PATTERN_NOT_CHECKED` | the same schema's own datatype patterns and bounds |
 | 3 | NIST's constraint layer: `is-unique`, `index` uniqueness, `index-has-key` cross-references, `has-cardinality` | `CONSTRAINT_NOT_UNIQUE`, `CONSTRAINT_CARDINALITY`, `REFERENCE_UNRESOLVED`, `REFERENCE_UNVERIFIABLE`, `CONSTRAINT_NOT_EVALUATED` | the vendored `*_metaschema_RESOLVED.xml` modules, at NIST's declared severity |
 | 4 | One UUID, one object, across the whole document | `UUID_NOT_UNIQUE` | [Identifier Use and UUIDs](https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/) |
 | 5 | Identifier references the constraint layer does not cover: `control-id`, `with-id`, `param-id`, `statement-id`, and bare `#` fragments | `REFERENCE_UNRESOLVED`, `REFERENCE_UNVERIFIABLE` | [URI Usage](https://pages.nist.gov/OSCAL/learn/concepts/uri-use/) |
@@ -135,6 +136,21 @@ imports the XML serialization of its catalog. Which file each import matched is
 reported, so an UNVERIFIABLE finding always comes with the reason it could not
 be settled.
 
+`--resolve` is repeatable and takes directories, so the same file reaches it
+twice for reasons that are not mistakes: a directory named twice, a directory
+and a file inside it, a path with and without a trailing slash. One file
+reached twice is one file, identified by its resolved path, and every one of
+those spellings produces the same report as passing the file once.
+
+What is left after that is real: **two different files answering to one name**,
+which happens as soon as two publishers' `catalog.json` are handed over
+together. That is `IMPORT_AMBIGUOUS`, and it is deliberately not
+`IMPORT_NOT_SUPPLIED`. The documents *were* supplied; what cannot be determined
+is which one the import means, so neither is admitted to the effective data
+model and references into it stay UNVERIFIABLE. The finding names every
+candidate path, and the fix is the opposite of the fix for a missing document —
+narrow `--resolve` rather than widen it — so the report says that instead.
+
 ## GitHub Action
 
 If the documents you deliver live in a repository, [`action.yml`](action.yml)
@@ -153,9 +169,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      # Prefer a release tag or a commit SHA. `main` is shown because the
-      # action postdates v0.1.0 and no release carries it yet.
-      - uses: ChelseaKR/oscal-validate@main
+      # Prefer a commit SHA. A tag is shown for readability; v0.2.0 is the
+      # first release that carries the action.
+      - uses: ChelseaKR/oscal-validate@v0.2.0
         with:
           path: oscal/
 ```
@@ -174,7 +190,7 @@ a glob such as `oscal/**/*.json`. Two further inputs, both optional:
   never a pass.
 
 ```yaml
-      - uses: ChelseaKR/oscal-validate@main
+      - uses: ChelseaKR/oscal-validate@v0.2.0
         id: oscal
         with:
           path: oscal/**/*.json
@@ -243,12 +259,25 @@ heading so the count cannot drift.
 one thing at a time (removes a required property, adds one the schema forbids,
 breaks a UUID's version nibble, drops a timezone, duplicates a control id,
 dangles a back-matter fragment, points a profile at a control that does not
-exist), and asserts each corruption is caught. A gate that has not been
-deliberately broken is a gate you are trusting on faith.
+exist, replaces a whole assembly with a scalar, empties an array the schema
+requires items in, puts a port number below the schema's minimum), and asserts
+each corruption is caught. A gate that has not been deliberately broken is a
+gate you are trusting on faith.
 
-One of those tests asserts the opposite direction too: a profile reference that
+Two of those tests assert the opposite direction too: a profile reference that
 misses is an ERROR *only* when the catalog was supplied, and UNVERIFIABLE
-otherwise.
+otherwise; and a port range inside its bounds must stay clean, so the bound
+check cannot pass by reporting everything.
+
+The last three corruptions were added because they were not caught. A catalog
+whose `metadata` was the JSON value `null` exited 0 with no ERROR finding: the
+walk filed the scalar where an assembly belonged, everything below it became
+unreachable, and the report was the verdict a valid document gets.
+`{"catalog": null}` did the same for a document with no body at all. Separately,
+a port range of `start: -1, end: 99.5` produced output byte for byte identical
+to `start: 443, end: 443`, because the two facets `NonNegativeIntegerDatatype`
+states, an `integer` base type and `"minimum": 0`, were both dropped on the way
+out of the schema.
 
 ### Determinism
 
@@ -340,12 +369,14 @@ dependency would cost the zero-dependency property that makes the no-network
 and no-model claims mechanically checkable.
 
 **It is not a JSON Schema implementation.** The walk reads `$ref`,
-`properties`, `required`, `additionalProperties`, `items`, `type`, and
-`pattern`. It does not evaluate `enum` (except to suppress a pattern finding
-where the schema offers a literal as an alternative), `minItems`, `minimum`,
-`format`, `contentEncoding`, or `uniqueItems`. Where the schema combines
-alternatives in a form it does not resolve, the subtree is reported
-`SUBTREE_NOT_READ` rather than passed over.
+`properties`, `required`, `additionalProperties`, `items`, `type`, `pattern`,
+`minItems`, and `minimum`. It does not evaluate `enum` (except to suppress a
+pattern finding where the schema offers a literal as an alternative), `format`,
+or `contentEncoding`. `maximum`, `maxItems`, `minLength`, `maxLength`,
+`uniqueItems`, `const`, `if`, and `not` are absent from the vendored schema, so
+there is nothing there to evaluate. Where the schema combines alternatives in a
+form the walk does not resolve, the subtree is reported `SUBTREE_NOT_READ`
+rather than passed over.
 
 **It does not resolve profiles.** A profile's `modify`, `merge`, and
 `insert-controls` are not applied, so it cannot check anything that is only
