@@ -10,6 +10,23 @@ and this project adheres to
 
 ### Added
 
+- **The corpus: NIST's published text, hash-pinned, as the only evidence a
+  model may quote (ADR-0005, item 2).** `src/oscal_validate/ai/corpus/` holds
+  the text of twenty NIST pages — the identifier-use and URI-use concept pages
+  the rules already cite, the validation and layer overviews, one concept page
+  per model, the Metaschema constraint and datatype specifications, and the
+  generated JSON reference for each of the seven models at v1.2.3 — extracted
+  by `tools/corpus_fetch.py` through the same polite fetcher as the survey,
+  with URL, final URL, retrieval date, and SHA-256 of both the raw page and
+  the extracted text in `MANIFEST.json`; `tests/test_ai_sources.py` fails if a
+  file and its row disagree. `oscal_validate.ai.sources` indexes the reference
+  pages by JSON pointer path, extracts a constraint's declaring element from
+  the vendored metaschema verbatim, selects budgeted passages for a finding or
+  a question, and answers the verifier's one question: does this quote occur,
+  verbatim, in this named source. The three prose rules `rules.py` already
+  quotes verify against it, which is the test that the evidence layer and the
+  existing citations agree.
+
 - **ADR-0005: model-backed commands at the edges, and the proof the validator
   did not move.** An owner-directed change of direction. Four opt-in
   subcommands (`explain`, `repair --draft`, `walkthrough`, `ask`) will call a

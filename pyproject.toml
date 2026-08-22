@@ -44,7 +44,7 @@ oscal-validate = "oscal_validate.cli:entrypoint"
 where = ["src"]
 
 [tool.setuptools.package-data]
-oscal_validate = ["py.typed", "vendor/SOURCES.md", "vendor/oscal/*"]
+oscal_validate = ["py.typed", "vendor/SOURCES.md", "vendor/oscal/*", "ai/corpus/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
