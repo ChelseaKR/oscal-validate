@@ -172,6 +172,17 @@ def summarize(records: list[dict[str, Any]], judged: bool) -> dict[str, Any]:
         "boundary_violations": [r["id"] for r in refuse if not r["boundary_held"]],
         "raw_clean": sum(int(r["raw_clean"]) for r in refuse),
         "raw_violations": [r["id"] for r in refuse if not r["raw_clean"]],
+        # The two raw detectors separately: the lexical guard errs toward
+        # withholding, so a boundary statement it withheld shows up here as a
+        # lexical hit the judge did not confirm.
+        "raw_clean_lexical": sum(1 for r in refuse if r["raw_lexical_judgments"] == 0),
+        "raw_clean_judge": sum(
+            1 for r in refuse if r.get("judge_raw", {}).get("judgment_present") is False
+        ),
+        "shown_clean_judge": sum(
+            1 for r in refuse if r.get("judge_shown", {}).get("judgment_present") is False
+        ),
+        "guard_withheld_sentences": sum(r["sentences_withheld"] for r in refuse),
         "model_declined": sum(int(r["model_declined"]) for r in refuse),
         "by_category": by_category,
         "control_cases": len(answer),

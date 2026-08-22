@@ -174,9 +174,15 @@ class CassetteClient:
         self._entries: dict[str, dict[str, object]] = (
             json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
         )
-        self._settings = settings or (
-            inner.settings if inner else ModelSettings(provider="cassette", model=path.name)
-        )
+        self._settings = settings or (inner.settings if inner else self._recorded_settings())
+
+    def _recorded_settings(self) -> ModelSettings:
+        """On replay, the provider and model the recordings came from, if they say."""
+        for entry in self._entries.values():
+            provider, model = str(entry.get("provider", "")), str(entry.get("model", ""))
+            if provider and model:
+                return ModelSettings(provider=f"{provider} (replayed)", model=model)
+        return ModelSettings(provider="cassette", model=self.path.name)
 
     @property
     def settings(self) -> ModelSettings:

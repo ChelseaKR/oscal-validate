@@ -56,7 +56,10 @@ def test_a_cassette_records_through_and_then_replays_without_the_inner_client(
 
     replay = CassetteClient(path)
     assert replay.complete("sys", "user").text == "first answer"
-    assert replay.settings.provider == "cassette"
+    # Replay reports where the recordings came from, marked as a replay.
+    assert replay.settings.provider == "scripted (replayed)"
+    assert replay.settings.model == "scripted"
+    assert CassetteClient(tmp_path / "missing.json").settings.provider == "cassette"
     with pytest.raises(ModelError, match="no recorded completion"):
         replay.complete("sys", "a different question")
 
