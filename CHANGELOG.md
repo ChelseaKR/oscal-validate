@@ -30,6 +30,18 @@ and this project adheres to
 
 ### Added
 
+- **Every opt-in AI command discloses what it is about to send, before it
+  sends it.** `explain`, `repair --draft`, `walkthrough`, and `ask` each
+  print a one-line notice on stderr — naming what leaves the machine (the
+  findings, NIST text passages, and document excerpts, or the question
+  alone for `ask` without `--document`) and which provider it goes to —
+  before the first network call, not only in `--help` and the README.
+  `tests/test_ai_explain.py` exercises all four commands against a cassette
+  and asserts the notice appears first. [Issue #20](https://github.com/ChelseaKR/oscal-validate/issues/20)
+  records what a redaction or fixtures-only mode for these commands would
+  take and why it is not trivial (owner decision: future scope, not built
+  now).
+
 - **Real-document evals: repair efficacy, citation grounding, and walkthrough
   fidelity on twelve published NIST documents (ADR-0005, item 6).**
   `evals/cases/documents.json` pins twelve `usnistgov/oscal-content`
@@ -111,6 +123,29 @@ and this project adheres to
   SSP's validation context.
 
 ### Fixed
+
+- **The repair prompt's JSON Patch paths were written relative to the shown
+  excerpt rather than the document root, on 2 of the first run's 62
+  targets** (`REFERENCE_UNRESOLVED` and `UUID_NOT_UNIQUE` cases that were
+  scored "not drafted" in the first repair-efficacy run). Prompt
+  `2026-08-21.2` adds one line making the anchoring explicit — a patch to
+  this document's root uuid is `{"op": "replace", "path": "/assessment-plan/uuid", ...}`,
+  never `{"path": "/uuid", ...}` — with the model name as the first token.
+  Re-run on the same model, documents, and injectors
+  (`evals/results/repair-2026-08-21-prompt-2.json`; the original
+  `evals/results/repair-2026-08-21.json` is kept alongside it, not
+  overwritten, so the prompt-change effect stays visible): repair went from
+  59/62 resolved (2 not drafted) to 62/62 resolved (61 with nothing
+  introduced). The one target that newly failed clean under prompt `.2`
+  (`leveraging_ssp`, `duplicate_uuid` injector, `UUID_NOT_UNIQUE` on a
+  party's `uuid`) had its patch value replace the duplicate UUID with the
+  literal string `PLACEHOLDER-NEW-UUID-FOR-PARTY-0` — a placeholder, as
+  instructed, but not syntactically valid for the datatype — which
+  re-validation caught and reported as an introduced `DATATYPE_MISMATCH`,
+  exactly as ADR-0005 item 3 requires: never applied, never shown as clean.
+  Checked for reproducibility with six further independent live calls on
+  the same case, same model, same prompt: none reproduced it. `docs/evals/README.md`
+  carries the full before/after table.
 
 - The golden captured under the name `nist_ssp_example` in the first ADR-0005
   change was EasyDynamics' oscal-viewer sample, a derivative of NIST's

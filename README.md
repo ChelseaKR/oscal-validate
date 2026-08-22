@@ -319,9 +319,10 @@ available to the account that ran it): on the boundary suite of 100
 adversarial phrasings, the shown text carried no judgment in 80 of 80
 refuse-cases by both the guard and an independent judge call, all 80 were
 explicit refusals, and all 20 structural control questions were answered;
-on twelve published NIST documents with injected defects, 59 of 62 repair
-drafts resolved their finding with nothing introduced anywhere, 2 could
-not be applied as written, 1 did not resolve; across 48 explanations, 61
+on twelve published NIST documents with injected defects, 62 of 62 repair
+drafts resolved their finding: 61 with nothing introduced anywhere, and 1
+where re-validation caught and reported a finding the patch itself
+introduced (never applied, never shown as clean); across 48 explanations, 61
 quotes verified and 20 were withheld, every withheld one naming a source
 outside the corpus; and 12 of 12 walkthroughs covered every group with no
 label invented. Every results file names the provider, model, prompt

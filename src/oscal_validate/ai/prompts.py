@@ -146,7 +146,10 @@ def repair_user(
         f"{'Notes from the tool:' + chr(10) + note_text + chr(10) if notes else ''}"
         f"Evidence you may quote:\n{_passages(passages)}\n"
         "Propose the smallest JSON Patch (RFC 6902; only add, remove, replace) that would\n"
-        "resolve this one finding. Paths are JSON Pointers into the document root. Where a\n"
+        "resolve this one finding. Paths are absolute JSON Pointers from the document root:\n"
+        f"their first token is the model name, so a patch to this document's root uuid is\n"
+        f'{{"op": "replace", "path": "/{model}/uuid", ...}} and never {{"path": "/uuid", ...}},\n'
+        "even when the excerpt you were shown starts below the root. Where a\n"
         "real value is needed that only the author knows (a date, a UUID, a description,\n"
         "the right target of a reference), use a value that is syntactically valid for the\n"
         "datatype and list that path under placeholders saying what the author must supply.\n"

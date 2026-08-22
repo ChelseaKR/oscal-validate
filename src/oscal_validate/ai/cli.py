@@ -171,19 +171,26 @@ def _prepare_or_exit(args: argparse.Namespace, file: str | None = None) -> Run |
         return None
 
 
-def _client_or_exit(args: argparse.Namespace) -> ModelClient | None:
+def _client_or_exit(args: argparse.Namespace, sends: str) -> ModelClient | None:
+    """Build the client and say, before any call, what is about to leave the machine."""
     try:
-        return build_client(_environ(args))
+        client = build_client(_environ(args))
     except ModelError as exc:
         print(f"oscal-validate: {exc}", file=sys.stderr)
         return None
+    print(
+        f"oscal-validate: this command sends {sends} to {client.settings.label}; "
+        "the default validate command never does",
+        file=sys.stderr,
+    )
+    return client
 
 
 def _explain(args: argparse.Namespace) -> int:
     run = _prepare_or_exit(args)
     if run is None:
         return 2
-    client = _client_or_exit(args)
+    client = _client_or_exit(args, f"the findings, NIST text passages, and excerpts of {args.file}")
     if client is None:
         return 2
     selected = _select(run, args)
@@ -205,7 +212,7 @@ def _walkthrough(args: argparse.Namespace) -> int:
     run = _prepare_or_exit(args)
     if run is None:
         return 2
-    client = _client_or_exit(args)
+    client = _client_or_exit(args, f"the findings of {args.file}, with NIST text passages")
     if client is None:
         return 2
     result = walkthrough_command.walk(run, client)
@@ -224,7 +231,10 @@ def _ask(args: argparse.Namespace) -> int:
         run = _prepare_or_exit(args, args.document)
         if run is None:
             return 2
-    client = _client_or_exit(args)
+    sends = "the question and NIST text passages" + (
+        f", plus the findings of {args.document}" if args.document else ""
+    )
+    client = _client_or_exit(args, sends)
     if client is None:
         return 2
     answer = ask_command.ask_one(args.question, client, run)
@@ -250,7 +260,7 @@ def _repair(args: argparse.Namespace) -> int:
     run = _prepare_or_exit(args)
     if run is None:
         return 2
-    client = _client_or_exit(args)
+    client = _client_or_exit(args, f"the findings, NIST text passages, and excerpts of {args.file}")
     if client is None:
         return 2
     selected = _select(run, args)

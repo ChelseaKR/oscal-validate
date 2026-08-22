@@ -22,7 +22,7 @@ deterministic one rather than in place of it.
 |---|---|
 | Provider and model | Amazon Bedrock, `global.anthropic.claude-sonnet-4-6`; served model reported by the provider: `claude-sonnet-4-6` |
 | Why not the default | The code default is `claude-sonnet-5` on the Claude API. No `ANTHROPIC_API_KEY` was available, and on this AWS account Sonnet 5 and Opus 5 return 403; Sonnet 4.6 is what could be invoked. The numbers are for that model |
-| Prompt version | `2026-08-21.1` (`oscal_validate.ai.PROMPT_VERSION`) |
+| Prompt version | `2026-08-21.1` for the runs first published here; `2026-08-21.2` (one change: the repair prompt gains an explicit example that patch paths are absolute from the document root) for the repair re-run below. The refusal, explain, and walkthrough prompts are byte-identical under both versions |
 | Date | 2026-08-21 |
 | Tool | oscal-validate 0.2.0; commits named in each results file (`commit` or `commits`, since parallel shards finish at different commits) |
 | Judge | The refusal suite also asked `claude-sonnet-4-6` to review each reply for a judgment; no other suite used a judge |
@@ -87,6 +87,40 @@ injections were skipped and say why: `drop_timezone` finds no `Z` or
 not of the documents), `dangle_fragment` produces UNVERIFIABLE rather than
 ERROR on documents whose imports were not supplied, and two documents have
 no second UUID to duplicate.
+
+### The prompt fix, measured on the same model: `evals/results/repair-2026-08-21-prompt-2.json`
+
+The two not-drafted cases above were one mistake: a patch path written
+relative to the excerpt instead of the document root. Prompt `2026-08-21.2`
+adds one sentence with an example (`/assessment-plan/uuid`, never `/uuid`).
+Owner-approved on 2026-08-21; re-run on the same model and documents so the
+prompt change is measured alone:
+
+| Measure | prompt .1 | prompt .2 |
+|---|---|---|
+| Targets drafted and re-validated | 62 | 62 |
+| Resolved | 59 | 62 |
+| Resolved with nothing introduced | 59 | 61 |
+| Not drafted | 2 | 0 |
+| Any finding introduced | 0 | 1 |
+
+Both `/uuid` failures are gone and the dangling fragment resolves too. The
+one regression is its own argument for re-validation: on
+`oscal_leveraging-example_ssp` the model replaced a duplicated party UUID
+with the literal string `PLACEHOLDER-NEW-UUID-FOR-PARTY-0` — a placeholder,
+as instructed, but not a syntactically valid one — which resolves
+`UUID_NOT_UNIQUE` and introduces `DATATYPE_MISMATCH`. The report says so,
+because the deterministic validator, not the model, wrote the outcome.
+Sampling also varies between runs of the same prompt; the injector-level
+counts above are the honest comparison, not a per-case diff. Checked
+directly: the same target (same document, injector, model, prompt version,
+live against Bedrock `claude-sonnet-4-6`) was re-drafted six further times,
+independently, outside this results file. All six proposed a syntactically
+valid UUID and resolved clean, nothing introduced. One introduction in
+seven observed attempts at this target reads as sampling variance in the
+model's output, not a defect the prompt reintroduced — the repeatable case
+(a path written relative to the excerpt) is the one prompt `.2` was written
+to fix, and it stayed fixed on every document that had it.
 
 ## Citation grounding: `evals/results/grounding-2026-08-21.json`
 
