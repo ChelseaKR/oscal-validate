@@ -1,0 +1,97 @@
+Skip to main content
+
+| Catalog Schema | Catalog Converters | Reference
+
+| JSON Schema | XML to JSON Converter
+(How do I use this?) | Outline
+Reference
+Index
+
+| XML Schema | JSON to XML Converter
+(How do I use this?) | Outline
+Reference
+Index
+
+## Purpose
+
+The OSCAL catalog model represents a collection of controls, represented as a control catalog.
+
+The OSCAL catalog model was designed to represent security and privacy controls in standardized, machine-readable formats. The OSCAL catalog model standardizes the representation of control definitions from different sources (e.g., SP 800-53, ISO/IEC 27002, COBIT 5) allowing control information to be easily searched, imported, and exported by applications using a common format.
+
+The OSCAL catalog model was designed to represent security and privacy controls; however, it may be possible to apply OSCAL to other applications related to safety, health, or other purposes. These other applications have not been explored so far.
+
+## Authors and Consumers
+
+### Catalog Authors
+
+Compliance Framework Authors and Requirements Authors
+
+Catalogs are authored by an organization that defines or governs a set of controls, such as NIST with Special Publication (SP) 800-53.
+
+Organizations may also author a catalog when they need to define a control not found in an existing control catalog.
+
+### Catalog Consumers
+
+Baseline Authors and Consumers, Component Definition Authors and Consumers, System Security Plan Authors and Consumers, Auditors, Authorizing Officials
+
+As the catalog forms the foundation of OSCAL, the authors and consumers of all other OSCAL artifacts are catalog consumers.
+
+## Catalog Organization
+
+An OSCAL catalog is organized as follows, which is based on the standard OSCAL document structure:
+
+Metadata: Metadata syntax is identical and required in all OSCAL models. It includes information such as the file's title, publication version, publication date, and OSCAL version. Metadata is also used to define roles, parties (people, teams and organizations), and locations.
+
+Parameter: Any parameter applicable to more than one control requirement statement in the catalog may be defined here.
+
+Control: Each control may contain control-specific parameters, control requirement statements, control objectives, assessment methods, references, and subordinate controls.
+
+Group: Related controls may be grouped. Parameters related to this group may be defined here.
+
+Back Matter: Back matter syntax is identical in all OSCAL models. It is used for attachments, citations, and embedded content such as graphics.
+
+## Key Concepts
+
+OSCAL catalogs define organized sets of controls. The primary use of the catalog model is to represent, in machine-readable form, a comprehensive collection of controls from which an organization can create a baseline, by means of control selection and tailoring. A public catalog such as SP 800-53 (Revision 4 and Revision 5), available in such a format, is a significant (and arguably indispensable) asset for any organization tasked with understanding, implementing, and assessing its controls. The OSCAL catalog model supports this by providing a common set of rules for encoding this catalog (control set), like others, thereby promoting interoperability of tools, portability of data, and the development of commodity software applications.
+
+Because the OSCAL catalog model is suited to represent any set of controls, it has a second important application: to represent the output of a process applied to OSCAL profile documents, called resolution. (See the Profile Resolution Specification for details.) This application of the catalog model is important to consumers of baselines, giving them the ability to import, view and further process the controls represented in a baseline in one place, with their tailoring, and treat catalogs and baselines together within a single unified set of operations.
+
+In both of these applications (and in others to be developed), the OSCAL catalog model provides:
+
+An ability to group related controls; and
+
+An ability to define individual controls, including:
+
+control definition: a statement of the functionality or capability required to implement the control;
+
+control parameters: a mechanism for the dynamic assignment of values in a control;
+
+control guidance: additional control implementation guidance, intended to supplement the control definition;
+
+control objectives: clearly stated objectives that should be achieved by a proper implementation of the control definition;
+
+assessment methods: prescribed activities for ensuring the control has been implemented consistent with its definition and achieving its objectives;
+
+related controls: identification of other controls in the catalog related to the control;
+
+references: supporting references related to the control.
+
+#### Important Note to Developers
+
+Every time the content of an OSCAL file changes, the following must also change:
+
+A new UUID value must be generated and assigned to the root element's uuid.
+
+The last-modified field in metadata must be assigned with the date and time at the moment the file is saved with the modified content.
+
+These are two mechanisms by which tools can quickly "know" if a file has changed since it was last encountered. This document level UUID is the only UUID in OSCAL associated with version control.
+
+When converting between formats, such as XML to JSON, these values should remain the same. This enables tools to know the content within the two formats is equivalent.
+
+## Content Examples
+
+The NIST SP 800-53 Revision 4 and 5 control catalogs are provided as OSCAL examples in the OSCAL content GitHub repository. These examples are maintained by NIST in OSCAL XML, JSON, and YAML formats. OSCAL catalogs and baselines are being produced by other stakeholders to represent different control regimens as well.
+
+Read an Annotated Example of the contents and organization of an OSCAL control from NIST SP800-53 Revision 5.
+
+This page was last updated on March 3, 2025.

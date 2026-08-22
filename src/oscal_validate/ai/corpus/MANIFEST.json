@@ -1,0 +1,206 @@
+{
+  "extraction_version": "1",
+  "license": "Works of the US National Institute of Standards and Technology; public domain in the United States, CC0 1.0 elsewhere per usnistgov/OSCAL.",
+  "sources": {
+    "identifier-use": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/",
+      "raw_bytes": 31683,
+      "raw_sha256": "39c66ad04c26142dc4a3d5be6fbcc13a3889fce952185eb6a46159beee6c1a46",
+      "retrieved": "2026-08-21",
+      "text_bytes": 10052,
+      "text_sha256": "02eddfc71f83f5f5faf0073b01c621f08b69ecf79da647c269318e622356f364",
+      "title": "Identifier Use and UUIDs",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+    },
+    "layer-overview": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/overview/",
+      "raw_bytes": 35597,
+      "raw_sha256": "7e18b1bb88b88779fdd50a0f554b48e4cec31b5d85f7ccd26ce8b69c519e853d",
+      "retrieved": "2026-08-21",
+      "text_bytes": 17439,
+      "text_sha256": "18b17d39586ab357711cd73f4f0fe5ce3e3cfc15eca74317fb112bb72b4699c9",
+      "title": "Model Overview",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/overview/"
+    },
+    "metaschema-constraints": {
+      "final_url": "https://pages.nist.gov/metaschema/specification/syntax/constraints/",
+      "raw_bytes": 78244,
+      "raw_sha256": "aaef0da003ca46e17a29f26dcbae01a81ac1cfb5bfabc71ae3725cca721e23dc",
+      "retrieved": "2026-08-21",
+      "text_bytes": 31848,
+      "text_sha256": "c51a84834e17d51a5abbc1f2cab0db0653305de54522314d2c65aa7e2a3abc6b",
+      "title": "Constraints",
+      "url": "https://pages.nist.gov/metaschema/specification/syntax/constraints/"
+    },
+    "metaschema-datatypes": {
+      "final_url": "https://pages.nist.gov/metaschema/specification/datatypes/",
+      "raw_bytes": 93454,
+      "raw_sha256": "90b1482053c04f481911d0022969f3ede5b1a1cd794cbe7011197b1bfdcb4f0f",
+      "retrieved": "2026-08-21",
+      "text_bytes": 31224,
+      "text_sha256": "222ca23d62f28f97894cbf272f5376f355b50b4cdcea1b97b93250866333b0ac",
+      "title": "Metaschema Data Types",
+      "url": "https://pages.nist.gov/metaschema/specification/datatypes/"
+    },
+    "model-assessment-plan": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/assessment-plan/",
+      "raw_bytes": 20999,
+      "raw_sha256": "5037eeae4dd2549a7f5294add585e076c3888f30ca50e7680d76b06245e4dc41",
+      "retrieved": "2026-08-21",
+      "text_bytes": 5481,
+      "text_sha256": "6cebfb43f49f09736e19d0fb3636684416303795abf0f2b05025cc6c5cf0c79e",
+      "title": "Assessment Plan Model",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/assessment-plan/"
+    },
+    "model-assessment-results": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/assessment-results/",
+      "raw_bytes": 21824,
+      "raw_sha256": "ca3b1da784128f02585dca6c3ba1b4aab81f0f60a2d349f422ef3f3012208784",
+      "retrieved": "2026-08-21",
+      "text_bytes": 6115,
+      "text_sha256": "bec13ababb34d93abc29d60e330d39660c676c1ca9564afb353c96ede1536f7c",
+      "title": "Assessment Results Model",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/assessment-results/"
+    },
+    "model-catalog": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/control/catalog/",
+      "raw_bytes": 21359,
+      "raw_sha256": "e7d2f3d8d6fd9799d2d0ddc0471cb9906698c290ee42d5e888be87de1e49700f",
+      "retrieved": "2026-08-21",
+      "text_bytes": 6015,
+      "text_sha256": "e647d48b44f673e43004e2f28acd4ab9f1657eee423cd75e887712c385bb8603",
+      "title": "OSCAL Catalog Model",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/control/catalog/"
+    },
+    "model-component-definition": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/implementation/component-definition/",
+      "raw_bytes": 22499,
+      "raw_sha256": "11f5d6c8a5064d5a07cb8c2e3ce6bdffed16fb957212d34bf75ef72358aa277a",
+      "retrieved": "2026-08-21",
+      "text_bytes": 6537,
+      "text_sha256": "f9dbea4cad21345635779e88d245c7c05a928e5d91dde19479ca7ab0553d8c0a",
+      "title": "Component Definition Model",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/implementation/component-definition/"
+    },
+    "model-poam": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/poam/",
+      "raw_bytes": 20185,
+      "raw_sha256": "db6386450205198435c7d05a4e049d7471d2bc14fabc8f38deb9a32770a89e2a",
+      "retrieved": "2026-08-21",
+      "text_bytes": 4770,
+      "text_sha256": "2ac4d260e67d823c9647f3a4f10dcefad64198173a2ea96256e2509c2cfc9570",
+      "title": "Plan of Action and Milestones Model",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/poam/"
+    },
+    "model-profile": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/control/profile/",
+      "raw_bytes": 22078,
+      "raw_sha256": "248ccfaf222402a9d7b1af868685441e4a91d820cd963829251b1ae6eb999dcd",
+      "retrieved": "2026-08-21",
+      "text_bytes": 5386,
+      "text_sha256": "22c83b3bab78c890b880ea8558dcac330399c480adb80a0c8bc393565f035727",
+      "title": "OSCAL Profile Model",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/control/profile/"
+    },
+    "model-ssp": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/implementation/ssp/",
+      "raw_bytes": 33755,
+      "raw_sha256": "1ffcdb6038cbe94bc1a97d4d5b3ab5acf605ffae138fa84140fa73173d904f8b",
+      "retrieved": "2026-08-21",
+      "text_bytes": 9824,
+      "text_sha256": "7be9c5602f9af74078d065345a4f9b0972736c2590c170d2b19e6c412ba95759",
+      "title": "System Security Plan Model (SSP)",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/layer/implementation/ssp/"
+    },
+    "reference-assessment-plan": {
+      "final_url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/assessment-plan/json-reference/",
+      "raw_bytes": 1585047,
+      "raw_sha256": "b6db5bd896113ef55431e54caec2fed2c154f5d0f958692a1cdb94b3d0b26e20",
+      "retrieved": "2026-08-21",
+      "text_bytes": 559021,
+      "text_sha256": "2eb075e8799c5df0710f0d6ac43c94b3bfc14354612135f6a0ac9e315e44dedd",
+      "title": "OSCAL Assessment Plan Model v1.2.3 JSON Format Reference",
+      "url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/assessment-plan/json-reference/"
+    },
+    "reference-assessment-results": {
+      "final_url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/assessment-results/json-reference/",
+      "raw_bytes": 4072313,
+      "raw_sha256": "966607c964e47e678c9a86c99fd09c79466315054e021b9009e53f50c5671c6f",
+      "retrieved": "2026-08-21",
+      "text_bytes": 1342960,
+      "text_sha256": "1aad5338f2126e5fb9259c7e07ffaa6dbed9e06ed29e92dab3d4f3ab2225b8a8",
+      "title": "OSCAL Assessment Results Model v1.2.3 JSON Format Reference",
+      "url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/assessment-results/json-reference/"
+    },
+    "reference-catalog": {
+      "final_url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/catalog/json-reference/",
+      "raw_bytes": 700535,
+      "raw_sha256": "ab8c7e1dc893724ec228713d06e3df16a34fd4ffd6a2c07588aa88f05d458ac2",
+      "retrieved": "2026-08-21",
+      "text_bytes": 274489,
+      "text_sha256": "5f9c4d4c5c242cf5398c8a13c724ed21737da92ac9b815dfcc1fe6db602255af",
+      "title": "OSCAL Catalog Model v1.2.3 JSON Format Reference",
+      "url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/catalog/json-reference/"
+    },
+    "reference-component-definition": {
+      "final_url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/component-definition/json-reference/",
+      "raw_bytes": 741035,
+      "raw_sha256": "9e4f5c5142ad0b5c8500285d8dfe315a2c1f71ac210d88bc7b21a154f21a8389",
+      "retrieved": "2026-08-21",
+      "text_bytes": 249967,
+      "text_sha256": "4778e746402bea46b2ae614461ed33a2672696ed11342949a1deac464700cc22",
+      "title": "OSCAL Component Definition Model v1.2.3 JSON Format Reference",
+      "url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/component-definition/json-reference/"
+    },
+    "reference-plan-of-action-and-milestones": {
+      "final_url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/plan-of-action-and-milestones/json-reference/",
+      "raw_bytes": 3032657,
+      "raw_sha256": "71cbb201c0b5dc402017ef237a656e65615694f1b5642455c7dee4d3ea8ddb40",
+      "retrieved": "2026-08-21",
+      "text_bytes": 994870,
+      "text_sha256": "7d4c4431aa555e1587158a322deeccea03d88241f5a04c8a6b77c7f8540bb591",
+      "title": "OSCAL Plan of Action and Milestones Model v1.2.3 JSON Format Reference",
+      "url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/plan-of-action-and-milestones/json-reference/"
+    },
+    "reference-profile": {
+      "final_url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/profile/json-reference/",
+      "raw_bytes": 634554,
+      "raw_sha256": "b837861a7009c9848a1a5053339f7b68e47b68492a735625ab5a8584ac1f1c49",
+      "retrieved": "2026-08-21",
+      "text_bytes": 225008,
+      "text_sha256": "a95ec242a5005e7dc3580c8d1ad9d60933fcb75cdaa466edc10dc6287965ba64",
+      "title": "OSCAL Profile Model v1.2.3 JSON Format Reference",
+      "url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/profile/json-reference/"
+    },
+    "reference-system-security-plan": {
+      "final_url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/system-security-plan/json-reference/",
+      "raw_bytes": 1788522,
+      "raw_sha256": "3447fb5489866103cbbec63d961c922c2c14c962b0450a3aa6b0f88e8509ce27",
+      "retrieved": "2026-08-21",
+      "text_bytes": 592355,
+      "text_sha256": "60acce3d33b36447b4fae1e24abf6e3a4888ce6883e3b4a9ce870bf4a86dc130",
+      "title": "OSCAL System Security Plan Model v1.2.3 JSON Format Reference",
+      "url": "https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/system-security-plan/json-reference/"
+    },
+    "uri-use": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/uri-use/",
+      "raw_bytes": 26193,
+      "raw_sha256": "be475ef5fa7b359db38e80c39be8e7cc17b6fb6001d62ffafaa8291e0c452cff",
+      "retrieved": "2026-08-21",
+      "text_bytes": 8103,
+      "text_sha256": "865be49c0a67e8d8c37b83f67f4356c197be6526c1b4179d70c6844394370ca0",
+      "title": "URI Usage",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/uri-use/"
+    },
+    "validation": {
+      "final_url": "https://pages.nist.gov/OSCAL/learn/concepts/validation/",
+      "raw_bytes": 17908,
+      "raw_sha256": "90c1f36763412000f94f27525d3b387cbe1a0cfa40369105e75ba8887380a0c3",
+      "retrieved": "2026-08-21",
+      "text_bytes": 5050,
+      "text_sha256": "66f5345782774e1f3e7bba4803460dcb26cee1956471baa232013d049d4dbae4",
+      "title": "Well-formed Data Formats and Valid OSCAL",
+      "url": "https://pages.nist.gov/OSCAL/learn/concepts/validation/"
+    }
+  }
+}

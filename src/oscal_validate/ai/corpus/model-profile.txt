@@ -1,0 +1,103 @@
+Skip to main content
+
+| Profile Schema | Profile Converters | Reference
+
+| JSON Schema | XML to JSON Converter
+(How do I use this?) | Outline
+Reference
+Index
+
+| XML Schema | JSON to XML Converter
+(How do I use this?) | Outline
+Reference
+Index
+
+## Purpose
+
+The OSCAL Profile model represents a baseline of selected controls from one or more control catalogs, which is referred to as a "profile" in OSCAL. The Profile model is the sole model in the OSCAL Control layer.
+
+## Authors and Consumers
+
+### Profile Authors
+
+Control Baseline Authors, Authorizing Officials, and System Owners
+
+Profiles are authored by an organization that defines or governs control baselines, such as the High, Moderate, and Low baselines defined for NIST's Special Publication (SP) 800-53 controls.
+
+Organizations may also author a profiles when they need to define or tailor a set of controls applicable to their organization.
+
+Finally, system owners or authorizing officials may author profiles to establish a baseline of tailored controls applicable to a specific system.
+
+### Profile Consumers
+
+System Security Plan Authors and Consumers, Auditors, Authorizing Officials and Component Definition Authors and Consumers
+
+Profiles are consumed by system owners and authorizing officials as the basis for the System Security Plan (SSP).
+
+An auditor uses a profile to assess a system in the context of its control baseline.
+
+Component definition authors may use profiles to establish context for how a component could satisfy a control requirement.
+
+## Model Overview
+
+An OSCAL profile is organized as follows:
+
+Metadata: Metadata syntax is identical and required in all OSCAL models. It includes information such as the file's title, publication version, publication date, and OSCAL version. Metadata is also used to define roles, parties (people, teams and organizations), and locations.
+
+Import: Identifies an OSCAL catalog or other profile from which controls are to be imported. A control must be imported to be included in a baseline. All parameters and back-matter resources cited by an imported control are also imported.
+
+Merge: Provides directives as to how controls should be organized. It also provides directives for resolving conflicts where two or more variations of a control are imported as a result of multiple import statements.
+
+Modify: Provides the ability to tailor imported controls, including their parameters, control requirement definitions, references, control objectives, and assessment actions.
+
+Back Matter: Back matter syntax is identical in all OSCAL models. It is used for attachments, citations, and embedded content such as graphics.
+
+## Key Concepts
+
+OSCAL profiles define a set of operations that are to be performed on one or more control catalogs to sufficiently reduce and tailor the catalog for use as a system implementation baseline. As such, an OSCAL profile can be thought of as change lists or punch lists referencing one or more catalogs, defining any or all of the following:
+
+Which controls are selected from the catalog and thereby considered to be in scope for the application;
+
+How the control selection should be organized and represented, including whether and how competing control definitions are to be resolved and merged;
+
+Whether and where any controls are to be configured or modified; this includes setting parameter values for a catalog but also potentially amending the language given in controls to describe their application in the system.
+
+See examples of OSCAL profiles.
+
+These three functions are reflected in the organization of a profile document, which may contain (in addition to document metadata) any of three sections, import, merge, and modify:
+
+import (required) - indicates which controls to include or exclude from catalogs
+
+merge - what merge rules to follow and how to organize outputs
+
+modify - how to configure and/or modify parameters and control languages (statements, guidance etc.)
+
+The figure below expresses represents the portion of the OSCAL stack as it relates to an OSCAL profile.
+
+#### Important Note to Developers
+
+Every time the content of an OSCAL file changes, the following must also change:
+
+A new UUID value must be generated and assigned to the root element's uuid.
+
+The last-modified field in metadata must be assigned with the date and time at the moment the file is saved with the modified content.
+
+These are two mechanisms by which tools can quickly "know" if a file has changed since it was last encountered. This document level UUID is the only UUID in OSCAL associated with version control.
+
+When converting between formats, such as XML to JSON, these values should remain the same. This enables tools to know the content within the two formats is equivalent.
+
+## Content Examples
+
+Multiple examples of baselines expressed using the OSCAL profile model can be found in the OSCAL GitHub repository in multiple formats:
+
+| Source | Formats
+
+| NIST SP 800-53 rev 5 | [XML] [JSON] [YAML]
+
+| NIST SP 800-53 rev 4 | [XML] [JSON] [YAML]
+
+| FedRAMP Baselines | [XML] [JSON] [YAML]
+
+You will also find the "resolved" version of each profile. These files end with the suffix -resolved-profile_catalog to indicate that the profile resolution process has been performed to generate a catalog containing only the selected and tailored controls defined by the profile.
+
+This page was last updated on March 3, 2025.

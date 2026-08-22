@@ -1,0 +1,26 @@
+# The NIST pages the model-backed commands quote from (ADR-0005).
+# Format: <id> <url>. Fetched by tools/corpus_fetch.py into src/oscal_validate/ai/corpus/.
+# Concept pages the rules in rules.py already cite.
+identifier-use https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/
+uri-use https://pages.nist.gov/OSCAL/learn/concepts/uri-use/
+validation https://pages.nist.gov/OSCAL/learn/concepts/validation/
+layer-overview https://pages.nist.gov/OSCAL/learn/concepts/layer/overview/
+# One concept page per model.
+model-catalog https://pages.nist.gov/OSCAL/learn/concepts/layer/control/catalog/
+model-profile https://pages.nist.gov/OSCAL/learn/concepts/layer/control/profile/
+model-ssp https://pages.nist.gov/OSCAL/learn/concepts/layer/implementation/ssp/
+model-component-definition https://pages.nist.gov/OSCAL/learn/concepts/layer/implementation/component-definition/
+model-assessment-plan https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/assessment-plan/
+model-assessment-results https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/assessment-results/
+model-poam https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/poam/
+# The Metaschema specification: what a constraint kind means, and the datatypes.
+metaschema-constraints https://pages.nist.gov/metaschema/specification/syntax/constraints/
+metaschema-datatypes https://pages.nist.gov/metaschema/specification/datatypes/
+# The generated JSON reference for each model at the vendored release.
+reference-catalog https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/catalog/json-reference/
+reference-profile https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/profile/json-reference/
+reference-component-definition https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/component-definition/json-reference/
+reference-system-security-plan https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/system-security-plan/json-reference/
+reference-assessment-plan https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/assessment-plan/json-reference/
+reference-assessment-results https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/assessment-results/json-reference/
+reference-plan-of-action-and-milestones https://pages.nist.gov/OSCAL-Reference/models/v1.2.3/plan-of-action-and-milestones/json-reference/
