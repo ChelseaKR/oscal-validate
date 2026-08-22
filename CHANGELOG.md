@@ -8,6 +8,26 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- **The documentation says what the tool is now (ADR-0005).** The README
+  gains "AI-assisted explanation and repair (opt-in)": the four commands,
+  what each checks before it shows anything, the boundary enforced twice,
+  what leaves the machine, the honest refusals, the provider and model
+  settings, and the measured numbers with their provenance. "No network,
+  proved rather than promised" is rescoped to the validator and now also
+  describes the goldens. The standards table moves AI Evaluation from N/A to
+  Applies with the harness as evidence, AI Development Measurement's Track B
+  from N/A to served, and Data Governance to three ingest sources.
+  `docs/ROADMAP.md` gains rows for byte identity, the boundary, repair
+  verification, citation grounding, walkthrough fidelity, corpus integrity,
+  and eval provenance. `docs/RESPONSIBLE-TECH-AUDITS.md` gains section H, the
+  audit of the model-backed surface, with residual risks stated.
+  `docs/evals/README.md` is the eval write-up; `docs/data/nist-documentation-corpus.md`
+  is the corpus's data card; `docs/I18N.md` and `CONTRIBUTING.md` cover the
+  new surface; the CLI's own description no longer claims "no model calls"
+  for the whole tool.
+
 ### Added
 
 - **Real-document evals: repair efficacy, citation grounding, and walkthrough

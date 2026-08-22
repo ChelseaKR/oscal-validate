@@ -11,9 +11,12 @@ standards. Last reviewed: 2026-08-14 (initial).
 - **B Bias:** minimal surface; the tool applies published structural rules
   uniformly to every document and does not rank, score, or profile. It grades
   documents, never the organizations that publish them.
-- **C Privacy / DPIA:** applies in a narrow form. The tool processes only the
-  local files it is pointed at, entirely in process, with no network calls, no
-  telemetry, and no persistence beyond its printed report.
+- **C Privacy / DPIA:** applies in a narrow form. The default command
+  processes only the local files it is pointed at, entirely in process, with
+  no network calls, no telemetry, and no persistence beyond its printed
+  report. The four opt-in commands of ADR-0005 send the findings, passages of
+  NIST's published text, and excerpts of the document around each finding to
+  a model provider; see section H below.
 - **D Transparency:** applies and is the design center: every finding carries
   the rule citation, source URL, and retrieval date it enforces, and every
   unevaluated rule is listed.
@@ -22,8 +25,11 @@ standards. Last reviewed: 2026-08-14 (initial).
 - **F Security:** applies; see `SECURITY.md`. Input is untrusted JSON.
 - **G Effect on third parties:** applies to the survey harness only, which
   fetches other people's servers.
-- **AI Evaluation:** N/A; no LLM or model call exists anywhere in the tool.
-  AI-assisted authoring of the code is disclosed in the README.
+- **AI Evaluation:** applies, since ADR-0005, to the four opt-in model-backed
+  commands. The validator itself still has no model call. The evaluation
+  harness and its results are in `evals/` and `docs/evals/README.md`, and
+  section H below is the audit of the new surface. AI-assisted authoring of
+  the code is disclosed in the README.
 
 ## A. Ethics: false assurance is the whole harm
 
@@ -129,3 +135,66 @@ not to. Fetched bytes are cached so a re-run needs no network at all.
 **Residual risk.** The operator chooses the target list, and a tool cannot know
 whether they had a reason to. What it can do is behave the same way whoever is
 driving it, and leave a log entry that says who it was.
+
+## H. The model-backed commands (ADR-0005)
+
+**What could go wrong?** The harm in section A, false assurance, has a new
+route: a language model that reads a structural finding and writes back that
+a control is implemented, a system is secure, or a package would be
+authorized. Three further failures are specific to the model: an invented
+quotation presented as NIST's definition; a finding described that the
+validator never produced, or one it did produce left out; and a proposed
+edit that silently breaks something else.
+
+**Controls, each enforced in code rather than by prompt wording alone.**
+
+- *The validator decides.* Every model-backed command starts from the
+  deterministic validator's findings list and works only from it. The model
+  never assigns a severity, never adds a finding, never removes one. The
+  walkthrough checker strikes any label the validator did not produce and
+  appends any group the narrative omitted, with the full index printed last.
+- *NIST's text is the only evidence.* The corpus is committed and hash-pinned
+  (`docs/data/nist-documentation-corpus.md`). Every quote is looked up
+  verbatim in the named source before display; every sentence-shaped
+  quotation written inline is looked up across all sources; what is not
+  found is withheld and counted. Measured on twelve NIST documents: 61
+  verified, 20 withheld, every withheld one naming a source outside the
+  corpus.
+- *Repairs are verified, not claimed.* A draft patch is re-validated by the
+  same validator before it is shown, and the report is what that run found.
+  The original file is never written. Measured: 59 of 62 resolved with
+  nothing introduced anywhere.
+- *The boundary is guarded twice.* The system prompt refuses implementation,
+  security, and authorization questions; a deterministic sentence-level
+  guard then withholds any such judgment that would be shown and prints how
+  many it withheld. Measured on 100 adversarial phrasings: 80 of 80
+  refuse-cases held by both the guard and an independent judge call, 80 of 80
+  explicit refusals, 20 of 20 structural questions answered. The guard errs
+  toward withholding and sometimes removes a sentence that was not a
+  judgment; that is the chosen direction of error.
+- *Honest refusals.* A document the validator cannot parse is refused before
+  any model call; a finding whose rule is tool policy is never attributed to
+  NIST; a document declaring another OSCAL version carries the issue #8 note;
+  an unparseable reply shows nothing.
+- *Opt-in, labeled, separate.* The commands are reached only by name, import
+  the SDK lazily, need an optional extra, and print in their first line that
+  what follows is AI-generated and what was checked before it was shown. The
+  default command's bytes are pinned to goldens captured before any of this
+  existed.
+
+**Residual risks, stated.**
+
+- A document sent through these commands leaves the machine and is subject
+  to the model provider's handling. An SSP can describe a real system in
+  detail. The README says so beside the commands; nothing in this repository
+  can make that decision for an operator, and the GitHub Action never runs
+  these commands.
+- The guard is lexical. A judgment phrased in a way no pattern matches would
+  be shown. The judge call in the boundary suite is the check on that, and
+  on the last run it found none; it is the same model family as the one under
+  test, which the write-up says.
+- The numbers are for Amazon Bedrock `claude-sonnet-4-6`, not for the code
+  default `claude-sonnet-5`, which the account that ran them could not invoke.
+  A change of model or of prompt wording (`PROMPT_VERSION`) is a change to
+  what was measured, and the results files say which they measured.
+

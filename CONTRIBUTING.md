@@ -71,6 +71,24 @@ New checks should come with a break-the-gate case in
 `tests/test_break_the_gate.py`: corrupt a proven-clean document in exactly the
 way the check exists to catch, and assert it is caught.
 
+Three more obligations apply to the opt-in model-backed commands under
+`src/oscal_validate/ai/` (ADR-0005):
+
+- **The validator decides; the model narrates.** A change that lets model
+  output create, remove, or re-grade a finding, or that shows a quote the
+  verifier did not find verbatim in the corpus, or a sentence the boundary
+  guard would withhold, is a change to what the tool claims to be.
+- **Prompts are versioned.** Any change to `ai/prompts.py` bumps
+  `PROMPT_VERSION` in `ai/__init__.py`. The cassettes under
+  `tests/cassettes/` and `evals/cassettes/` are keyed by the exact prompt, so
+  a changed prompt misses them by design; re-record with
+  `OSCAL_VALIDATE_AI_RECORD=1` and re-run the evals before merging, and commit
+  the new results with their provenance. A results file without provenance
+  fails `tests/test_evals.py`.
+- **Evidence is NIST's.** A new corpus source goes in `tools/corpus-urls.txt`
+  and is fetched with `tools/corpus_fetch.py`, never pasted in; the manifest
+  hashes are enforced by `tests/test_ai_sources.py`.
+
 Changes to `tools/fetch.py` deserve extra care: it is the only module in the
 project that opens a socket, its posture is documented in its own docstring and
 in the README, and `tests/test_survey_fetch.py` proves each promise against a

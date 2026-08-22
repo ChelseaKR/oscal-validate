@@ -12,7 +12,8 @@ input, same output, byte for byte. Every finding cites the published rule it
 came from, with the source and the date that source was retrieved. Four
 opt-in commands added under [ADR-0005](docs/adr/0005-ai-at-the-edges.md)
 do call a model; they are separate subcommands, they change nothing about
-the one above, and they are described in their own section below.
+the one above, and they are described in
+[AI-assisted explanation and repair](#ai-assisted-explanation-and-repair-opt-in).
 
 ## Structural conformance is not evidence that a control is implemented
 
@@ -225,6 +226,107 @@ nothing, and CI runs the composite action itself over the clean catalog and
 over a copy with one required property removed, failing the build if the
 broken copy passes.
 
+## AI-assisted explanation and repair (opt-in)
+
+A finding such as `CONSTRAINT_NOT_UNIQUE` at
+`/catalog/groups/16/controls/23/id`, cited to a Metaschema constraint by
+identifier, is correct and is not easy to act on. Four subcommands put a
+language model beside the validator for the people who author these
+documents. They are the direction change recorded in
+[ADR-0005](docs/adr/0005-ai-at-the-edges.md), and they keep three things
+fixed: the validator is the only thing that produces a finding, NIST's
+published text is the only evidence, and a verifier that is not a model sits
+between every reply and the screen.
+
+```sh
+pip install 'oscal-validate[ai]'          # the public anthropic SDK; nothing else changes
+export ANTHROPIC_API_KEY=...              # from the environment only; never written to a file
+
+oscal-validate explain my-ssp.json --severity ERROR
+oscal-validate repair --draft my-ssp.json --label F6 --out my-ssp.patched.json
+oscal-validate walkthrough my-ssp.json
+oscal-validate ask "What does the is-unique constraint oscal-catalog-controls require?"
+```
+
+- **`explain`** runs the validator, labels its findings F1..Fn in report
+  order, and for each selected finding gathers the NIST text that bears on
+  it: the JSON reference entry at that pointer, the constraint's declaring
+  element verbatim from the vendored metaschema, the Metaschema
+  specification's section on that constraint kind, the concept page the rule
+  cites. The model explains the finding by quoting that text. Every quote is
+  looked up verbatim in the source it names, and every quotation written
+  inline in the prose is looked up across all sources; one that is not there
+  is withheld, its marker struck, and counted. The output says how many
+  quotes verified and how many were withheld.
+- **`repair --draft`** asks for an RFC 6902 patch (`add`, `remove`,
+  `replace` only), applies it to a copy, and runs the deterministic validator
+  on the copy with the same `--resolve` documents. What that run found is the
+  report: `resolves F6; 6 finding(s) untouched; 1 other(s) also resolved; 0
+  changed; 0 introduced`, with the counts before and after and a diff. The
+  model claims nothing about the effect; the validator states it. Values
+  only the author knows are placeholders and are listed as such. The
+  original file is never written; `--out` writes the patched copy elsewhere
+  and refuses the original or any `--resolve` path. A patch whose values
+  carry an implementation narrative is refused whole.
+- **`walkthrough`** groups the findings in the tool's fix order — supply what
+  the document imports before the references it leaves unsettled, shape the
+  validator could not read before what is beneath it, identifiers before
+  references — labels the groups G1..Gn, and has the model narrate over the
+  labels. A label the validator never produced is struck and counted; a
+  group the narrative never mentions is appended with every finding in it;
+  the full index is printed last. Nothing is invented and nothing is
+  suppressed, and the header says how many groups the narrative covered.
+- **`ask`** answers a question about OSCAL's published rules from the
+  corpus, through the same verifier; with `--document`, the validator runs
+  first and its findings are given to the model as labels.
+
+**The boundary, enforced twice.** The model is instructed to refuse every
+form of "is this control implemented", "is this system secure", "would this
+get an ATO", "is this FedRAMP-ready", "does this satisfy AC-2", and to
+redirect to structural conformance and qualified assessment. Then a
+deterministic guard screens every sentence that would be shown and withholds
+any that carries such a judgment, and says how many it withheld. The guard
+is lexical on purpose: a guard that asked a model whether the model had
+overstepped would be no guard at all. It errs toward withholding, and
+sometimes withholds a sentence that was not a judgment.
+
+**What leaves the machine.** A model call carries the findings, the corpus
+passages, and excerpts of the document around each finding's location. A
+system security plan can contain sensitive detail about a real system. The
+default command sends nothing anywhere; the GitHub Action never runs these
+commands; and a document sent through them is subject to the model
+provider's handling of it.
+
+**Honest refusals.** A document the validator cannot parse is refused
+before any model call. A finding whose rule is this tool's own policy is
+explained as such and never attributed to NIST. A document declaring an
+OSCAL version other than 1.2.3 carries a note that every finding was judged
+against 1.2.3 ([issue #8](https://github.com/ChelseaKR/oscal-validate/issues/8)).
+A reply that cannot be parsed shows nothing.
+
+**Model and provider.** The public `anthropic` SDK, default
+`claude-sonnet-5`, configurable with `OSCAL_VALIDATE_AI_MODEL`;
+`OSCAL_VALIDATE_AI_PROVIDER=bedrock` with `AWS_REGION` uses Amazon Bedrock
+(`pip install 'oscal-validate[bedrock]'`). Credentials come from the
+environment and are never written anywhere. `OSCAL_VALIDATE_AI_CASSETTE`
+names a file of recorded replies that the commands replay without a
+network, which is how the tests run and how an evaluation can be re-scored.
+
+**Measured, with provenance.** [`docs/evals/README.md`](docs/evals/README.md)
+is the write-up of the committed harness in [`evals/`](evals/). Run on
+Amazon Bedrock `claude-sonnet-4-6` on 2026-08-21 (Sonnet 5 was not
+available to the account that ran it): on the boundary suite of 100
+adversarial phrasings, the shown text carried no judgment in 80 of 80
+refuse-cases by both the guard and an independent judge call, all 80 were
+explicit refusals, and all 20 structural control questions were answered;
+on twelve published NIST documents with injected defects, 59 of 62 repair
+drafts resolved their finding with nothing introduced anywhere, 2 could
+not be applied as written, 1 did not resolve; across 48 explanations, 61
+quotes verified and 20 were withheld, every withheld one naming a source
+outside the corpus; and 12 of 12 walkthroughs covered every group with no
+label invented. Every results file names the provider, model, prompt
+version, commit, and date, and a test rejects one that does not.
+
 ## Methodology
 
 ### Severities, honestly defined
@@ -289,11 +391,19 @@ including across separate interpreter processes, and that no timestamp or
 duration appears anywhere in the report. There is nothing to seed: no sampling,
 no clock, no network.
 
-### No network, proved rather than promised
+### No network in the validator, proved rather than promised
 
 `tests/test_offline_guarantee.py` removes `socket` and runs the validator
 anyway. A separate test asserts that no module inside the installed package
-imports `urllib.request`, `http.client`, `socket`, `requests`, or `httpx`.
+outside `oscal_validate/ai/` imports `urllib.request`, `http.client`,
+`socket`, `requests`, `httpx`, or `anthropic`; that nothing outside `ai/`
+imports `ai/`; and that `ai/` names the SDK only inside a function, so
+importing it costs nothing. `tests/test_default_path_byte_identity.py` runs
+the default command in a fresh process and asserts it loaded neither the
+package nor the SDK, and compares its exact bytes over the fixtures and
+nine published NIST documents against [`tests/golden/`](tests/golden/),
+captured from commit `6978895`, the last commit before any model-backed
+command existed. The default output has not moved by a byte.
 
 The one thing in this repository that opens a socket is
 [`tools/fetch.py`](tools/fetch.py), a development harness that is not installed
@@ -367,7 +477,9 @@ approximate.
 
 **It does not judge implementation.** Whether a control is implemented, whether
 an assessment was performed, whether evidence supports a claim: none of that is
-visible in a document's structure, and nothing in this tool looks at it.
+visible in a document's structure, and nothing in this tool looks at it. The
+model-backed commands refuse the question and a guard withholds any answer
+that slips through; the boundary suite in [`evals/`](evals/) measures both.
 
 **It evaluates 102 of NIST's 340 published constraints.** Every one of the
 other 238 is listed with its reason in
@@ -466,7 +578,9 @@ records the measurement.
 ## Disclosure
 
 This tool was built quickly with AI assistance (Claude), then reviewed and
-tested by a human. The specification research was done first: the schema, the
+tested by a human. Since ADR-0005 it also *contains* AI: the four opt-in
+commands above call a model at run time, and say so in their first line of
+output. The specification research was done first: the schema, the
 constraint layer, and every prose rule were retrieved from NIST on 2026-08-14
 and vendored before any check was written, and every ERROR reported in the
 survey was verified by hand against the source document before publication.
@@ -485,8 +599,8 @@ applicability manifest, and this repository is not in it: as of 2026-08-15
 `oscal-validate` entry, which by that file's own header is a failure of the
 weekly conformance run rather than a pass. The scope below was therefore
 derived here, from each standard's own applicability section, for an offline
-command-line tool with no hosted route, no HTML surface, no model, and no
-persistent store. It is this repository's reading, recorded so it can be
+command-line tool with no hosted route, no HTML surface, and no persistent
+store, whose opt-in model-backed commands are described above. It is this repository's reading, recorded so it can be
 checked, and it is not a claim that any registry agrees with it yet.
 
 | Standard | State | Evidence |
@@ -498,11 +612,11 @@ checked, and it is not a claim that any registry agrees with it yet.
 | Observability | Applies (Tier C, library/CLI) | Declared in [docs/ROADMAP.md](docs/ROADMAP.md#observability). Tracing is out of scope because there is no network surface; the report on stdout is the entire observable surface, and its exit-code contract and JSON form are tested in `tests/test_cli.py`. Structured logging is opt-in under this tier and is not implemented; that is recorded as a gap, not as an exemption. |
 | Performance | N/A (pure library/CLI with no hosted route and no shipped HTML, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. |
 | Accessibility | N/A (no graphical or web surface; plain-text terminal output plus `--format json`) | Revisit if any web or GUI surface is added. |
-| Internationalization | N/A (findings quote English-language specification prose verbatim; see [docs/I18N.md](docs/I18N.md)) | Multilingual document *data* validates identically. |
-| AI Evaluation | N/A (deterministic rule engine; no model, prompt, retrieval, embedding, or LLM call anywhere; AI-assisted authoring disclosed above) | Zero runtime dependencies makes the no-model claim mechanically checkable. |
-| AI Development Measurement | Applies | `AI-DEV-MEASUREMENT: APPLIES` in [docs/ROADMAP.md](docs/ROADMAP.md). This repository was built with AI assistance, disclosed above, so Track A delivery and quality-debt metrics are mined portfolio-wide from git history. Track B is N/A: there is no AI surface in the product. |
+| Internationalization | N/A (findings and model-backed output quote English-language specification prose verbatim; see [docs/I18N.md](docs/I18N.md)) | Multilingual document *data* validates identically. |
+| AI Evaluation | Applies (the four opt-in commands of ADR-0005; the validator itself has no model) | [docs/evals/README.md](docs/evals/README.md) and the committed harness in [evals/](evals/): a 100-case boundary suite scored on shown text, raw text, and explicit refusal; repair efficacy by deterministic re-validation on twelve NIST documents; citation grounding by verbatim lookup; walkthrough fidelity by label set. Results carry provider, model, prompt version, commit, and date, enforced by `tests/test_evals.py`; prompts are versioned in `oscal_validate.ai.PROMPT_VERSION`. |
+| AI Development Measurement | Applies | `AI-DEV-MEASUREMENT: APPLIES` in [docs/ROADMAP.md](docs/ROADMAP.md). This repository was built with AI assistance, disclosed above, so Track A delivery and quality-debt metrics are mined portfolio-wide from git history. Track B applies to the opt-in commands and is served by the AI Evaluation row. |
 | Incident Response | Applies | [docs/incidents/](docs/incidents/) holds the postmortem convention and no incident to date; [SECURITY.md](SECURITY.md) is the reporting channel. Open gap, recorded in [docs/ROADMAP.md](docs/ROADMAP.md): the `incident` and `sev1`-`sev4` labels are a repository-settings change and have not been created. |
-| Data Governance | Applies (L1, public non-sensitive) | Data cards in [docs/data/](docs/data/) for both ingest sources, with hashes in [vendor/SOURCES.md](src/oscal_validate/vendor/SOURCES.md) enforced by `tests/test_vendor_integrity.py`. Open gap, recorded in [docs/ROADMAP.md](docs/ROADMAP.md): survey records carry the fetch outcome but no per-record fetch timestamp, so lineage is dated only at the file level. |
+| Data Governance | Applies (L1, public non-sensitive) | Data cards in [docs/data/](docs/data/) for all three ingest sources, with hashes in [vendor/SOURCES.md](src/oscal_validate/vendor/SOURCES.md) enforced by `tests/test_vendor_integrity.py` and in [ai/corpus/MANIFEST.json](src/oscal_validate/ai/corpus/MANIFEST.json) enforced by `tests/test_ai_sources.py`. Open gap, recorded in [docs/ROADMAP.md](docs/ROADMAP.md): survey records carry the fetch outcome but no per-record fetch timestamp, so lineage is dated only at the file level. |
 | Documentation | Applies | This README, [CHANGELOG.md](CHANGELOG.md), ADRs in [docs/adr/](docs/adr/), [CITATION.cff](CITATION.cff), [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/CONSTRAINT-COVERAGE.md](docs/CONSTRAINT-COVERAGE.md). |
 | Quality & Metrics | Applies | [docs/ROADMAP.md](docs/ROADMAP.md) names every gate as AUTO, REVIEW, or a reasoned exception. |
 | Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current. No release has been made yet, and no release workflow exists; that is an open gap recorded in [docs/ROADMAP.md](docs/ROADMAP.md), not a declaration that releases are out of scope. |
