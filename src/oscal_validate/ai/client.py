@@ -134,6 +134,11 @@ class AnthropicClient:
             raise ModelError(f"model provider error {exc.status_code}: {exc.message}") from exc
         except errors.APIConnectionError as exc:
             raise ModelError(f"could not reach the model provider: {exc}") from exc
+        except ImportError as exc:  # pragma: no cover - only without the bedrock extra
+            raise ModelError(
+                f"the {self._settings.provider} provider needs an extra that is not installed "
+                f"({exc.name}); install it with pip install 'oscal-validate[bedrock]'"
+            ) from exc
         text = "".join(block.text for block in response.content if block.type == "text")
         return Completion(
             text=text,

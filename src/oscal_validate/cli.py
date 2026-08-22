@@ -22,6 +22,7 @@ input could not be read or parsed at all.
 from __future__ import annotations
 
 import argparse
+import importlib
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -32,6 +33,10 @@ from .findings import Severity, render_findings_json, render_findings_text
 from .rules import OSCAL_RELEASE
 from .schema import SchemaError
 from .validator import build_session, validate
+
+#: The subcommands of ADR-0005. Dispatched by name so the default parser, and
+#: the default output, never see them; the package is imported only then.
+AI_COMMANDS = ("explain", "repair", "walkthrough", "ask")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -46,7 +51,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
         epilog=(
             "Severities: ERROR gates the exit code. UNVERIFIABLE never does; it marks "
-            "what the supplied documents cannot settle, and is never a pass."
+            "what the supplied documents cannot settle, and is never a pass. "
+            f"Opt-in model-backed subcommands ({', '.join(AI_COMMANDS)}) are documented by "
+            "`oscal-validate explain --help`; they call a model, this command never does."
         ),
     )
     parser.add_argument("file", help="path to an OSCAL JSON document")
@@ -71,7 +78,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    args = build_parser().parse_args(list(sys.argv[1:] if argv is None else argv))
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and arguments[0] in AI_COMMANDS:
+        ai_cli = importlib.import_module("oscal_validate.ai.cli")
+        result: int = ai_cli.main(arguments)
+        return result
+    args = build_parser().parse_args(arguments)
     try:
         session = build_session(Path(args.file), [Path(p) for p in args.resolve])
         findings = validate(session)
