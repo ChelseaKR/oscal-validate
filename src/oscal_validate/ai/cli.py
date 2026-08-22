@@ -23,6 +23,7 @@ from ..findings import Severity
 from ..schema import SchemaError
 from . import ask as ask_command
 from . import explain as explain_command
+from . import repair as repair_command
 from .client import ModelClient, ModelError, build_client
 from .run import Run, banner, prepare
 
@@ -91,6 +92,23 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _common(explain)
     _selection(explain, "explain", 5)
+
+    repair = sub.add_parser(
+        "repair",
+        help="draft a patch for a finding; re-validated before display, never applied",
+    )
+    _common(repair)
+    _selection(repair, "draft a repair for", 3)
+    repair.add_argument(
+        "--draft",
+        action="store_true",
+        help="required: acknowledges that the patch is a draft and is never applied",
+    )
+    repair.add_argument(
+        "--out",
+        metavar="PATH",
+        help="write the patched copy for the first draft here; never the original path",
+    )
 
     ask = sub.add_parser(
         "ask", help="what a constraint requires and why NIST has it, from NIST's own text"
@@ -193,10 +211,49 @@ def _ask(args: argparse.Namespace) -> int:
     return 0
 
 
+def _repair(args: argparse.Namespace) -> int:
+    if not args.draft:
+        print(
+            "oscal-validate: repair only produces drafts; pass --draft to acknowledge that the "
+            "patch is proposed, re-validated, and never applied to the original",
+            file=sys.stderr,
+        )
+        return 2
+    run = _prepare_or_exit(args)
+    if run is None:
+        return 2
+    client = _client_or_exit(args)
+    if client is None:
+        return 2
+    selected = _select(run, args)
+    repairs = [repair_command.repair_one(run, run.findings[i], client) for i in selected]
+    note = ""
+    if args.out and repairs:
+        note = repair_command.write_out(repairs[0], run, Path(args.out))
+    if args.format == "json":
+        payload = repair_command.render_json(repairs, client, run)
+        if note:
+            payload["out"] = note
+        print(json.dumps(payload, indent=2))
+        return 0
+    print(banner(client))
+    print(f"model: {run.model}; {len(run.findings)} finding(s), {len(selected)} draft(s)\n")
+    if not selected:
+        print("no finding matched the selection; nothing was sent to the model")
+    for repair in repairs:
+        print(repair_command.render_text(repair))
+        print()
+    if note:
+        print(note)
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(list(sys.argv[1:] if argv is None else argv))
     if args.command == "explain":
         return _explain(args)
+    if args.command == "repair":
+        return _repair(args)
     if args.command == "ask":
         return _ask(args)
     print(f"oscal-validate: {args.command} is not available yet", file=sys.stderr)

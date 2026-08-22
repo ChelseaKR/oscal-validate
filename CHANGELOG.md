@@ -10,6 +10,24 @@ and this project adheres to
 
 ### Added
 
+- **`oscal-validate repair --draft`: a proposed patch, re-validated before it
+  is shown, never applied (ADR-0005, item 3).** For a finding the model
+  proposes an RFC 6902 patch limited to `add`, `remove`, and `replace`. The
+  patch is applied to an in-memory copy, the copy is written under the
+  document's own file name to a temporary directory and run through the
+  deterministic validator with the same `--resolve` documents, and the
+  report is what that run found: whether the target finding is gone, which
+  other findings went with it, which changed, which are new, and the
+  severity counts before and after. The model claims nothing about the
+  effect; the validator states it. Values the author must supply are
+  placeholders, listed as such. A patch whose values carry a sentence the
+  boundary guard withholds — an implementation narrative written into a
+  description — is refused whole. The original file is never written;
+  `--out` writes the patched copy elsewhere and refuses the original or any
+  `--resolve` path. `--draft` is required, to say so. A reply recorded from
+  Bedrock `claude-sonnet-4-6` replays in CI: three drafts on the broken
+  fixture, each resolving its finding with nothing introduced.
+
 - **`oscal-validate ask`, and the boundary suite that measures whether the
   tool ever judges implementation, security, or authorization (ADR-0005,
   items 3 and 5).** `ask "<question>" [--document FILE]` answers from the
