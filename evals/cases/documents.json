@@ -1,0 +1,135 @@
+{
+  "note": "Published NIST OSCAL documents (usnistgov/oscal-content, US government works in the public domain), retrieved by the survey harness on 2026-08-14 and 2026-08-19 and kept in .survey-cache/ (not committed). A runner refuses a file whose SHA-256 differs from the one here and records a document that is absent as skipped.",
+  "documents": [
+    {
+      "id": "basic_catalog",
+      "model": "catalog",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/catalog/json/basic_catalog.json",
+      "sha256": "2b74b56389e1cbb0ecd402805f4988af46b51761b64c6da05b9894264815d37d",
+      "bytes": 15899,
+      "cache": "ad7b8c5aec29/basic_catalog.json",
+      "fixture": null,
+      "resolve": []
+    },
+    {
+      "id": "sp800_218_catalog",
+      "model": "catalog",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-218/ver1/json/NIST_SP800-218_ver1_catalog.json",
+      "sha256": "b01634a5fdb382e7a12660c379a4d0bc3a2b8e29abccf2861834880005137117",
+      "bytes": 253878,
+      "cache": "b84e968b857a/NIST_SP800-218_ver1_catalog.json",
+      "fixture": null,
+      "resolve": []
+    },
+    {
+      "id": "csf_2_catalog",
+      "model": "catalog",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/CSF/v2.0/json/NIST_CSF_v2.0_catalog.json",
+      "sha256": "4836943f21d393f2821df85ada4e6f3c0617243b4ddf44263fe68205400210b4",
+      "bytes": 349827,
+      "cache": "23412ea83aec/NIST_CSF_v2.0_catalog.json",
+      "fixture": null,
+      "resolve": []
+    },
+    {
+      "id": "basic_profile",
+      "model": "profile",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/profile/json/basic_profile.json",
+      "sha256": "3cae5cd5d4b3e64364773b78ca0b2ece8c55f2a52b4c65522134097c681b5a92",
+      "bytes": 1814,
+      "cache": "5818f69c54db/basic_profile.json",
+      "fixture": null,
+      "resolve": [
+        {
+          "cache": "ad7b8c5aec29/basic_catalog.json",
+          "sha256": "2b74b56389e1cbb0ecd402805f4988af46b51761b64c6da05b9894264815d37d"
+        }
+      ]
+    },
+    {
+      "id": "sp800_53_rev5_moderate_profile",
+      "model": "profile",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json",
+      "sha256": "9030dbf1f13169947eb97eb101b4bd2f00d3c151b100455a923ac75803f00ea1",
+      "bytes": 10498,
+      "cache": "5ccf8a2e721c/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json",
+      "fixture": null,
+      "resolve": [
+        {
+          "cache": "389bfbe57292/NIST_SP-800-53_rev5_catalog.json",
+          "sha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062"
+        }
+      ]
+    },
+    {
+      "id": "ssp_example",
+      "model": "system-security-plan",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ssp-example.json",
+      "sha256": "af97587d6d14b0f1a297899b3f6a09b61675063f3279c7b7ffe16578f8859197",
+      "bytes": 22092,
+      "cache": "21e2decccf1c/ssp-example.json",
+      "fixture": "nist_ssp_example.json",
+      "resolve": []
+    },
+    {
+      "id": "ifa_ssp",
+      "model": "system-security-plan",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ifa_ssp.json",
+      "sha256": "b46a629d42a5bc10acef5b1b6c63ccbc60007712646b3812f8afdffa4b1fb176",
+      "bytes": 20686,
+      "cache": "687d1a19f42b/ifa_ssp.json",
+      "fixture": null,
+      "resolve": []
+    },
+    {
+      "id": "leveraging_ssp",
+      "model": "system-security-plan",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/oscal_leveraging-example_ssp.json",
+      "sha256": "4a9756449f93ea088a619e6642fe40ef11de2c71426dc58e7a109b08e289d900",
+      "bytes": 13483,
+      "cache": "4613ace4031d/oscal_leveraging-example_ssp.json",
+      "fixture": null,
+      "resolve": []
+    },
+    {
+      "id": "example_component_definition",
+      "model": "component-definition",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/component-definition/json/example-component-definition.json",
+      "sha256": "01f3d038884c895c15cf68150e598f6f353e8bc73a4988d542301fd2c784127a",
+      "bytes": 6366,
+      "cache": "88203bf00f80/example-component-definition.json",
+      "fixture": null,
+      "resolve": []
+    },
+    {
+      "id": "ifa_assessment_plan",
+      "model": "assessment-plan",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ap/json/ifa_assessment-plan.json",
+      "sha256": "66380f4279eb60905f7ec2684b5f885ee1743d648cf6315acaddaaf232d4501d",
+      "bytes": 8515,
+      "cache": "5db10a22311b/ifa_assessment-plan.json",
+      "fixture": null,
+      "resolve": []
+    },
+    {
+      "id": "ifa_assessment_results",
+      "model": "assessment-results",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ar/json/ifa_assessment-results.json",
+      "sha256": "b7e429db3f25f9a70b2da549dbdf70ab28ab70250c0377dc8a93612da711a455",
+      "bytes": 14128,
+      "cache": "015c921a7a9b/ifa_assessment-results.json",
+      "fixture": null,
+      "resolve": []
+    },
+    {
+      "id": "ifa_poam",
+      "model": "plan-of-action-and-milestones",
+      "url": "https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/poam/json/ifa_plan-of-action-and-milestones.json",
+      "sha256": "1d5cb45cce37adaa53cb994564f747a0d9559bae0747a780d6035bd9e16dbe14",
+      "bytes": 14070,
+      "cache": "0d119bffd270/ifa_plan-of-action-and-milestones.json",
+      "fixture": null,
+      "resolve": []
+    }
+  ]
+}

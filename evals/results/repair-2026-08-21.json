@@ -1,0 +1,2568 @@
+{
+  "cases": [
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "basic_catalog",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F6",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/catalog/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/catalog/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "basic_catalog",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/catalog/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "basic_catalog",
+      "injector": "dangle_fragment",
+      "model": "catalog",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "document": "basic_catalog",
+      "injector": "drop_timezone",
+      "model": "catalog",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "document": "basic_catalog",
+      "injector": "duplicate_uuid",
+      "model": "catalog",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "basic_catalog",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F6",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/catalog/metadata/last-modified",
+          "value": "2026-05-13T12:30:10.000Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/catalog/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "basic_catalog",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/metadata/title",
+          "value": "PLACEHOLDER — replace with the actual catalog title"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/catalog/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "basic_profile",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F7",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/profile/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/profile/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "basic_profile",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F8",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/profile/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/profile/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "basic_profile",
+      "injector": "dangle_fragment",
+      "model": "profile",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "document": "basic_profile",
+      "injector": "drop_timezone",
+      "model": "profile",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "document": "basic_profile",
+      "injector": "duplicate_uuid",
+      "model": "profile",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "basic_profile",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F7",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/profile/metadata/last-modified",
+          "value": "2026-05-13T12:30:00.000Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/profile/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "basic_profile",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F8",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/profile/metadata/title",
+          "value": "PLACEHOLDER TITLE"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/profile/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "csf_2_catalog",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/catalog/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/catalog/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "csf_2_catalog",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/catalog/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 1,
+      "clean": false,
+      "document": "csf_2_catalog",
+      "injector": "dangle_fragment",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/metadata/links/0/href",
+          "value": "#00000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": false,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REFERENCE_UNRESOLVED",
+        "location": "/catalog/metadata/links/0/href",
+        "prop": "href"
+      }
+    },
+    {
+      "document": "csf_2_catalog",
+      "injector": "drop_timezone",
+      "model": "catalog",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 3,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 4,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "csf_2_catalog",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F8",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/metadata/parties/0/uuid",
+          "value": "a1b2c3d4-e5f6-4789-a012-b34567890001"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/catalog/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [
+        "REFERENCE_UNRESOLVED"
+      ],
+      "before": {
+        "ERROR": 4,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "csf_2_catalog",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F9",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/catalog/metadata/parties/-",
+          "value": {
+            "type": "organization",
+            "uuid": "8238c306-4ee0-4321-a4fb-503adda3d8c1"
+          }
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REFERENCE_UNRESOLVED",
+        "location": "/catalog/metadata/responsible-parties/0/party-uuids/0",
+        "prop": "."
+      }
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "csf_2_catalog",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/catalog/metadata/last-modified",
+          "value": "2026-05-13T12:30:00Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/catalog/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "csf_2_catalog",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F8",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/metadata/title",
+          "value": "PLACEHOLDER — see placeholders"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/catalog/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "example_component_definition",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F17",
+      "model": "component-definition",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/component-definition/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/component-definition/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "example_component_definition",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F18",
+      "model": "component-definition",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/component-definition/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/component-definition/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "example_component_definition",
+      "injector": "dangle_fragment",
+      "model": "component-definition",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "document": "example_component_definition",
+      "injector": "drop_timezone",
+      "model": "component-definition",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 15,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 1,
+        "UNVERIFIABLE": 15,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "example_component_definition",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F19",
+      "model": "component-definition",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/component-definition/metadata/parties/0/uuid",
+          "value": "00000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/component-definition/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "example_component_definition",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F17",
+      "model": "component-definition",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/component-definition/metadata/last-modified",
+          "value": "2026-01-01T00:00:00.000Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/component-definition/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 2,
+        "INFO": 1,
+        "UNVERIFIABLE": 14,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "example_component_definition",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F18",
+      "model": "component-definition",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/component-definition/metadata/title",
+          "value": "PLACEHOLDER — replace with the actual document title"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/component-definition/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_assessment_plan",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F8",
+      "model": "assessment-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/assessment-plan/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/assessment-plan/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "clean": false,
+      "document": "ifa_assessment_plan",
+      "injector": "break_uuid",
+      "label": "F10",
+      "model": "assessment-plan",
+      "no_draft": true,
+      "reason": "the proposed patch cannot be applied as written: /uuid: no property 'uuid' to replace",
+      "resolved": false,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/assessment-plan/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "ifa_assessment_plan",
+      "injector": "dangle_fragment",
+      "model": "assessment-plan",
+      "skipped": "the injection produced no new ERROR finding"
+    },
+    {
+      "document": "ifa_assessment_plan",
+      "injector": "drop_timezone",
+      "model": "assessment-plan",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 9,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 9,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_assessment_plan",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F10",
+      "model": "assessment-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/assessment-plan/metadata/parties/0/uuid",
+          "value": "00000000-0000-4000-a000-000000000001"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/assessment-plan/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_assessment_plan",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F8",
+      "model": "assessment-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/assessment-plan/metadata/last-modified",
+          "value": "2026-01-01T00:00:00.000000-00:00"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/assessment-plan/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_assessment_plan",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F9",
+      "model": "assessment-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/assessment-plan/metadata/title",
+          "value": "PLACEHOLDER – see placeholders"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/assessment-plan/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_assessment_results",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F8",
+      "model": "assessment-results",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/assessment-results/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/assessment-results/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "clean": false,
+      "document": "ifa_assessment_results",
+      "injector": "break_uuid",
+      "label": "F10",
+      "model": "assessment-results",
+      "no_draft": true,
+      "reason": "the proposed patch cannot be applied as written: /uuid: no property 'uuid' to replace",
+      "resolved": false,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/assessment-results/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "ifa_assessment_results",
+      "injector": "dangle_fragment",
+      "model": "assessment-results",
+      "skipped": "the injection produced no new ERROR finding"
+    },
+    {
+      "document": "ifa_assessment_results",
+      "injector": "drop_timezone",
+      "model": "assessment-results",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 9,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 9,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_assessment_results",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F10",
+      "model": "assessment-results",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/assessment-results/metadata/parties/0/uuid",
+          "value": "b3c4d5e6-f7a8-4b9c-ad0e-1f2a3b4c5d6e"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/assessment-results/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_assessment_results",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F8",
+      "model": "assessment-results",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/assessment-results/metadata/last-modified",
+          "value": "2025-07-06T15:05:10.355446-04:00"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/assessment-results/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 7,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_assessment_results",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F9",
+      "model": "assessment-results",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/assessment-results/metadata/title",
+          "value": "[PLACEHOLDER: document title string]"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/assessment-results/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_poam",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F7",
+      "model": "plan-of-action-and-milestones",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/plan-of-action-and-milestones/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/plan-of-action-and-milestones/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_poam",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F8",
+      "model": "plan-of-action-and-milestones",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/plan-of-action-and-milestones/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/plan-of-action-and-milestones/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "ifa_poam",
+      "injector": "dangle_fragment",
+      "model": "plan-of-action-and-milestones",
+      "skipped": "the injection produced no new ERROR finding"
+    },
+    {
+      "document": "ifa_poam",
+      "injector": "drop_timezone",
+      "model": "plan-of-action-and-milestones",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_poam",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F8",
+      "model": "plan-of-action-and-milestones",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/plan-of-action-and-milestones/observations/0/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/plan-of-action-and-milestones/observations/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_poam",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F7",
+      "model": "plan-of-action-and-milestones",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/plan-of-action-and-milestones/metadata/last-modified",
+          "value": "2026-05-13T12:30:10.000000Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/plan-of-action-and-milestones/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_poam",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F8",
+      "model": "plan-of-action-and-milestones",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/plan-of-action-and-milestones/metadata/title",
+          "value": "PLACEHOLDER"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/plan-of-action-and-milestones/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_ssp",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F13",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/system-security-plan/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/system-security-plan/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_ssp",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F14",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/system-security-plan/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "ifa_ssp",
+      "injector": "dangle_fragment",
+      "model": "system-security-plan",
+      "skipped": "the injection produced no new ERROR finding"
+    },
+    {
+      "document": "ifa_ssp",
+      "injector": "drop_timezone",
+      "model": "system-security-plan",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 12,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 12,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_ssp",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F14",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/metadata/parties/0/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/system-security-plan/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_ssp",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F13",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/system-security-plan/metadata/last-modified",
+          "value": "2026-05-13T12:30:10.000Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/system-security-plan/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 11,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ifa_ssp",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F14",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/metadata/title",
+          "value": "PLACEHOLDER - author must supply document title"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/system-security-plan/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "leveraging_ssp",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F10",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/system-security-plan/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/system-security-plan/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "leveraging_ssp",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F11",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/system-security-plan/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "leveraging_ssp",
+      "injector": "dangle_fragment",
+      "model": "system-security-plan",
+      "skipped": "the injection produced no new ERROR finding"
+    },
+    {
+      "document": "leveraging_ssp",
+      "injector": "drop_timezone",
+      "model": "system-security-plan",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 12,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 12,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "leveraging_ssp",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F15",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/metadata/parties/0/uuid",
+          "value": "a1b2c3d4-e5f6-4789-abcd-ef0123456789"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/system-security-plan/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "leveraging_ssp",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F10",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/system-security-plan/metadata/last-modified",
+          "value": "2026-05-13T12:30:10.000Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/system-security-plan/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 8,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "leveraging_ssp",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F11",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/metadata/title",
+          "value": "PLACEHOLDER DOCUMENT TITLE"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/system-security-plan/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_218_catalog",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F6",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/catalog/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/catalog/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_218_catalog",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/catalog/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_218_catalog",
+      "injector": "dangle_fragment",
+      "introduced": [],
+      "label": "F6",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/metadata/links/0/href",
+          "value": "https://example.com/placeholder-replace-with-real-target"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REFERENCE_UNRESOLVED",
+        "location": "/catalog/metadata/links/0/href",
+        "prop": "href"
+      }
+    },
+    {
+      "document": "sp800_218_catalog",
+      "injector": "drop_timezone",
+      "model": "catalog",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 2,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 3,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_218_catalog",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/metadata/parties/0/uuid",
+          "value": "00000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/catalog/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [
+        "REFERENCE_UNRESOLVED"
+      ],
+      "before": {
+        "ERROR": 3,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_218_catalog",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F8",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/catalog/metadata/parties/-",
+          "value": {
+            "name": "PLACEHOLDER-party-name",
+            "type": "PLACEHOLDER-party-type",
+            "uuid": "98c78f9b-5d50-4b01-b47f-d16801e8d0ab"
+          }
+        }
+      ],
+      "placeholders": 3,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REFERENCE_UNRESOLVED",
+        "location": "/catalog/metadata/responsible-parties/0/party-uuids/0",
+        "prop": "."
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_218_catalog",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F6",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/catalog/metadata/last-modified",
+          "value": "2026-01-01T00:00:00-00:00"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/catalog/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 0,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_218_catalog",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F7",
+      "model": "catalog",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/catalog/metadata/title",
+          "value": "PLACEHOLDER – see placeholders"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/catalog/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_53_rev5_moderate_profile",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F7",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/profile/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/profile/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_53_rev5_moderate_profile",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F8",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/profile/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/profile/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "sp800_53_rev5_moderate_profile",
+      "injector": "dangle_fragment",
+      "model": "profile",
+      "skipped": "the injection produced no new ERROR finding"
+    },
+    {
+      "document": "sp800_53_rev5_moderate_profile",
+      "injector": "drop_timezone",
+      "model": "profile",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_53_rev5_moderate_profile",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F8",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/profile/metadata/parties/0/uuid",
+          "value": "00000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/profile/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_53_rev5_moderate_profile",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F7",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/profile/metadata/last-modified",
+          "value": "2024-01-01T00:00:00Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/profile/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 5,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "sp800_53_rev5_moderate_profile",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F8",
+      "model": "profile",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/profile/metadata/title",
+          "value": "PLACEHOLDER"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/profile/metadata/title",
+        "prop": "title"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ssp_example",
+      "injector": "add_undeclared",
+      "introduced": [],
+      "label": "F23",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/system-security-plan/metadata/invented-property"
+        }
+      ],
+      "placeholders": 0,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "PROPERTY_UNDECLARED",
+        "location": "/system-security-plan/metadata",
+        "prop": "invented-property"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ssp_example",
+      "injector": "break_uuid",
+      "introduced": [],
+      "label": "F24",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/uuid",
+          "value": "00000000-0000-4000-8000-000000000000"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "DATATYPE_MISMATCH",
+        "location": "/system-security-plan/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "document": "ssp_example",
+      "injector": "dangle_fragment",
+      "model": "system-security-plan",
+      "skipped": "the injection produced no new ERROR finding"
+    },
+    {
+      "document": "ssp_example",
+      "injector": "drop_timezone",
+      "model": "system-security-plan",
+      "skipped": "the document has no place for this defect"
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 24,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 24,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ssp_example",
+      "injector": "duplicate_uuid",
+      "introduced": [],
+      "label": "F24",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/metadata/parties/0/uuid",
+          "value": "00000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "UUID_NOT_UNIQUE",
+        "location": "/system-security-plan/metadata/parties/0/uuid",
+        "prop": "uuid"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ssp_example",
+      "injector": "remove_required",
+      "introduced": [],
+      "label": "F23",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "add",
+          "path": "/system-security-plan/metadata/last-modified",
+          "value": "2026-05-13T12:30:00.000Z"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "REQUIRED_PROPERTY_MISSING",
+        "location": "/system-security-plan/metadata",
+        "prop": "last-modified"
+      }
+    },
+    {
+      "after": {
+        "ERROR": 0,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "also_resolved": [],
+      "before": {
+        "ERROR": 1,
+        "INFO": 1,
+        "UNVERIFIABLE": 21,
+        "WARNING": 1
+      },
+      "changed": 0,
+      "clean": true,
+      "document": "ssp_example",
+      "injector": "wrong_type",
+      "introduced": [],
+      "label": "F24",
+      "model": "system-security-plan",
+      "no_draft": false,
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/system-security-plan/metadata/title",
+          "value": "PLACEHOLDER – see placeholders"
+        }
+      ],
+      "placeholders": 1,
+      "resolved": true,
+      "served_model": "claude-sonnet-4-6",
+      "target": {
+        "code": "TYPE_MISMATCH",
+        "location": "/system-security-plan/metadata/title",
+        "prop": "title"
+      }
+    }
+  ],
+  "provenance": {
+    "commit": "c6da6d6677d136b76c35f7101a14d09d0d24ebd5",
+    "commits": [
+      "447158369c3bab9eccb3c7bdad037e6eec759e6d",
+      "ad7f50ee7de97509904d65c438427d47af5e51fc",
+      "b42d558fc8ba406d04b65c193cdf2638b7b3467b",
+      "c6da6d6677d136b76c35f7101a14d09d0d24ebd5"
+    ],
+    "date": "2026-08-21",
+    "documents_skipped": [],
+    "injectors": [
+      "remove_required",
+      "add_undeclared",
+      "break_uuid",
+      "drop_timezone",
+      "wrong_type",
+      "duplicate_uuid",
+      "dangle_fragment"
+    ],
+    "merged_from": [
+      "rshard-basic_catalog.json",
+      "rshard-basic_profile.json",
+      "rshard-csf_2_catalog.json",
+      "rshard-example_component_definition.json",
+      "rshard-ifa_assessment_plan.json",
+      "rshard-ifa_assessment_results.json",
+      "rshard-ifa_poam.json",
+      "rshard-ifa_ssp.json",
+      "rshard-leveraging_ssp.json",
+      "rshard-sp800_218_catalog.json",
+      "rshard-sp800_53_rev5_moderate_profile.json",
+      "rshard-ssp_example.json"
+    ],
+    "model": "global.anthropic.claude-sonnet-4-6",
+    "prompt_version": "2026-08-21.1",
+    "provider": "bedrock",
+    "replayed_from_cassette": true,
+    "served_model": "claude-sonnet-4-6",
+    "status": "run",
+    "suite": "repair",
+    "tool_version": "0.2.0"
+  },
+  "summary": {
+    "by_injector": {
+      "add_undeclared": {
+        "clean": 12,
+        "introduced": 0,
+        "n": 12,
+        "no_draft": 0,
+        "resolved": 12
+      },
+      "break_uuid": {
+        "clean": 10,
+        "introduced": 0,
+        "n": 12,
+        "no_draft": 2,
+        "resolved": 10
+      },
+      "dangle_fragment": {
+        "clean": 1,
+        "introduced": 0,
+        "n": 2,
+        "no_draft": 0,
+        "resolved": 1
+      },
+      "duplicate_uuid": {
+        "clean": 12,
+        "introduced": 0,
+        "n": 12,
+        "no_draft": 0,
+        "resolved": 12
+      },
+      "remove_required": {
+        "clean": 12,
+        "introduced": 0,
+        "n": 12,
+        "no_draft": 0,
+        "resolved": 12
+      },
+      "wrong_type": {
+        "clean": 12,
+        "introduced": 0,
+        "n": 12,
+        "no_draft": 0,
+        "resolved": 12
+      }
+    },
+    "cases": 86,
+    "clean": 59,
+    "documents": [
+      "basic_catalog",
+      "basic_profile",
+      "csf_2_catalog",
+      "example_component_definition",
+      "ifa_assessment_plan",
+      "ifa_assessment_results",
+      "ifa_poam",
+      "ifa_ssp",
+      "leveraging_ssp",
+      "sp800_218_catalog",
+      "sp800_53_rev5_moderate_profile",
+      "ssp_example"
+    ],
+    "introduced_any": 0,
+    "no_draft": 2,
+    "resolved": 59,
+    "skipped": 24,
+    "targets": 62
+  }
+}
