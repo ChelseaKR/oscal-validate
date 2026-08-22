@@ -1,0 +1,136 @@
+{
+  "document": {
+    "model": "profile"
+  },
+  "findings": [
+    {
+      "code": "PATTERN_NOT_CHECKED",
+      "location": "/profile",
+      "message": "3 value(s) declared as TokenDatatype were not checked against its pattern ^(\\p{L}|_)(\\p{L}|\\p{N}|[.\\-_])*$ , because that pattern uses regular-expression syntax this tool cannot compile. They are neither passed nor failed.",
+      "property": "TokenDatatype",
+      "rule": {
+        "citation": "oscal-validate policy: the schema declares a regular expression this tool cannot compile, because JSON Schema patterns are ECMA-262 regular expressions and Python's re module does not implement the Unicode property escapes ECMA-262 allows. Values governed by such a pattern are reported as unchecked rather than approximated with a hand-written substitute, which would be a rule encoded from memory.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "3 value(s)"
+    },
+    {
+      "code": "CONSTRAINT_NOT_EVALUATED",
+      "location": "/profile",
+      "message": "NIST publishes 200 allowed-values constraint(s) that this tool did not evaluate: most allowed-value sets declare allow-other, so a value outside them is not necessarily a violation. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "property": "allowed-values",
+      "rule": {
+        "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "200 constraint(s)"
+    },
+    {
+      "code": "CONSTRAINT_NOT_EVALUATED",
+      "location": "/profile",
+      "message": "NIST publishes 12 expect constraint(s) that this tool did not evaluate: the test is a Metapath expression, which this tool does not implement. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "property": "expect",
+      "rule": {
+        "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "12 constraint(s)"
+    },
+    {
+      "code": "CONSTRAINT_NOT_EVALUATED",
+      "location": "/profile",
+      "message": "NIST publishes 1 index constraint(s) that this tool did not evaluate: their target expressions are outside the Metapath subset this tool parses. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "property": "index",
+      "rule": {
+        "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "1 constraint(s)"
+    },
+    {
+      "code": "CONSTRAINT_NOT_EVALUATED",
+      "location": "/profile",
+      "message": "NIST publishes 25 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "property": "matches",
+      "rule": {
+        "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "25 constraint(s)"
+    },
+    {
+      "code": "IMPORT_NOT_SUPPLIED",
+      "location": "/profile/imports/0/href",
+      "message": "No document with this file name was supplied. Identifiers it declares are outside the effective data model this run could see, so references into it are reported UNVERIFIABLE rather than as failures. Pass it with --resolve to settle them.",
+      "property": "href",
+      "rule": {
+        "citation": "NIST, \"URI Usage\", section Linking to another OSCAL object (page last updated 2025-03-03): a reference \"uses a relative reference consisting of only a URI fragment containing the identifier or UUID of the referenced object within the current documents effective data model. The effective data model of a document includes all objects identified with the document and any directly or transitively imported documents.\"",
+        "retrieved": "2026-08-14",
+        "url": "https://pages.nist.gov/OSCAL/learn/concepts/uri-use/"
+      },
+      "severity": "INFO",
+      "value": "clean_catalog.json"
+    },
+    {
+      "code": "REFERENCE_UNVERIFIABLE",
+      "location": "/profile/imports/0/include-controls/0/with-ids/0",
+      "message": "This names a control in an imported control set, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (clean_catalog.json), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.",
+      "property": "with-ids",
+      "rule": {
+        "citation": "NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.",
+        "retrieved": "2026-08-14",
+        "url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "ex-1"
+    },
+    {
+      "code": "REFERENCE_UNVERIFIABLE",
+      "location": "/profile/imports/0/include-controls/0/with-ids/1",
+      "message": "This names a control in an imported control set, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (clean_catalog.json), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.",
+      "property": "with-ids",
+      "rule": {
+        "citation": "NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.",
+        "retrieved": "2026-08-14",
+        "url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "ex-2"
+    },
+    {
+      "code": "REFERENCE_UNVERIFIABLE",
+      "location": "/profile/modify/set-parameters/0/param-id",
+      "message": "This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (clean_catalog.json), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.",
+      "property": "param-id",
+      "rule": {
+        "citation": "NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.",
+        "retrieved": "2026-08-14",
+        "url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "ex-1_prm_1"
+    }
+  ],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 1,
+    "UNVERIFIABLE": 8,
+    "WARNING": 0
+  },
+  "tool": {
+    "name": "oscal-validate",
+    "version": "0.2.0"
+  }
+}
+
+[exit 0]

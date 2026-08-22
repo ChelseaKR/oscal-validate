@@ -2,10 +2,18 @@
 
 oscal-validate is a deterministic, offline validator: it reads local JSON
 files, checks them against vendored schema and constraint snapshots, and prints
-findings. It makes no network calls in any command and has zero runtime
-dependencies. Security here is mostly integrity: the tool must not misreport
-what a document contains, and crafted input must not escape the documented
-failure modes.
+findings. The validation command makes no network call and the package has
+zero runtime dependencies. Security here is mostly integrity: the tool must
+not misreport what a document contains, and crafted input must not escape the
+documented failure modes.
+
+Four opt-in subcommands under `oscal_validate.ai` (ADR-0005) call a model
+provider over the network, with the findings, passages of NIST's published
+text, and excerpts of the document being validated. They are never run by the
+default command or by the GitHub Action, and they need an optional extra to
+be installed at all. A document sent through them leaves the machine; the
+README says so beside the commands. Credentials are read from the environment
+and never written to a file.
 
 The one component in this repository that opens a socket is `tools/fetch.py`,
 the development harness behind `docs/findings/`. It is not part of the installed

@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted
+Accepted; amended by [ADR-0005](0005-ai-at-the-edges.md) on 2026-08-21. The
+guarantee below now covers the validation commands. Four opt-in model-backed
+commands under `oscal_validate.ai` are the stated exception; nothing else
+changed.
 
 ## Context
 

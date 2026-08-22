@@ -54,10 +54,14 @@ promises:
 - **Determinism.** `tests/test_determinism.py` asserts byte-identical output
   across runs and across interpreter processes. No timestamps, no sampling, no
   network.
-- **The package stays offline.** Nothing under `src/` may import
-  `urllib.request`, `http.client`, `socket`, `requests`, or `httpx`, and
-  `tests/test_offline_guarantee.py` enforces that by reading the source. A
-  change that makes the validator touch the network is a change to what this
+- **The validator stays offline.** Nothing under `src/` outside
+  `oscal_validate/ai/` may import `urllib.request`, `http.client`, `socket`,
+  `requests`, `httpx`, or `anthropic`; nothing outside `ai/` may import `ai/`;
+  and `ai/` may import the SDK only inside a function.
+  `tests/test_offline_guarantee.py` enforces all three by reading the source,
+  and `tests/test_default_path_byte_identity.py` pins the default command's
+  exact bytes against goldens captured before the AI layer existed. A change
+  that makes the validator itself touch the network is a change to what this
   tool claims to be, and needs an ADR before it needs a review.
 - **The coverage table is generated.** `docs/CONSTRAINT-COVERAGE.md` comes from
   `make coverage-doc`; `tests/test_constraint_coverage.py` fails if the
