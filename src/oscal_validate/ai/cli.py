@@ -24,6 +24,7 @@ from ..schema import SchemaError
 from . import ask as ask_command
 from . import explain as explain_command
 from . import repair as repair_command
+from . import walkthrough as walkthrough_command
 from .client import ModelClient, ModelError, build_client
 from .run import Run, banner, prepare
 
@@ -110,6 +111,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="write the patched copy for the first draft here; never the original path",
     )
 
+    walkthrough = sub.add_parser(
+        "walkthrough", help="where to start on a report: the findings grouped in fix order"
+    )
+    _common(walkthrough)
+    walkthrough.add_argument(
+        "--no-index",
+        action="store_true",
+        help="omit the full index of findings printed after the narrative",
+    )
+
     ask = sub.add_parser(
         "ask", help="what a constraint requires and why NIST has it, from NIST's own text"
     )
@@ -190,6 +201,23 @@ def _explain(args: argparse.Namespace) -> int:
     return 0
 
 
+def _walkthrough(args: argparse.Namespace) -> int:
+    run = _prepare_or_exit(args)
+    if run is None:
+        return 2
+    client = _client_or_exit(args)
+    if client is None:
+        return 2
+    result = walkthrough_command.walk(run, client)
+    if args.format == "json":
+        print(json.dumps(walkthrough_command.render_json(result, client, run), indent=2))
+        return 0
+    print(banner(client))
+    print(f"model: {run.model}; {len(run.findings)} finding(s) in {len(result.groups)} group(s)\n")
+    print(walkthrough_command.render_text(result, run, index=not args.no_index))
+    return 0
+
+
 def _ask(args: argparse.Namespace) -> int:
     run: Run | None = None
     if args.document:
@@ -254,7 +282,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _explain(args)
     if args.command == "repair":
         return _repair(args)
+    if args.command == "walkthrough":
+        return _walkthrough(args)
     if args.command == "ask":
         return _ask(args)
-    print(f"oscal-validate: {args.command} is not available yet", file=sys.stderr)
-    return 2
+    return 2  # pragma: no cover - argparse rejects unknown subcommands first

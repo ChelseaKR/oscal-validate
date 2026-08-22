@@ -10,6 +10,21 @@ and this project adheres to
 
 ### Added
 
+- **`oscal-validate walkthrough`: where to start on a long report, with
+  nothing invented and nothing suppressed (ADR-0005, items 1 and 4).** The
+  order is the tool's: findings are grouped by code into nine dependency
+  tiers — supply what the document imports, shape the validator could not
+  read, required structure, values against datatypes, identifiers,
+  references that resolve to nothing, declared version, UNVERIFIABLE, for
+  the record — and labeled G1..Gn with their F-labels inside. The model
+  narrates over those labels only. After generation, a label the validator
+  never produced is struck from the text and counted; a group the narrative
+  never mentions is appended under "Not covered by the narrative" with every
+  finding in it; the guard screens every sentence; and the full index of
+  findings by group is printed last. Recorded from Bedrock
+  `claude-sonnet-4-6` over NIST's SSP example and replayed in CI: 5 of 5
+  groups covered, 0 labels struck, 0 sentences withheld.
+
 - **`oscal-validate repair --draft`: a proposed patch, re-validated before it
   is shown, never applied (ADR-0005, item 3).** For a finding the model
   proposes an RFC 6902 patch limited to `add`, `remove`, and `replace`. The
