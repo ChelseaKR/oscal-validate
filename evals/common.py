@@ -16,6 +16,7 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -113,6 +114,43 @@ def write_results(path: Path, payload: dict[str, Any]) -> None:
     )
 
 
+def merge_results(
+    paths: list[Path],
+    out: Path,
+    summarize: Callable[[list[dict[str, Any]]], dict[str, Any]],
+    key: Callable[[dict[str, Any]], str],
+) -> dict[str, Any]:
+    """One results file from several shards of one suite, one provenance.
+
+    Shards exist so a long run can go in parallel. Their provenance must
+    agree on everything but the served model and the commit (a shard records
+    HEAD when it finishes, and commits land while shards run); the commits
+    are all kept. The summary is recomputed from the union of the cases,
+    which must not overlap by ``key``.
+    """
+    shards = [json.loads(p.read_text(encoding="utf-8")) for p in paths]
+    ignore = {"served_model", "replayed_from_cassette", "commit", "documents_skipped"}
+    first = shards[0]["provenance"]
+    for shard in shards[1:]:
+        for field in first:
+            if field not in ignore and shard["provenance"].get(field) != first.get(field):
+                raise SystemExit(f"shards disagree on provenance field {field!r}; not merged")
+    records = [r for shard in shards for r in shard["cases"]]
+    keys = [key(r) for r in records]
+    if len(keys) != len(set(keys)):
+        raise SystemExit("shards overlap; not merged")
+    records.sort(key=key)
+    prov = dict(first)
+    prov["served_model"] = next(
+        (s["provenance"]["served_model"] for s in shards if s["provenance"]["served_model"]), ""
+    )
+    prov["commits"] = sorted({s["provenance"]["commit"] for s in shards})
+    prov["merged_from"] = [p.name for p in paths]
+    payload = {"provenance": prov, "summary": summarize(records), "cases": records}
+    write_results(out, payload)
+    return payload
+
+
 def load_cases(path: Path) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -132,6 +170,7 @@ __all__ = [
     "client_from_env",
     "commit",
     "load_cases",
+    "merge_results",
     "not_run",
     "provenance",
     "write_results",

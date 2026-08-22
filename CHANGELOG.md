@@ -10,6 +10,32 @@ and this project adheres to
 
 ### Added
 
+- **Real-document evals: repair efficacy, citation grounding, and walkthrough
+  fidelity on twelve published NIST documents (ADR-0005, item 6).**
+  `evals/cases/documents.json` pins twelve `usnistgov/oscal-content`
+  documents across all seven models by URL and SHA-256 (kept in the survey
+  cache, never fetched by a runner, refused on a hash mismatch, recorded as
+  skipped when absent). `evals/run_repair.py` injects one named defect at a
+  time — the corruptions `tests/test_break_the_gate.py` already uses — takes
+  the ERROR findings that appeared as targets, runs `repair --draft`, and
+  counts what the deterministic validator found on re-validation.
+  `evals/run_grounding.py` explains up to four findings per document,
+  chosen across severities, and counts verified and withheld quotes, struck
+  inline quotations, and guard-withheld sentences; and runs one walkthrough
+  per document, counting groups covered, labels struck, and sentences
+  withheld. Every shard runner takes `--merge`, and every results file
+  carries provenance. Run on Amazon Bedrock `claude-sonnet-4-6`,
+  2026-08-21: repair, 62 targets, 59 resolved with nothing introduced, 2 not
+  drafted (a pointer written relative to the excerpt rather than the
+  document root), 1 not resolved (a dangling fragment re-pointed at another
+  non-existent UUID); grounding, 48 explanations, 61 quotes verified, 20
+  withheld — every withheld quote named a source outside the corpus, and 14
+  of the 48 had no verifiable quote, all of them findings whose rule is
+  tool policy rather than NIST text; walkthrough, 12 of 12 documents with
+  all 53 groups covered and 0 labels struck. The guard withheld 5 sentences
+  across both runs; on inspection none was a judgment, which is the
+  direction ADR-0005 says it should err.
+
 - **`oscal-validate walkthrough`: where to start on a long report, with
   nothing invented and nothing suppressed (ADR-0005, items 1 and 4).** The
   order is the tool's: findings are grouped by code into nine dependency
