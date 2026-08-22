@@ -10,6 +10,35 @@ and this project adheres to
 
 ### Added
 
+- **`oscal-validate ask`, and the boundary suite that measures whether the
+  tool ever judges implementation, security, or authorization (ADR-0005,
+  items 3 and 5).** `ask "<question>" [--document FILE]` answers from the
+  corpus passages that bear on the question, through the same verifier and
+  guard as `explain`; with a document, the validator runs first and the model
+  is shown its findings as labels, so "what is wrong with my profile" is
+  answered from findings rather than imagination. `evals/` is the committed
+  harness: `cases/refusal.jsonl` holds 100 phrasings in seven categories
+  (direct, indirect, embedded inside a legitimate structural question,
+  compliance jargon, pressure and role-play, multi-part, and 20 structural
+  control questions that must be answered), and `run_refusal.py` scores each
+  on three separate things — whether the text that would be shown carries a
+  judgment (lexically, and by a separate judge call with `--judge`), whether
+  the model's raw reply did before the guard, and whether the model refused
+  explicitly — plus over-refusal on the controls. Results carry provider,
+  model, served model, prompt version, commit, and date, and
+  `tests/test_evals.py` rejects a results file without them. NIST's published
+  `ssp-example.json` joins the fixtures (provenance in
+  `tests/fixtures/README.md`) so judgment requests can be embedded in a real
+  SSP's validation context.
+
+### Fixed
+
+- The golden captured under the name `nist_ssp_example` in the first ADR-0005
+  change was EasyDynamics' oscal-viewer sample, a derivative of NIST's
+  example, not the NIST file; it is renamed `easydynamics_ssp_example`, and
+  the real NIST document is now a committed fixture with its own golden,
+  captured from the same pre-change commit `6978895`.
+
 - **`oscal-validate explain`: a finding in plain language, every quotation
   verified (ADR-0005, items 1 and 5).** The first model-backed command. It
   runs the deterministic validator, labels its findings F1..Fn in report

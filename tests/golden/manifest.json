@@ -19,6 +19,12 @@
     ],
     "sha256": "6a0d856107d24dba50ce29844e14cdd947e80ea22a692ebe92c8037ca0b1b0b7"
   },
+  "easydynamics_ssp_example": {
+    "committed": false,
+    "document": "ssp-example.json",
+    "resolve": [],
+    "sha256": "6264450246bb5554e3fe213d555029ef93d9f922b0713492b584bf0a8fef4333"
+  },
   "nist_basic_catalog": {
     "committed": false,
     "document": "basic_catalog.json",
@@ -62,9 +68,9 @@
     "sha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062"
   },
   "nist_ssp_example": {
-    "committed": false,
-    "document": "ssp-example.json",
+    "committed": true,
+    "document": "nist_ssp_example.json",
     "resolve": [],
-    "sha256": "6264450246bb5554e3fe213d555029ef93d9f922b0713492b584bf0a8fef4333"
+    "sha256": "af97587d6d14b0f1a297899b3f6a09b61675063f3279c7b7ffe16578f8859197"
   }
 }

@@ -28,10 +28,14 @@ CASES: list[tuple[str, Path, list[Path]]] = [
     ("clean_catalog", FIXTURES / "clean_catalog.json", []),
     ("clean_profile", FIXTURES / "clean_profile.json", []),
     ("clean_profile_resolved", FIXTURES / "clean_profile.json", [FIXTURES / "clean_catalog.json"]),
+    ("nist_ssp_example", FIXTURES / "nist_ssp_example.json", []),
 ]
 
 CACHED: list[tuple[str, str]] = [
-    ("nist_ssp_example", "a0d776f49281/ssp-example.json"),
+    # EasyDynamics' oscal-viewer sample, a derivative of NIST's ssp-example.
+    # It was first committed under the name nist_ssp_example by mistake; the
+    # real NIST file is now a committed fixture and has its own golden.
+    ("easydynamics_ssp_example", "a0d776f49281/ssp-example.json"),
     ("nist_ifa_ssp", "af4e260d18f8/ifa_ssp-example.json"),
     ("nist_ifa_ap", "5db10a22311b/ifa_assessment-plan.json"),
     ("nist_ifa_ar", "90962d7fecee/ifa_assessment-results-example.json"),
