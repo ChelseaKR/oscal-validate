@@ -1,0 +1,86 @@
+{
+  "catalog": {
+    "uuid": "f0d0a6cd-9e0e-4c2b-9b3e-0a3f2f7a1c11",
+    "metadata": {
+      "title": "Synthetic Example Catalog",
+      "version": "1.0.0",
+      "oscal-version": "1.2.3",
+      "roles": [
+        {
+          "id": "prepared-by",
+          "title": "Prepared By"
+        }
+      ],
+      "parties": [
+        {
+          "uuid": "3a4f1cf1-1e3b-4a55-8ad2-9d1b8b0f9a01",
+          "type": "organization",
+          "name": "Example Organization"
+        }
+      ],
+      "responsible-parties": [
+        {
+          "role-id": "prepared-by",
+          "party-uuids": [
+            "3a4f1cf1-1e3b-4a55-8ad2-9d1b8b0f9a01"
+          ]
+        }
+      ],
+      "links": [
+        {
+          "href": "#7c9b2d54-8e2a-4b18-9a2e-6f0c3d5b7e21",
+          "rel": "reference"
+        }
+      ]
+    },
+    "groups": [
+      {
+        "id": "ex",
+        "title": "Example Group",
+        "controls": [
+          {
+            "id": "ex-1",
+            "title": "First Example Control",
+            "params": [
+              {
+                "id": "ex-1_prm_1",
+                "label": "an example parameter"
+              }
+            ],
+            "parts": [
+              {
+                "id": "ex-1_smt",
+                "name": "statement",
+                "prose": "The organization does the example thing."
+              }
+            ]
+          },
+          {
+            "id": "ex-1",
+            "title": "Second Example Control",
+            "parts": [
+              {
+                "id": "ex-2_smt",
+                "name": "statement",
+                "prose": "And the other one."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "back-matter": {
+      "resources": [
+        {
+          "uuid": "7c9b2d54-8e2a-4b18-9a2e-6f0c3d5b7e21",
+          "title": "An Example Reference",
+          "rlinks": [
+            {
+              "href": "https://example.org/reference"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

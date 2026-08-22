@@ -10,6 +10,29 @@ and this project adheres to
 
 ### Added
 
+- **`oscal-validate explain`: a finding in plain language, every quotation
+  verified (ADR-0005, items 1 and 5).** The first model-backed command. It
+  runs the deterministic validator, labels its findings F1..Fn in report
+  order, gathers the corpus passages that bear on each selected finding (the
+  reference entry at that JSON pointer, the constraint's declaring element
+  from the vendored metaschema, the Metaschema specification's section on
+  that constraint kind, the concept page the rule cites), and asks the model
+  for an explanation that quotes them. Before anything is shown, every cited
+  quote is looked up verbatim in the source it names and every quotation
+  written inline in the prose is looked up across all sources; one that is
+  not there is withheld, its marker struck, and counted. The boundary guard
+  then screens every sentence. The output says how many quotes verified, how
+  many were withheld, and how many sentences the guard removed. A document
+  the validator cannot parse is refused before any model call; a finding
+  whose rule is tool policy, a finding that is UNVERIFIABLE, and a document
+  declaring another OSCAL version (issue #8) each carry a note the model is
+  told to repeat. The default command is reached exactly as before; the
+  subcommands are dispatched by name ahead of its parser and the package
+  behind them is imported only then. `tests/cassettes/` holds a reply
+  recorded from Amazon Bedrock (`claude-sonnet-4-6`, 2026-08-21) so that a
+  real model's output, not a scripted one, goes through the verifier in CI.
+  Installing Bedrock support is `pip install 'oscal-validate[bedrock]'`.
+
 - **The corpus: NIST's published text, hash-pinned, as the only evidence a
   model may quote (ADR-0005, item 2).** `src/oscal_validate/ai/corpus/` holds
   the text of twenty NIST pages — the identifier-use and URI-use concept pages
