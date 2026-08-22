@@ -21,6 +21,7 @@ from pathlib import Path
 from ..document import DocumentError
 from ..findings import Severity
 from ..schema import SchemaError
+from . import ask as ask_command
 from . import explain as explain_command
 from .client import ModelClient, ModelError, build_client
 from .run import Run, banner, prepare
@@ -28,6 +29,30 @@ from .run import Run, banner, prepare
 COMMANDS = ("explain", "repair", "walkthrough", "ask")
 
 _SEVERITIES = [s.value for s in Severity]
+
+
+def _selection(parser: argparse.ArgumentParser, verb: str, default_limit: int) -> None:
+    parser.add_argument(
+        "--label",
+        action="append",
+        default=[],
+        metavar="F3",
+        help=f"{verb} this finding by its label in the validator's order; repeatable",
+    )
+    parser.add_argument("--code", action="append", default=[], help="only findings with this code")
+    parser.add_argument(
+        "--severity",
+        action="append",
+        default=[],
+        choices=_SEVERITIES,
+        help="only findings at this severity (default: ERROR and WARNING)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=default_limit,
+        help=f"at most this many model calls (default {default_limit})",
+    )
 
 
 def _common(parser: argparse.ArgumentParser, document: bool = True) -> None:
@@ -65,24 +90,18 @@ def build_parser() -> argparse.ArgumentParser:
         "explain", help="explain findings in plain language, grounded in NIST's text"
     )
     _common(explain)
-    explain.add_argument(
-        "--label",
-        action="append",
-        default=[],
-        metavar="F3",
-        help="explain this finding by its label in the validator's order; repeatable",
+    _selection(explain, "explain", 5)
+
+    ask = sub.add_parser(
+        "ask", help="what a constraint requires and why NIST has it, from NIST's own text"
     )
-    explain.add_argument("--code", action="append", default=[], help="only findings with this code")
-    explain.add_argument(
-        "--severity",
-        action="append",
-        default=[],
-        choices=_SEVERITIES,
-        help="only findings at this severity (default: ERROR and WARNING)",
+    ask.add_argument("question", help="a question about OSCAL's published rules")
+    ask.add_argument(
+        "--document",
+        metavar="FILE",
+        help="an OSCAL document to validate first; its findings are given to the model",
     )
-    explain.add_argument(
-        "--limit", type=int, default=5, help="at most this many model calls (default 5)"
-    )
+    _common(ask, document=False)
     return parser
 
 
@@ -110,9 +129,9 @@ def _select(run: Run, args: argparse.Namespace) -> list[int]:
     return chosen[: max(0, args.limit)]
 
 
-def _prepare_or_exit(args: argparse.Namespace) -> Run | None:
+def _prepare_or_exit(args: argparse.Namespace, file: str | None = None) -> Run | None:
     try:
-        return prepare(Path(args.file), [Path(p) for p in args.resolve])
+        return prepare(Path(file or args.file), [Path(p) for p in args.resolve])
     except (DocumentError, SchemaError) as exc:
         print(f"oscal-validate: {exc}", file=sys.stderr)
         print(
@@ -153,9 +172,32 @@ def _explain(args: argparse.Namespace) -> int:
     return 0
 
 
+def _ask(args: argparse.Namespace) -> int:
+    run: Run | None = None
+    if args.document:
+        run = _prepare_or_exit(args, args.document)
+        if run is None:
+            return 2
+    client = _client_or_exit(args)
+    if client is None:
+        return 2
+    answer = ask_command.ask_one(args.question, client, run)
+    if args.format == "json":
+        print(json.dumps(ask_command.render_json(answer, client, run), indent=2))
+        return 0
+    print(banner(client))
+    if run is not None:
+        print(f"model: {run.model}; {len(run.findings)} finding(s) given to the model as context")
+    print()
+    print(ask_command.render_text(answer))
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(list(sys.argv[1:] if argv is None else argv))
     if args.command == "explain":
         return _explain(args)
+    if args.command == "ask":
+        return _ask(args)
     print(f"oscal-validate: {args.command} is not available yet", file=sys.stderr)
     return 2

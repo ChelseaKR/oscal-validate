@@ -102,10 +102,14 @@ ASK_CONTRACT = EXPLAIN_CONTRACT.replace(
 )
 
 
-def ask_user(question: str, model: str | None, passages: list[Passage]) -> str:
-    context = f"Document model in hand: {model}\n\n" if model else ""
+def ask_user(
+    question: str, model: str | None, passages: list[Passage], context: str | None = None
+) -> str:
+    preface = (
+        f"{context}\n\n" if context else (f"Document model in hand: {model}\n\n" if model else "")
+    )
     return (
-        f"{context}The user's question:\n{question}\n\n"
+        f"{preface}The user's question:\n{question}\n\n"
         f"Evidence you may quote:\n{_passages(passages)}\n"
         "Answer from the evidence only, quoting it. If the question asks, in any form,\n"
         "whether something is implemented, secure, compliant, authorized, ready, or good\n"
