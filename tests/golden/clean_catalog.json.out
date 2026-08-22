@@ -1,0 +1,84 @@
+{
+  "document": {
+    "model": "catalog"
+  },
+  "findings": [
+    {
+      "code": "PATTERN_NOT_CHECKED",
+      "location": "/catalog",
+      "message": "11 value(s) declared as TokenDatatype were not checked against its pattern ^(\\p{L}|_)(\\p{L}|\\p{N}|[.\\-_])*$ , because that pattern uses regular-expression syntax this tool cannot compile. They are neither passed nor failed.",
+      "property": "TokenDatatype",
+      "rule": {
+        "citation": "oscal-validate policy: the schema declares a regular expression this tool cannot compile, because JSON Schema patterns are ECMA-262 regular expressions and Python's re module does not implement the Unicode property escapes ECMA-262 allows. Values governed by such a pattern are reported as unchecked rather than approximated with a hand-written substitute, which would be a rule encoded from memory.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "11 value(s)"
+    },
+    {
+      "code": "CONSTRAINT_NOT_EVALUATED",
+      "location": "/catalog",
+      "message": "NIST publishes 200 allowed-values constraint(s) that this tool did not evaluate: most allowed-value sets declare allow-other, so a value outside them is not necessarily a violation. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "property": "allowed-values",
+      "rule": {
+        "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "200 constraint(s)"
+    },
+    {
+      "code": "CONSTRAINT_NOT_EVALUATED",
+      "location": "/catalog",
+      "message": "NIST publishes 12 expect constraint(s) that this tool did not evaluate: the test is a Metapath expression, which this tool does not implement. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "property": "expect",
+      "rule": {
+        "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "12 constraint(s)"
+    },
+    {
+      "code": "CONSTRAINT_NOT_EVALUATED",
+      "location": "/catalog",
+      "message": "NIST publishes 1 index constraint(s) that this tool did not evaluate: their target expressions are outside the Metapath subset this tool parses. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "property": "index",
+      "rule": {
+        "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "1 constraint(s)"
+    },
+    {
+      "code": "CONSTRAINT_NOT_EVALUATED",
+      "location": "/catalog",
+      "message": "NIST publishes 25 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "property": "matches",
+      "rule": {
+        "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "UNVERIFIABLE",
+      "value": "25 constraint(s)"
+    }
+  ],
+  "summary": {
+    "ERROR": 0,
+    "INFO": 0,
+    "UNVERIFIABLE": 5,
+    "WARNING": 0
+  },
+  "tool": {
+    "name": "oscal-validate",
+    "version": "0.2.0"
+  }
+}
+
+[exit 0]

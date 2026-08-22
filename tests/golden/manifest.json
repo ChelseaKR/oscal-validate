@@ -1,0 +1,70 @@
+{
+  "clean_catalog": {
+    "committed": true,
+    "document": "clean_catalog.json",
+    "resolve": [],
+    "sha256": "e698fb3884faa7b956529bac71fb75a8e170abe90edfb1fb5219afb1087dda19"
+  },
+  "clean_profile": {
+    "committed": true,
+    "document": "clean_profile.json",
+    "resolve": [],
+    "sha256": "6a0d856107d24dba50ce29844e14cdd947e80ea22a692ebe92c8037ca0b1b0b7"
+  },
+  "clean_profile_resolved": {
+    "committed": true,
+    "document": "clean_profile.json",
+    "resolve": [
+      "clean_catalog.json"
+    ],
+    "sha256": "6a0d856107d24dba50ce29844e14cdd947e80ea22a692ebe92c8037ca0b1b0b7"
+  },
+  "nist_basic_catalog": {
+    "committed": false,
+    "document": "basic_catalog.json",
+    "resolve": [],
+    "sha256": "2b74b56389e1cbb0ecd402805f4988af46b51761b64c6da05b9894264815d37d"
+  },
+  "nist_basic_profile": {
+    "committed": false,
+    "document": "basic_profile.json",
+    "resolve": [],
+    "sha256": "3cae5cd5d4b3e64364773b78ca0b2ece8c55f2a52b4c65522134097c681b5a92"
+  },
+  "nist_component_definition": {
+    "committed": false,
+    "document": "component-definition-example.json",
+    "resolve": [],
+    "sha256": "ecf9e5b1e3cb9058802d29a5f493b62ecf50ad907d1d1c6cebabf4e20f373f35"
+  },
+  "nist_ifa_ap": {
+    "committed": false,
+    "document": "ifa_assessment-plan.json",
+    "resolve": [],
+    "sha256": "66380f4279eb60905f7ec2684b5f885ee1743d648cf6315acaddaaf232d4501d"
+  },
+  "nist_ifa_ar": {
+    "committed": false,
+    "document": "ifa_assessment-results-example.json",
+    "resolve": [],
+    "sha256": "13bde5421ac9f8986e293b74e7caa025fd1f61a4c55d94bb68dce44417ff0eb6"
+  },
+  "nist_ifa_ssp": {
+    "committed": false,
+    "document": "ifa_ssp-example.json",
+    "resolve": [],
+    "sha256": "bfbdec10b2425d65767f7aa487849d58eaca82cf45f7736084f3481932931498"
+  },
+  "nist_sp800_53_catalog": {
+    "committed": false,
+    "document": "NIST_SP-800-53_rev5_catalog.json",
+    "resolve": [],
+    "sha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062"
+  },
+  "nist_ssp_example": {
+    "committed": false,
+    "document": "ssp-example.json",
+    "resolve": [],
+    "sha256": "6264450246bb5554e3fe213d555029ef93d9f922b0713492b584bf0a8fef4333"
+  }
+}

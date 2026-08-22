@@ -7,9 +7,12 @@ results, or POA&M, and it checks the things a publisher can get wrong silently:
 required structure, identifier format and uniqueness, and whether the
 references in the document resolve to anything.
 
-No network calls, in any command. No model calls, ever. Same input, same
-output, byte for byte. Every finding cites the published rule it came from,
-with the source and the date that source was retrieved.
+The validation command makes no network call and no model call, ever. Same
+input, same output, byte for byte. Every finding cites the published rule it
+came from, with the source and the date that source was retrieved. Four
+opt-in commands added under [ADR-0005](docs/adr/0005-ai-at-the-edges.md)
+do call a model; they are separate subcommands, they change nothing about
+the one above, and they are described in their own section below.
 
 ## Structural conformance is not evidence that a control is implemented
 

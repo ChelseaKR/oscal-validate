@@ -1,0 +1,143 @@
+model: system-security-plan
+
+UNVERIFIABLE PATTERN_NOT_CHECKED  at=/system-security-plan
+    TokenDatatype = 59 value(s)
+    59 value(s) declared as TokenDatatype were not checked against its pattern ^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$ , because that pattern uses regular-expression syntax this tool cannot compile. They are neither passed nor failed.
+    rule: oscal-validate policy: the schema declares a regular expression this tool cannot compile, because JSON Schema patterns are ECMA-262 regular expressions and Python's re module does not implement the Unicode property escapes ECMA-262 allows. Values governed by such a pattern are reported as unchecked rather than approximated with a hand-written substitute, which would be a rule encoded from memory.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/system-security-plan
+    allowed-values = 200 constraint(s)
+    NIST publishes 200 allowed-values constraint(s) that this tool did not evaluate: most allowed-value sets declare allow-other, so a value outside them is not necessarily a violation. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/system-security-plan
+    expect = 12 constraint(s)
+    NIST publishes 12 expect constraint(s) that this tool did not evaluate: the test is a Metapath expression, which this tool does not implement. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/system-security-plan
+    index = 1 constraint(s)
+    NIST publishes 1 index constraint(s) that this tool did not evaluate: their target expressions are outside the Metapath subset this tool parses. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/system-security-plan
+    matches = 25 constraint(s)
+    NIST publishes 25 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/control-id
+    control-id = au-1
+    This names a control, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/0/statement-id
+    statement-id = au-1_smt
+    This names a control statement, which is a part, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/1/by-components/0/set-parameters/0/param-id
+    param-id = au-1_prm_1
+    This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/1/by-components/1/set-parameters/0/param-id
+    param-id = au-1_prm_1
+    This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/1/by-components/2/set-parameters/0/param-id
+    param-id = au-1_prm_1
+    This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/1/by-components/3/set-parameters/0/param-id
+    param-id = au-1_prm_1
+    This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/1/statement-id
+    statement-id = au-1_smt.a
+    This names a control statement, which is a part, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/2/statement-id
+    statement-id = au-1_smt.a.1
+    This names a control statement, which is a part, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/3/statement-id
+    statement-id = au-1_smt.a.2
+    This names a control statement, which is a part, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/4/statement-id
+    statement-id = au-1_smt.b
+    This names a control statement, which is a part, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/5/by-components/0/set-parameters/0/param-id
+    param-id = au-1_prm_2
+    This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/5/statement-id
+    statement-id = au-1_smt.b.1
+    This names a control statement, which is a part, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/6/by-components/0/set-parameters/0/param-id
+    param-id = au-1_prm_3
+    This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/6/by-components/1/set-parameters/0/param-id
+    param-id = au-1_prm_3
+    This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/6/by-components/2/set-parameters/0/param-id
+    param-id = au-1_prm_3
+    This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+UNVERIFIABLE REFERENCE_UNVERIFIABLE  at=/system-security-plan/control-implementation/implemented-requirements/0/statements/6/statement-id
+    statement-id = au-1_smt.b.2
+    This names a control statement, which is a part, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (#b78aa3ec-915d-475b-8097-46813fae1825), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.
+    rule: NIST, "Identifier Use and UUIDs", section Scope (page last updated 2025-06-10): "since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references." Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.
+    source: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)
+
+INFO         IMPORT_NOT_SUPPLIED  at=/system-security-plan/import-profile/href
+    href = #b78aa3ec-915d-475b-8097-46813fae1825
+    No document with this file name was supplied. Identifiers it declares are outside the effective data model this run could see, so references into it are reported UNVERIFIABLE rather than as failures. Pass it with --resolve to settle them.
+    rule: NIST, "URI Usage", section Linking to another OSCAL object (page last updated 2025-03-03): a reference "uses a relative reference consisting of only a URI fragment containing the identifier or UUID of the referenced object within the current documents effective data model. The effective data model of a document includes all objects identified with the document and any directly or transitively imported documents."
+    source: https://pages.nist.gov/OSCAL/learn/concepts/uri-use/ (retrieved 2026-08-14)
+
+WARNING      OSCAL_VERSION_DIFFERS  at=/system-security-plan/metadata/oscal-version
+    oscal-version = 1.1.3
+    The document declares OSCAL 1.1.3. Every finding in this report was produced against the vendored OSCAL 1.2.3 schema and constraint layer, so a difference between the two releases can show up here as a finding about the document.
+    rule: The schema declares metadata/oscal-version in the vendored oscal_complete_schema.json for OSCAL 1.2.3 as "The OSCAL model version the document was authored against and will conform to as valid." This tool judges every document against the vendored OSCAL 1.2.3 schema, whatever release the document names.
+    source: https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_complete_schema.json (retrieved 2026-08-14)
+
+23 finding(s): 0 ERROR, 1 WARNING, 1 INFO, 21 UNVERIFIABLE
+
+[exit 0]

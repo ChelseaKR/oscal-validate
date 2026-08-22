@@ -1,8 +1,14 @@
 """Command line interface.
 
-One command, one posture: ``oscal-validate <file.json>`` reads local files and
+The default command, ``oscal-validate <file.json>``, reads local files and
 prints findings. It opens no network connection in any code path, makes no
 model call, and produces the same bytes for the same input every time.
+``tests/golden/`` holds those bytes.
+
+The model-backed subcommands of ADR-0005 are dispatched by name before the
+default parser sees the arguments, and the package that implements them is
+imported only then; ``tests/test_default_path_byte_identity.py`` checks in a
+fresh process that a validation run never loads it.
 
 ``--resolve`` takes more local files or directories. It is how an imported
 catalog or profile gets into the effective data model, and it is the difference

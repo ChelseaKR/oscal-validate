@@ -10,6 +10,26 @@ and this project adheres to
 
 ### Added
 
+- **ADR-0005: model-backed commands at the edges, and the proof the validator
+  did not move.** An owner-directed change of direction. Four opt-in
+  subcommands (`explain`, `repair --draft`, `walkthrough`, `ask`) will call a
+  model; they live in `oscal_validate.ai`, which nothing in the validator
+  imports, behind an optional `ai` extra imported lazily. This entry lands the
+  foundation: the ADR; `tests/golden/`, the default command's exact bytes over
+  the fixtures and eight published NIST documents captured from the last
+  commit before any of this existed, with a test that reproduces them and a
+  fresh-process test that a validation run loads neither the package nor the
+  SDK; the offline-guarantee scan rescoped to everything outside `ai/` plus two
+  new invariants (nothing imports `ai/`; `ai/` names the SDK only inside a
+  function); the provider client (Claude API default `claude-sonnet-5`,
+  Amazon Bedrock by environment, credentials from the environment only, a
+  cassette that replays recorded completions so tests and evals run without a
+  network); and the boundary guard, a deterministic sentence-level screen that
+  withholds and counts any implementation, security, or authorization
+  judgment before it is shown. The README's opening promise now says what is
+  true: the validation command makes no network call and no model call;
+  `SECURITY.md` and `CONTRIBUTING.md` say the same.
+
 - **24 constraints NIST already wrote, reached by parsing what they stand on
   (ADR-0004).** A bounded predicate and path grammar — flag equality,
   `starts-with`, `has-oscal-namespace` with the metaschema's declared default,

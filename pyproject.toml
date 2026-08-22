@@ -22,8 +22,14 @@ classifiers = [
 ]
 dependencies = []
 
+# The validator has no runtime dependency. The opt-in model-backed commands
+# (ADR-0005) need the public SDK, which is imported lazily inside them.
+[project.optional-dependencies]
+ai = ["anthropic>=0.125"]
+
 [dependency-groups]
 dev = [
+  "anthropic>=0.125",
   "mypy>=1.18",
   "pip-audit>=2.7",
   "pytest>=8",

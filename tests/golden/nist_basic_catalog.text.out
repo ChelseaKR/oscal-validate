@@ -1,0 +1,41 @@
+model: catalog
+
+UNVERIFIABLE PATTERN_NOT_CHECKED  at=/catalog
+    TokenDatatype = 75 value(s)
+    75 value(s) declared as TokenDatatype were not checked against its pattern ^(\p{L}|_)(\p{L}|\p{N}|[.\-_])*$ , because that pattern uses regular-expression syntax this tool cannot compile. They are neither passed nor failed.
+    rule: oscal-validate policy: the schema declares a regular expression this tool cannot compile, because JSON Schema patterns are ECMA-262 regular expressions and Python's re module does not implement the Unicode property escapes ECMA-262 allows. Values governed by such a pattern are reported as unchecked rather than approximated with a hand-written substitute, which would be a rule encoded from memory.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/catalog
+    allowed-values = 200 constraint(s)
+    NIST publishes 200 allowed-values constraint(s) that this tool did not evaluate: most allowed-value sets declare allow-other, so a value outside them is not necessarily a violation. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/catalog
+    expect = 12 constraint(s)
+    NIST publishes 12 expect constraint(s) that this tool did not evaluate: the test is a Metapath expression, which this tool does not implement. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/catalog
+    index = 1 constraint(s)
+    NIST publishes 1 index constraint(s) that this tool did not evaluate: their target expressions are outside the Metapath subset this tool parses. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
+    source: README.md (Limits) (retrieved -)
+
+UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/catalog
+    matches = 25 constraint(s)
+    NIST publishes 25 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
+    source: README.md (Limits) (retrieved -)
+
+WARNING      OSCAL_VERSION_DIFFERS  at=/catalog/metadata/oscal-version
+    oscal-version = 1.2.2
+    The document declares OSCAL 1.2.2. Every finding in this report was produced against the vendored OSCAL 1.2.3 schema and constraint layer, so a difference between the two releases can show up here as a finding about the document.
+    rule: The schema declares metadata/oscal-version in the vendored oscal_complete_schema.json for OSCAL 1.2.3 as "The OSCAL model version the document was authored against and will conform to as valid." This tool judges every document against the vendored OSCAL 1.2.3 schema, whatever release the document names.
+    source: https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_complete_schema.json (retrieved 2026-08-14)
+
+6 finding(s): 0 ERROR, 1 WARNING, 0 INFO, 5 UNVERIFIABLE
+
+[exit 0]
