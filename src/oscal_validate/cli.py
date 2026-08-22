@@ -46,8 +46,8 @@ def build_parser() -> argparse.ArgumentParser:
             "Deterministic structural validation of OSCAL documents against NIST's "
             f"published schema and constraint layer for OSCAL {OSCAL_RELEASE}. Checks "
             "structure, identifiers, and reference resolution. It does not, and cannot, "
-            "assess whether any control described in the document is implemented. No "
-            "network calls, no model calls."
+            "assess whether any control described in the document is implemented. This "
+            "command makes no network call and no model call."
         ),
         epilog=(
             "Severities: ERROR gates the exit code. UNVERIFIABLE never does; it marks "

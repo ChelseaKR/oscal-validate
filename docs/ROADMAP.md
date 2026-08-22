@@ -1,6 +1,6 @@
 # Standards and metrics ledger
 
-Last measured: 2026-08-14. Owner: Chelsea Kelly-Reif. Review cadence: per
+Last measured: 2026-08-21. Owner: Chelsea Kelly-Reif. Review cadence: per
 release and quarterly.
 
 This file is the enforcement ledger required by the portfolio Quality & Metrics
@@ -20,7 +20,8 @@ section and in `docs/CONSTRAINT-COVERAGE.md`.
 | Determinism | Byte-identical output across runs and interpreter processes; no timestamp in any report | `tests/test_determinism.py` | AUTO | Maintainer |
 | Vendored snapshot integrity | SHA-256 of every vendored file matches `vendor/SOURCES.md`, and no vendored file lacks a hash row | `tests/test_vendor_integrity.py` | AUTO | Maintainer |
 | Gate self-test | Every seeded corruption of a clean document is caught | `tests/test_break_the_gate.py` | AUTO | Maintainer |
-| The package stays offline | 0 sockets opened; 0 network imports anywhere under `src/` | `tests/test_offline_guarantee.py` | AUTO | Maintainer |
+| The validator stays offline | 0 sockets opened by the default command; 0 network imports under `src/` outside `oscal_validate/ai/`; nothing outside `ai/` imports it; `ai/` imports the SDK only inside a function | `tests/test_offline_guarantee.py` | AUTO | Maintainer |
+| Default path byte identity | The default command's stdout and exit code over the fixtures and nine published NIST documents equal the goldens captured from commit `6978895`, the last before ADR-0005; a validation run in a fresh process loads neither `oscal_validate.ai` nor the SDK | `tests/test_default_path_byte_identity.py` | AUTO | Maintainer |
 | Constraint coverage honesty | The published coverage table equals what the vendored files contain | `tests/test_constraint_coverage.py` | AUTO | Maintainer |
 | Constraint inventory drift | The published constraint counts equal the vendored inventory | `tests/test_metaschema.py` | AUTO | Maintainer |
 | Severity contract accuracy | UNVERIFIABLE never gates the exit code; ERROR always does | `tests/test_cli.py` plus release review of any severity change | AUTO + REVIEW | Maintainer |
@@ -32,7 +33,12 @@ section and in `docs/CONSTRAINT-COVERAGE.md`.
 | Secret and SAST scanning | 0 verified secrets; 0 unresolved Semgrep findings | trufflehog.yml (push, PR, weekly), semgrep.yml (push, PR) | AUTO | Maintainer |
 | SHA-pinned workflow actions | 100% | portfolio conformance checker; review on workflow diffs | AUTO | Maintainer |
 | Spec snapshot freshness | Re-vendor and re-hash on a new OSCAL release | Manual check against the OSCAL releases page before a release | REVIEW | Maintainer |
-| AI evaluation / GenAI telemetry | N/A: deterministic rule engine; no model, prompt, retrieval, embedding, or AI ranking path anywhere | Dependency and import scan (zero runtime deps) | N/A | Maintainer |
+| Boundary: no implementation, security, or authorization judgment shown | 80 of 80 refuse-cases hold by both the lexical guard and an independent judge call; 20 of 20 structural controls answered. Last live run 2026-08-21 on Bedrock `claude-sonnet-4-6`: 80/80, 80/80, 20/20 | `evals/run_refusal.py` over `evals/cases/refusal.jsonl`; results in `evals/results/`; provenance enforced by `tests/test_evals.py` | REVIEW (live run per prompt change; replay from cassette is AUTO-checkable) | Maintainer |
+| Repair drafts verified by re-validation | Every draft shown was re-validated by the deterministic validator; the eval reports resolved / clean / introduced / not drafted. Last run: 59 of 62 resolved, 0 introduced | `evals/run_repair.py` over `evals/cases/documents.json` | REVIEW | Maintainer |
+| Citation grounding | Every quote shown was found verbatim in the named corpus source; withheld quotes are counted, never shown. Last run: 61 verified, 20 withheld, all withheld ones naming a non-corpus source | `oscal_validate.ai.verify` at run time; `evals/run_grounding.py` | AUTO at run time + REVIEW | Maintainer |
+| Walkthrough fidelity | No label the validator did not produce is shown; no group is omitted. Last run: 53 of 53 groups covered, 0 struck | `oscal_validate.ai.walkthrough.check` at run time; `evals/run_grounding.py` | AUTO at run time + REVIEW | Maintainer |
+| Corpus integrity | SHA-256 of every corpus text matches `ai/corpus/MANIFEST.json`; the prose rules `rules.py` quotes verify against it | `tests/test_ai_sources.py` | AUTO | Maintainer |
+| Eval provenance | Every results file names provider, model, served model, prompt version, commit, and date, or is `not_run` with a reason and no numbers | `tests/test_evals.py` | AUTO | Maintainer |
 | Performance | N/A: pure library/CLI with no hosted route and no shipped HTML, per PERFORMANCE-STANDARD section 0. There is no preview environment or frontend bundle to measure, and a perf job that cannot run against a real surface is declared N/A rather than wired in advisory mode | Reviewed on any change that adds a hosted route | N/A | Maintainer |
 | Incident postmortems | Every incident gets a `docs/incidents/YYYY-MM-DD-<slug>.md` file in this repository. Zero incidents to date, which is a count and not an exemption | `docs/incidents/README.md`; the convention is exercised the first time it is needed | REVIEW | Maintainer |
 | Data lineage | Every ingest source has a card in `docs/data/` naming the publisher, licence, retrieval date, refresh trigger, and tier | `docs/data/`; the vendored snapshot's hashes are additionally enforced by `tests/test_vendor_integrity.py` | REVIEW | Maintainer |
@@ -56,9 +62,10 @@ not implemented. That is a gap and is listed below as one, not an exemption.
 
 AI-DEV-MEASUREMENT: APPLIES. This repository was built with AI assistance,
 disclosed in the README, so Track A delivery and quality-debt metrics are mined
-portfolio-wide from git and PR history rather than computed here. Track B is
-N/A: there is no model, prompt, or AI ranking path in the product, which is the
-same fact the AI Evaluation row records.
+portfolio-wide from git and PR history rather than computed here. Track B
+applies since ADR-0005 to the four opt-in model-backed commands, and is served
+by the boundary, repair, grounding, and walkthrough rows above; the validator
+itself still has no model, prompt, or AI ranking path.
 
 ## Delivery health
 
