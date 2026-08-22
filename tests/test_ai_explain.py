@@ -197,3 +197,24 @@ def test_a_recorded_live_reply_replays_offline_and_its_quotes_verify(
         assert item["withheld_quotes"] == [], item["label"]
         assert item["withheld_sentences"] == 0, item["label"]
         assert all(q["url"].startswith("https://") for q in item["quotes"])
+
+
+def test_every_ai_command_discloses_what_it_sends_before_any_call(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Owner decision 2026-08-21: a one-line notice, on stderr, before the first network call."""
+    cassette = tmp_path / "empty.json"
+    cassette.write_text("{}", encoding="utf-8")
+    monkeypatch.setenv("OSCAL_VALIDATE_AI_CASSETTE", str(cassette))
+    monkeypatch.delenv("OSCAL_VALIDATE_AI_RECORD", raising=False)
+    doc = str(fixture_path("broken_catalog.json"))
+    for argv in (
+        ["explain", doc, "--label", "F8"],
+        ["repair", "--draft", doc, "--label", "F8"],
+        ["walkthrough", doc, "--no-index"],
+        ["ask", "what is a catalog?", "--document", doc],
+    ):
+        assert main(argv) == 0
+        err = capsys.readouterr().err
+        assert "this command sends" in err, argv[0]
+        assert "the default validate command never does" in err, argv[0]
