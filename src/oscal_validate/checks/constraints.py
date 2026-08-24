@@ -247,7 +247,7 @@ def _cross_reference(
                             else _unsettled(constraint, built, session.incompleteness)
                         )
                     ),
-                    rule=constraint_rule(constraint) if settled else rules.CROSS_INSTANCE_SCOPE,
+                    rule=constraint_rule(constraint, detail="" if settled else _unsettled(constraint, built, session.incompleteness)),
                 )
             )
     return findings

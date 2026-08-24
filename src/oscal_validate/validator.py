@@ -47,9 +47,23 @@ def _deduplicate(findings: list[Finding]) -> list[Finding]:
         if not finding.code.startswith("REFERENCE_"):
             kept.append(finding)
             continue
-        key = (finding.location, finding.value)
+        key = _reference_key(finding)
         references[key] = _prefer(references.get(key), finding)
     return kept + list(references.values())
+
+
+def _reference_key(finding: Finding) -> tuple[str, str]:
+    """Normalize pointer and value across constraint and prose checks.
+
+    Constraint checks report against the containing element (e.g. ``link``)
+    with a stripped fragment value, whereas prose checks report against the
+    scalar (e.g. ``link/href``) with the raw leading ``#``.
+    """
+    location = (
+        finding.location[:-5] if finding.location.endswith("/href") else finding.location
+    )
+    value = finding.value[1:] if finding.value.startswith("#") else finding.value
+    return (location, value)
 
 
 #: A constraint-layer citation names a NIST constraint id. Prefer it over the

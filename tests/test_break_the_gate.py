@@ -320,3 +320,75 @@ def _component_definition(start: float, end: float) -> dict[str, Any]:
             ],
         }
     }
+
+
+def test_overlapping_constraint_and_prose_reference_findings_are_deduplicated(
+    tmp_path: Path,
+) -> None:
+    """Bare-# href findings from constraints and prose checks must be merged.
+
+    When a complete effective data model has a dangling by-component link
+    with rel=provided-by, the constraint layer (checks/constraints.py) and
+    the prose rule (checks/references.py) both evaluate the reference.
+    _deduplicate must normalize the pointer/value key so that only one finding
+    (from the constraint layer, with its formal citation) is kept.
+    """
+    ssp = {
+        "system-security-plan": {
+            "uuid": "7b1d6c8a-4a5e-4b3c-8d2f-1e0a9b8c7d61",
+            "metadata": {
+                "title": "Gate fixture",
+                "last-modified": "2026-08-19T00:00:00Z",
+                "version": "1",
+                "oscal-version": "1.2.3",
+            },
+            "import-profile": {"href": "profile.json"},
+            "control-implementation": {
+                "description": "One by-component whose provided-by cannot be looked up.",
+                "implemented-requirements": [
+                    {
+                        "uuid": "9c8b7a6d-5e4f-4321-9876-0a1b2c3d4e5f",
+                        "control-id": "ac-1",
+                        "by-components": [
+                            {
+                                "component-uuid": "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d",
+                                "uuid": "1f2e3d4c-5b6a-4978-8695-a4b3c2d1e0f9",
+                                "description": "x",
+                                "links": [
+                                    {
+                                        "href": "#00000000-0000-4000-8000-000000000000",
+                                        "rel": "provided-by",
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            },
+        }
+    }
+    profile = {
+        "profile": {
+            "uuid": "11111111-2222-4333-8444-555555555555",
+            "metadata": {
+                "title": "Minimal profile",
+                "last-modified": "2026-08-19T00:00:00Z",
+                "version": "1",
+                "oscal-version": "1.2.3",
+            },
+            "imports": [],
+        }
+    }
+    ssp_path = write(tmp_path, "ssp.json", ssp)
+    profile_path = write(tmp_path, "profile.json", profile)
+
+    findings = validate_file(ssp_path, [profile_path])
+    link_findings = [
+        f
+        for f in findings
+        if f.code.startswith("REFERENCE_")
+        and "00000000-0000-4000-8000-000000000000" in f.value
+    ]
+    # Exactly one finding should be reported for the link
+    assert len(link_findings) == 1, f"Expected 1 finding for link, got: {link_findings}"
+    assert "oscal-by-component-uuid-index" in link_findings[0].rule.citation
