@@ -169,6 +169,21 @@ NOT_WALKED_POLICY = Rule(
     retrieved="-",
 )
 
+INDEX_NEVER_BUILT = Rule(
+    citation=(
+        "oscal-validate policy: this reference is checked by an index-has-key constraint "
+        "whose named index is populated by an index constraint this tool skips, because that "
+        "constraint's target is outside the Metapath subset parsed here. The index was never "
+        "built, so the lookup was not performed and missed every key for a reason that has "
+        "nothing to do with the document. A rule that was not evaluated is neither passed nor "
+        "failed, and it is not evidence against the file it was not run on. No document "
+        "supplied with --resolve changes this; the constraints in this position are listed in "
+        "docs/CONSTRAINT-COVERAGE.md under their own generated heading."
+    ),
+    url="README.md (Limits)",
+    retrieved="-",
+)
+
 OSCAL_VERSION_FIELD = Rule(
     citation=(
         f'The schema declares metadata/oscal-version in {_SNAPSHOT} as "The OSCAL model '

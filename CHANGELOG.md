@@ -8,6 +8,34 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- **One href produced two findings, and in one case two contradicting
+  verdicts (ADR-0006).** `validator.py::_deduplicate` merges the reports the
+  constraint layer and the prose rule in check 4 both make about a bare `#`
+  fragment. It never merged one: it keyed on `(location, value)` as each check
+  spells them, and the two spell both correctly and differently, so a dangling
+  back-matter reference was reported at `/catalog/metadata/links/0` and again
+  at `/catalog/metadata/links/0/href`. On a `provided-by` link the two reports
+  disagreed: `REFERENCE_UNVERIFIABLE` ("the index was never built, so this key
+  could not be looked up in it") beside `REFERENCE_UNRESOLVED` at ERROR ("the
+  effective data model is complete and this reference resolves to nothing").
+  The key is now normalized, and `_prefer` decides on settledness first: where
+  two reports about one reference disagree about whether the question was
+  settled, the unsettled one is published, because a check that has just said
+  it could not perform the lookup does not become able to perform it because
+  another check came back empty. Severity ordering was rejected (it would
+  silently raise NIST's own published `level`), and which check reported a
+  finding is now stated in `REFERENCE_PRECEDENCE` rather than inferred from
+  the citation string, which is what made normalizing the key alone convert
+  the UNVERIFIABLE into an ERROR and break ADR-0002's gate test. An unsettled
+  report also now cites the reason it is unsettled: an index that was never
+  built is tool policy (`INDEX_NEVER_BUILT`), a document that was not supplied
+  is NIST's cross-instance scope. `_prefer` had never been called with two
+  findings in the whole suite; `validator.py` is now at 100% line and branch
+  coverage. [Issue #22](https://github.com/ChelseaKR/oscal-validate/issues/22)
+
+
 ### Changed
 
 - **The documentation says what the tool is now (ADR-0005).** The README

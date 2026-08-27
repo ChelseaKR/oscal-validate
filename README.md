@@ -342,22 +342,24 @@ version, commit, and date, and a test rejects one that does not.
   gates the exit code.
 
 The rule behind UNVERIFIABLE is the rule behind the whole tool: never punish
-what you cannot see, and never bless it either. Three things always report as
+what you cannot see, and never bless it either. Four things always report as
 UNVERIFIABLE rather than passing quietly:
 
 - references into a document that was not supplied,
-- the 262 published constraints this tool does not evaluate,
+- the 238 published constraints this tool does not evaluate,
 - references checked against an index that no evaluated constraint builds,
 - values governed by a pattern this tool cannot compile.
 
-The third of those is the mirror of the rule and was added after it bit. Two of
-the 78 constraints this tool evaluates are `index-has-key` constraints whose
+The third of those is the mirror of the rule and was added after it bit. One of
+the 102 constraints this tool evaluates is an `index-has-key` constraint whose
 index is populated by an `index` constraint it skips, so the lookup misses every
 key no matter what the document says. Reporting that as a failure would render a
 rule that was never evaluated as somebody else's defect, which is the same
-mistake in the other direction. Those two are listed in
+mistake in the other direction. That one is listed in
 [`docs/CONSTRAINT-COVERAGE.md`](docs/CONSTRAINT-COVERAGE.md) under a generated
-heading so the count cannot drift.
+heading so the count cannot drift, and where the prose rule in check 4 reaches
+the same reference and would settle it, the unsettled report is the one
+published ([ADR-0006](docs/adr/0006-one-reference-one-report.md)).
 
 ### Break the gate before trusting it
 

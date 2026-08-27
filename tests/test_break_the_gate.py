@@ -150,6 +150,10 @@ def test_a_member_of_organizations_that_names_no_organization_is_caught(
     )
 
 
+#: A UUID no fixture declares, so a reference to it resolves to nothing.
+DANGLING = "00000000-0000-4000-8000-000000000000"
+
+
 def test_a_lookup_into_an_index_that_was_never_built_is_never_an_error(tmp_path: Path) -> None:
     """A skipped constraint accuses nobody.
 
@@ -202,6 +206,89 @@ def test_a_lookup_into_an_index_that_was_never_built_is_never_an_error(tmp_path:
     assert not [
         f for f in findings if f.code == "REFERENCE_UNRESOLVED" and "by-component-uuid" in f.message
     ]
+
+
+def test_a_settled_report_never_replaces_an_unsettled_one_about_the_same_reference(
+    tmp_path: Path,
+) -> None:
+    """The same guarantee as the test above, at the point the reports are merged.
+
+    The document here is the one difference that matters: its import-profile
+    names a real file, and that file is supplied, so the effective data model
+    is complete and check 4's prose rule settles the ``provided-by`` href as
+    resolving to nothing. The constraint layer cannot settle it, because the
+    ``by-component-uuid`` index its ``index-has-key`` reads is never built.
+
+    One href, two reports, opposite verdicts. Deduplicating them on a
+    normalized key without deciding the order lets the ERROR replace the
+    UNVERIFIABLE, and the unbuilt index stops being named at all: the same
+    silence the test above forbids, arriving through the merge instead of
+    through the check. The unsettled report is the one that survives, and it
+    keeps citing the rule that explains why nothing here can settle it.
+    """
+    ssp = {
+        "system-security-plan": {
+            "uuid": "7b1d6c8a-4a5e-4b3c-8d2f-1e0a9b8c7d61",
+            "metadata": {
+                "title": "Gate fixture",
+                "last-modified": "2026-08-19T00:00:00Z",
+                "version": "1",
+                "oscal-version": "1.2.3",
+            },
+            "import-profile": {"href": "profile.json"},
+            "control-implementation": {
+                "description": "One by-component whose provided-by cannot be looked up.",
+                "implemented-requirements": [
+                    {
+                        "uuid": "9c8b7a6d-5e4f-4321-9876-0a1b2c3d4e5f",
+                        "control-id": "ac-1",
+                        "by-components": [
+                            {
+                                "component-uuid": "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d",
+                                "uuid": "1f2e3d4c-5b6a-4978-8695-a4b3c2d1e0f9",
+                                "description": "x",
+                                "links": [{"href": f"#{DANGLING}", "rel": "provided-by"}],
+                            }
+                        ],
+                    }
+                ],
+            },
+        }
+    }
+    profile = {
+        "profile": {
+            "uuid": "11111111-2222-4333-8444-555555555555",
+            "metadata": {
+                "title": "Minimal profile",
+                "last-modified": "2026-08-19T00:00:00Z",
+                "version": "1",
+                "oscal-version": "1.2.3",
+            },
+            "imports": [],
+        }
+    }
+    document = write(tmp_path, "ssp.json", ssp)
+    supplied = write(tmp_path, "profile.json", profile)
+
+    findings = validate_file(document, [supplied])
+    assert not [f for f in findings if f.code == "IMPORT_UNRESOLVED"], (
+        "this case only exists when the effective data model is complete"
+    )
+    about = [f for f in findings if f.code.startswith("REFERENCE_") and DANGLING in f.value]
+    assert len(about) == 1, (
+        f"one href must not produce two verdicts; got {[(f.code, f.location) for f in about]}"
+    )
+    assert about[0].code == "REFERENCE_UNVERIFIABLE"
+    assert about[0].severity is Severity.UNVERIFIABLE
+    assert "by-component-uuid" in about[0].message, "the unbuilt index must still be named"
+    assert "NIST OSCAL constraint" not in about[0].rule.citation, (
+        "a constraint this tool did not evaluate is not the authority for the finding "
+        "that it could not evaluate it"
+    )
+    assert "oscal-validate policy" in about[0].rule.citation, (
+        "the authority is this tool's own limit; every import here was supplied, so a "
+        "citation about documents that were not supplied would send the reader nowhere"
+    )
 
 
 def test_an_object_no_schema_alternative_accepts_is_caught(

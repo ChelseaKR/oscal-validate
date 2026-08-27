@@ -182,6 +182,53 @@ def test_findings_are_deduplicated_and_ordered_deterministically() -> None:
     assert counts([one, two])["ERROR"] == 2
 
 
+def test_one_reference_two_checks_reach_is_reported_once(tmp_path: Path) -> None:
+    """The merge _deduplicate exists for, which for a long time never fired.
+
+    A dangling ``#`` fragment on a ``metadata/link[@rel='reference']`` is
+    reached twice: by NIST's ``oscal-metadata-link-reference-index-back-matter-resource``
+    and by the prose rule in check 4. Both settle it and both are right, so it
+    is one defect. It was reported twice, at ``/catalog/metadata/links/0`` and
+    at ``/catalog/metadata/links/0/href``, because the key was the raw pointer
+    and value pair and the two checks spell both differently.
+    """
+    catalog = copy.deepcopy(load_fixture("clean_catalog.json"))
+    catalog["catalog"]["metadata"]["links"][0]["href"] = "#99999999-8888-4777-8666-555555555555"
+    findings = validate_file(write(tmp_path, "c.json", catalog))
+    about = [f for f in findings if f.code.startswith("REFERENCE_") and "99999999" in f.value]
+    assert len(about) == 1, f"one reference, one report; got {[f.location for f in about]}"
+    assert about[0].code == "REFERENCE_UNRESOLVED"
+    assert "NIST OSCAL constraint" in about[0].rule.citation, (
+        "where two checks settle the same defect, the formally stated constraint is "
+        "the citation to keep"
+    )
+
+
+def test_an_unsettled_reference_cites_the_reason_it_is_unsettled(tmp_path: Path) -> None:
+    """Two reasons, two rules, and the citation follows the same fact the message does.
+
+    An ``index-has-key`` goes unsettled for either of two reasons and the
+    reader acts on them differently. The index was never built, which is this
+    tool's own limit and no supplied document changes it; or a document named
+    by an import is missing, which is what NIST's cross-instance scope
+    paragraph is about and which ``--resolve`` settles. This is the second:
+    the index is built, the catalog this profile imports is not supplied.
+    """
+    profile = copy.deepcopy(load_fixture("clean_profile.json"))
+    profile["profile"]["metadata"]["links"] = [
+        {"rel": "reference", "href": "#c0ffee00-0000-4000-8000-000000000000"}
+    ]
+    findings = validate_file(write(tmp_path, "clean_profile.json", profile))
+    about = [f for f in findings if "c0ffee00" in f.value]
+    assert len(about) == 1, f"one reference, one report; got {[f.location for f in about]}"
+    assert about[0].severity is Severity.UNVERIFIABLE
+    assert "clean_catalog.json" in about[0].message, "the missing document is named"
+    assert "cross-instance scoped" in about[0].rule.citation
+    assert "oscal-validate policy" not in about[0].rule.citation, (
+        "the index here was built; the reason is a document that was not supplied"
+    )
+
+
 def test_the_text_report_names_the_model_and_summarizes_every_severity() -> None:
     text = render_findings_text(validate_file(fixture_path("clean_catalog.json")), "catalog")
     assert text.startswith("model: catalog")
