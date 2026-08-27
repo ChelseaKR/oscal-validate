@@ -100,13 +100,16 @@ rather than be filled with invented zeroes.
   the specification with its own test suite upstream. REVIEW, owner: maintainer.
 - Re-run the survey against the same targets after the next OSCAL release, and
   record whether the findings persist.
-- Decide what to do about `/mapping-collection/mappings`, which no rule in this
-  tool reads. The 2026-08-19 run put all seven public mapping collections in the
-  corpus and every one of them reported `SUBTREE_NOT_READ` there, so the eighth
-  model is represented and its content is unchecked. Until that changes,
-  `tests/test_break_the_gate.py` cannot seed a corruption inside a mapping and
-  watch it get caught, which means the model has no gate to break. REVIEW,
-  owner: maintainer.
+- ~~Decide what to do about `/mapping-collection/mappings`, which no rule in
+  this tool reads.~~ Decided and done 2026-08-27 (ADR-0007). The blocker was
+  one shape, enumerated from the vendored schema: `mappings` is the only node a
+  document can reach that the resolver declined, and it is declined because it
+  is the only `group-as` of 394 in the vendored metaschema modules without
+  `in-json="ARRAY"`. Resolving "one X or an array of X", and only that,
+  reads the model: `tests/test_break_the_gate.py` now seeds seven corruptions
+  inside a mapping, every one of which produced 0 ERROR before, and the seven
+  published mapping collections report no `SUBTREE_NOT_READ` and 31 ERROR
+  findings where they reported none. REVIEW closed.
 - Decide how a document that declares an older `oscal-version` should be
   reported. Everything is validated against the vendored 1.2.3 schema and
   `OSCAL_VERSION_DIFFERS` warns about the gap, which was sufficient while every

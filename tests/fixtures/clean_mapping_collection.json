@@ -1,0 +1,58 @@
+{
+  "mapping-collection": {
+    "uuid": "3f8c1d24-5b6e-4a7f-9c80-1d2e3f4a5b60",
+    "metadata": {
+      "title": "Synthetic Example Mapping Collection",
+      "last-modified": "2026-08-14T00:00:00Z",
+      "version": "1.0.0",
+      "oscal-version": "1.2.3"
+    },
+    "provenance": {
+      "method": "human",
+      "matching-rationale": "semantic",
+      "status": "complete",
+      "mapping-description": "A synthetic mapping between two synthetic control sets, written for this repository's tests."
+    },
+    "mappings": [
+      {
+        "uuid": "4a9d2e35-6c7f-4b80-8d91-2e3f4a5b6c71",
+        "source-resource": {
+          "type": "catalog",
+          "href": "#5b0e3f46-7d80-4c91-9ea2-3f4a5b6c7d82"
+        },
+        "target-resource": {
+          "type": "catalog",
+          "href": "#6c1f4a57-8e91-4da2-8fb3-4a5b6c7d8e93"
+        },
+        "maps": [
+          {
+            "uuid": "7d2a5b68-9fa2-4eb3-90c4-5b6c7d8e9fa4",
+            "relationship": "equivalent-to",
+            "sources": [{ "type": "control", "id-ref": "ex-1" }],
+            "targets": [{ "type": "control", "id-ref": "tg-1" }]
+          },
+          {
+            "uuid": "8e3b6c79-a0b3-4fc4-81d5-6c7d8e9fa0b5",
+            "relationship": "subset-of",
+            "sources": [{ "type": "statement", "id-ref": "ex-2_smt.a" }],
+            "targets": [{ "type": "control", "id-ref": "tg-2" }]
+          }
+        ]
+      }
+    ],
+    "back-matter": {
+      "resources": [
+        {
+          "uuid": "5b0e3f46-7d80-4c91-9ea2-3f4a5b6c7d82",
+          "title": "Synthetic source catalog",
+          "rlinks": [{ "href": "clean_catalog.json" }]
+        },
+        {
+          "uuid": "6c1f4a57-8e91-4da2-8fb3-4a5b6c7d8e93",
+          "title": "Synthetic target catalog",
+          "rlinks": [{ "href": "target_catalog.json" }]
+        }
+      ]
+    }
+  }
+}

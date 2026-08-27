@@ -37,9 +37,13 @@ never by the installed package, and none of it is committed to this repository.
   OSCAL only behind a login, or only in XML or YAML, could not be found this way,
   so the absence of a sector or a country from the table is not evidence that it
   publishes nothing.
-- **One model is represented but barely read.** All seven `mapping-collection`
-  documents report `SUBTREE_NOT_READ` at `/mapping-collection/mappings`, so their
-  contribution to the corpus is metadata conformance and almost nothing else.
+- **One model was represented but barely read, until 2026-08-27.** All seven
+  `mapping-collection` documents reported `SUBTREE_NOT_READ` at
+  `/mapping-collection/mappings` in the runs recorded here, so their
+  contribution to those runs is metadata conformance and almost nothing else.
+  ADR-0007 resolved the shape that blocked the walk; the same seven documents
+  read today report no `SUBTREE_NOT_READ` and 31 ERROR findings. The recorded
+  runs are not re-scored, because they are the record of what those runs found.
 - **Publishers change.** `GSA/fedramp-automation`, where the FedRAMP baselines
   and templates were originally published, was archived in July 2025 and has
   since been removed from GitHub, and `automate.fedramp.gov` no longer resolves

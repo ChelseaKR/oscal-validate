@@ -148,6 +148,15 @@ claim something it did not check.
 `/mapping-collection/mappings` and see it caught, because nothing there is
 checked. Filed as an issue rather than fixed here.
 
+**Resolved 2026-08-27, after this run (ADR-0007, issue #7).** The blocker was
+one shape in the vendored schema: `mappings` is the only `group-as` of 394 in
+the vendored metaschema modules that carries no `in-json="ARRAY"`, so NIST's
+generated JSON Schema offers one mapping or an array of mappings there and the
+walker resolved neither. It resolves both now. The seven documents in this run
+read today report no `SUBTREE_NOT_READ` and 31 ERROR findings between them.
+The numbers above are what this run found on 2026-08-19 and are left as its
+record; they are not re-scored.
+
 ## Finding 2: three of seven mapping collections declare an OSCAL version that has no mapping model
 
 | Publisher | declared `oscal-version` | mapping model exists in that release? |

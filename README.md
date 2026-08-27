@@ -467,6 +467,18 @@ an `oscal-version` from before OSCAL 1.2, a release whose schema has no mapping
 model at all; that was measured against NIST's own published v1.1.2 schema, not
 assumed.
 
+That limit is gone. `mappings` is the one place in the vendored schema NIST
+writes a repeatable assembly as "one, or an array of one or more" rather than
+as an array, and the walk now reads both spellings
+([ADR-0007](docs/adr/0007-read-the-eighth-model.md)). The seven documents above
+report no `SUBTREE_NOT_READ` today and carry 31 ERROR findings between them
+where the run recorded none: an `id_ref` written where the schema declares
+`id-ref` and forbids anything else, a percentage written as a string where the
+schema declares a decimal, an array present and empty where the schema requires
+an item, and resource fragments naming a resource's `props/id` rather than its
+`uuid`. The survey above is what that run found and is left as the record of
+it.
+
 The survey harness and its target lists are in [`tools/`](tools/), and all three
 runs are reproducible: the findings a run records are now independent of where
 its cache lives, which they were not before, and `--provenance` carries a

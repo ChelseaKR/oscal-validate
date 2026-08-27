@@ -36,6 +36,18 @@ def clean_catalog() -> Any:
     return copy.deepcopy(load_fixture("clean_catalog.json"))
 
 
+@pytest.fixture
+def clean_mapping() -> Any:
+    findings = validate_file(fixture_path("clean_mapping_collection.json"))
+    assert not [f for f in findings if f.severity is Severity.ERROR], (
+        "gate tests require a proven-clean baseline"
+    )
+    assert "SUBTREE_NOT_READ" not in {f.code for f in findings}, (
+        "a mapping whose substance was not read is not a proven-clean baseline"
+    )
+    return copy.deepcopy(load_fixture("clean_mapping_collection.json"))
+
+
 def test_removing_a_required_property_is_caught(tmp_path: Path, clean_catalog: Any) -> None:
     del clean_catalog["catalog"]["metadata"]["last-modified"]
     assert "REQUIRED_PROPERTY_MISSING" in _errors(write(tmp_path, "c.json", clean_catalog))
@@ -373,6 +385,98 @@ def test_an_array_the_schema_requires_items_in_is_caught_when_empty(
     """
     clean_catalog["catalog"]["groups"][0]["controls"] = []
     assert "ARRAY_TOO_SHORT" in _errors(write(tmp_path, "c.json", clean_catalog))
+
+
+# -- the eighth model ---------------------------------------------------------
+#
+# Until the walk resolved "one mapping or an array of mappings", every one of
+# these seeded corruptions went uncaught: /mapping-collection/mappings was
+# reported SUBTREE_NOT_READ and nothing below it was read by any rule. The
+# model had no gate to break. See ADR-0007 and issue #7.
+
+
+def _maps(mapping_collection: Any) -> Any:
+    return mapping_collection["mapping-collection"]["mappings"][0]["maps"][0]
+
+
+def test_a_required_property_removed_inside_a_mapping_is_caught(
+    tmp_path: Path, clean_mapping: Any
+) -> None:
+    del _maps(clean_mapping)["relationship"]
+    assert "REQUIRED_PROPERTY_MISSING" in _errors(write(tmp_path, "m.json", clean_mapping))
+
+
+def test_a_property_the_schema_forbids_inside_a_mapping_is_caught(
+    tmp_path: Path, clean_mapping: Any
+) -> None:
+    """The real defect this shape hides: an underscore where OSCAL writes a hyphen.
+
+    ``mapping-item`` declares ``id-ref`` and sets ``additionalProperties`` to
+    false, so ``id_ref`` is both an undeclared property and a required one
+    missing. Two of the seven published mapping collections carry it.
+    """
+    source = _maps(clean_mapping)["sources"][0]
+    source["id_ref"] = source.pop("id-ref")
+    codes = _errors(write(tmp_path, "m.json", clean_mapping))
+    assert "PROPERTY_UNDECLARED" in codes
+    assert "REQUIRED_PROPERTY_MISSING" in codes
+
+
+def test_a_dangling_resource_reference_inside_a_mapping_is_caught(
+    tmp_path: Path, clean_mapping: Any
+) -> None:
+    mapping = clean_mapping["mapping-collection"]["mappings"][0]
+    mapping["source-resource"]["href"] = "#99999999-8888-4777-8666-555555555555"
+    assert "REFERENCE_UNRESOLVED" in _errors(write(tmp_path, "m.json", clean_mapping))
+
+
+def test_a_duplicate_uuid_inside_a_mapping_is_caught(tmp_path: Path, clean_mapping: Any) -> None:
+    collection = clean_mapping["mapping-collection"]
+    _maps(clean_mapping)["uuid"] = collection["uuid"]
+    assert "UUID_NOT_UNIQUE" in _errors(write(tmp_path, "m.json", clean_mapping))
+
+
+def test_an_array_the_schema_requires_items_in_is_caught_inside_a_mapping(
+    tmp_path: Path, clean_mapping: Any
+) -> None:
+    _maps(clean_mapping)["targets"] = []
+    assert "ARRAY_TOO_SHORT" in _errors(write(tmp_path, "m.json", clean_mapping))
+
+
+def test_one_mapping_written_as_an_object_is_read_like_a_list_of_one(
+    tmp_path: Path, clean_mapping: Any
+) -> None:
+    """Both spellings the schema offers at ``mappings``, and both are checked.
+
+    NIST writes ``mappings`` as an ``anyOf`` of one mapping or an array of
+    mappings, the only place in the vendored schema that shape occurs. A
+    document may use either, so a corruption must be caught in either, and a
+    clean document must stay clean in either.
+    """
+    collection = clean_mapping["mapping-collection"]
+    collection["mappings"] = collection["mappings"][0]
+    assert not _errors(write(tmp_path, "one.json", clean_mapping)), (
+        "the singleton spelling of a clean mapping is still clean"
+    )
+    assert "SUBTREE_NOT_READ" not in _codes(write(tmp_path, "one.json", clean_mapping))
+
+    del collection["mappings"]["maps"][0]["relationship"]
+    assert "REQUIRED_PROPERTY_MISSING" in _errors(write(tmp_path, "broken.json", clean_mapping)), (
+        "a corruption inside the singleton spelling must be caught too"
+    )
+
+
+def test_a_scalar_where_the_schema_offers_one_mapping_or_many_is_caught(
+    tmp_path: Path, clean_mapping: Any
+) -> None:
+    """A value that is neither one mapping nor an array of them.
+
+    Both alternatives name the same definition, and that definition declares
+    ``"type": "object"``, so the value is reported against a type the schema
+    states rather than against a description of the choice.
+    """
+    clean_mapping["mapping-collection"]["mappings"] = "a string"
+    assert "TYPE_MISMATCH" in _errors(write(tmp_path, "m.json", clean_mapping))
 
 
 def _component_definition(start: float, end: float) -> dict[str, Any]:
