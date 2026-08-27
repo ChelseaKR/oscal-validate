@@ -35,6 +35,29 @@ and this project adheres to
   findings in the whole suite; `validator.py` is now at 100% line and branch
   coverage. [Issue #22](https://github.com/ChelseaKR/oscal-validate/issues/22)
 
+### Added
+
+- **The eighth model is read (ADR-0007).** Every `mapping-collection` reported
+  `UNVERIFIABLE SUBTREE_NOT_READ at=/mapping-collection/mappings` and nothing
+  below that pointer was checked by any rule, which is the whole substance of
+  the model: the source controls, the target controls, and the relationship
+  between them. The blocker was one shape, enumerated from the vendored schema
+  rather than guessed at. `mappings` is written
+  `{"anyOf": [{"$ref": X}, {"type": "array", "items": {"$ref": X}}]}`, the only
+  node a document can reach that the resolver declined, and it is written that
+  way because it is the only `group-as` of 394 in the vendored metaschema
+  modules with no `in-json="ARRAY"`. The walk now resolves "one X or an array
+  of X" where both branches name the identical definition, and only that: two
+  different targets are a real choice between alternatives and are still
+  declined and reported. Required properties, forbidden properties, JSON types,
+  `minItems`, UUID uniqueness and bare `#` fragment references all reach inside
+  a mapping now. `tests/test_break_the_gate.py` gains a proven-clean synthetic
+  mapping collection and seven corruptions inside it, every one of which
+  produced 0 ERROR before this change; the seven published mapping collections
+  in the corpus report no `SUBTREE_NOT_READ` and 31 ERROR findings where they
+  reported none. The 2026-08-19 write-up, the data card and the README keep
+  what that run found and say, with a date, that the limit is gone.
+  [Issue #7](https://github.com/ChelseaKR/oscal-validate/issues/7)
 
 ### Changed
 

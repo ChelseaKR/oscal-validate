@@ -84,6 +84,9 @@ class Resolved:
     enums: tuple[tuple[Any, ...], ...] = ()
     #: Object alternatives from an ``anyOf`` whose branches declare properties.
     branches: tuple[JsonObject, ...] = ()
+    #: The two nodes of an ``anyOf`` that offers one object or an array of the
+    #: same object, in that order. See ``_one_or_many``.
+    one_or_many: tuple[JsonObject, JsonObject] | None = None
     #: Set when the node uses a construct this module does not resolve.
     unresolved: str | None = None
     #: The last named definition followed, without its module prefix, e.g.
@@ -121,6 +124,7 @@ class SchemaIndex:
         datatype: Datatype | None = None
         enums: list[tuple[Any, ...]] = []
         branches: tuple[JsonObject, ...] = ()
+        one_or_many: tuple[JsonObject, JsonObject] | None = None
         unresolved: str | None = None
         definition = ""
         current = node
@@ -143,6 +147,10 @@ class SchemaIndex:
                 if all(isinstance(b, dict) and "properties" in b for b in union):
                     branches = tuple(union)
                     break
+                pair = _one_or_many(current)
+                if pair is not None:
+                    one_or_many = pair
+                    break
                 collapsed = self._collapse_scalar_union(union, enums)
                 if collapsed is None:
                     unresolved = (
@@ -162,6 +170,7 @@ class SchemaIndex:
             description=description,
             enums=tuple(enums),
             branches=branches,
+            one_or_many=one_or_many,
             unresolved=unresolved,
             definition=definition,
         )
@@ -201,6 +210,45 @@ def _read_vendor(relpath: str) -> Any:
     path = resources.files("oscal_validate").joinpath("vendor").joinpath(relpath)
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def _one_or_many(node: JsonObject) -> tuple[JsonObject, JsonObject] | None:
+    """The two nodes of "one X, or an array of X", where the schema writes it.
+
+    OSCAL 1.2.3 writes this shape once, at
+    ``oscal-complete-oscal-mapping:mapping-collection/properties/mappings``:
+
+        {"anyOf": [{"$ref": X},
+                   {"type": "array", "minItems": 1, "items": {"$ref": X}}]}
+
+    Every other repeatable assembly in the schema is a plain array, because
+    every other ``group-as`` in the vendored metaschema modules carries
+    ``in-json="ARRAY"`` and the one at ``mappings`` does not.
+
+    Nothing is interpreted here. ``anyOf`` requires the instance to satisfy at
+    least one branch; the two branches name the same definition, and one of
+    them requires an array. So a JSON array can only be the array branch and a
+    JSON object can only be the other, and the schema decides which applies
+    without this tool choosing anything. The pair is returned only when both
+    branches carry the identical ``$ref``: two different targets would be a
+    real choice between alternatives, and this function declines it.
+    """
+    union = node.get("anyOf")
+    if not isinstance(union, list) or len(union) != 2:
+        return None
+    single, array = union
+    if not (isinstance(single, dict) and isinstance(array, dict)):
+        return None
+    if set(single) != {"$ref"} or array.get("type") != "array":
+        single, array = array, single
+    if set(single) != {"$ref"} or array.get("type") != "array":
+        return None
+    items = array.get("items")
+    if not isinstance(items, dict) or set(items) != {"$ref"}:
+        return None
+    if items["$ref"] != single["$ref"]:
+        return None
+    return (single, array)
 
 
 def _referenced(branch: JsonObject, definitions: JsonObject) -> JsonObject:

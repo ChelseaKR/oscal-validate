@@ -182,6 +182,9 @@ class _Walker:
         if resolved.unresolved is not None:
             self.result.unwalked.append(Note(pointer, name, resolved.unresolved))
             return
+        if resolved.one_or_many is not None:
+            self._walk_one_or_many(instance, resolved.one_or_many, pointer, name, depth)
+            return
         if resolved.branches:
             self._walk_branches(instance, resolved.branches, pointer, name, depth)
             return
@@ -204,6 +207,30 @@ class _Walker:
             # carried in here. Reading the datatype alone leaves it None, and a
             # None declaration accepts anything.
             self._scalar(instance, resolved, pointer, name, declared_shape(resolved.node))
+
+    def _walk_one_or_many(
+        self,
+        instance: Any,
+        pair: tuple[JsonObject, JsonObject],
+        pointer: str,
+        name: str,
+        depth: int,
+    ) -> None:
+        """Walk "one X, or an array of X" as whichever of the two is present.
+
+        The schema decides and this walk does not: both branches name the same
+        definition and one of them requires an array, so a JSON array can
+        satisfy only the array branch and anything else only the other. A value
+        that is neither reaches the definition itself and is reported against
+        the type that definition declares, which is a type the schema states.
+
+        Neither branch is a union, so handing one back to ``walk`` terminates.
+        The position in the document has not moved, so the depth does not
+        either.
+        """
+        single, array = pair
+        chosen = array if isinstance(instance, list) else single
+        self.walk(instance, chosen, pointer, name, depth)
 
     def _walk_array(
         self,

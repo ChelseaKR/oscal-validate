@@ -10,7 +10,7 @@ import pytest
 
 from oscal_validate.checks.references import IDENTITY_TITLES, REFERENCE_KINDS
 from oscal_validate.document import DocumentError, escape, walk_document
-from oscal_validate.schema import SchemaError, load_schema, schema_release
+from oscal_validate.schema import SchemaError, _one_or_many, load_schema, schema_release
 
 MODELS = (
     "assessment-plan",
@@ -120,3 +120,111 @@ def _titles_in_schema() -> set[str]:
 
     walk(load_schema().raw)
     return found
+
+
+def _union_nodes(node: Any, path: str) -> list[tuple[str, dict[str, Any]]]:
+    """Every ``allOf``/``anyOf`` node in the vendored schema, with its path."""
+    found: list[tuple[str, dict[str, Any]]] = []
+    if isinstance(node, dict):
+        if node.get("allOf") or node.get("anyOf"):
+            found.append((path, node))
+        for key, value in node.items():
+            found.extend(_union_nodes(value, f"{path}/{key}"))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            found.extend(_union_nodes(value, f"{path}/{index}"))
+    return found
+
+
+def test_one_mapping_or_many_is_the_only_place_the_schema_writes_that_shape() -> None:
+    """The size of the eighth model's blocker, read off the vendored file.
+
+    ADR-0007 turns on this count. Every other repeatable assembly in OSCAL
+    1.2.3 is a plain array, because every other ``group-as`` in the vendored
+    metaschema modules carries ``in-json="ARRAY"``. If a later release writes
+    the shape somewhere else, this test says so rather than letting the ADR go
+    on describing a schema that has moved.
+    """
+    schema = load_schema()
+    matched = [
+        path
+        for path, node in _union_nodes(schema.raw["definitions"], "#/definitions")
+        if _one_or_many(node) is not None
+    ]
+    assert matched == [
+        "#/definitions/oscal-complete-oscal-mapping:mapping-collection/properties/mappings"
+    ]
+
+
+def test_no_document_shape_in_the_vendored_schema_is_left_unresolved() -> None:
+    """Nothing reachable from a model root is declined by the resolver now.
+
+    The three definitions the resolver still declines when handed their own
+    bodies are ``EmailAddressDatatype``, ``NonNegativeIntegerDatatype`` and
+    ``PositiveIntegerDatatype``, and the walk never hands it those: a ``$ref``
+    to a name ending in ``Datatype`` resolves to the datatype itself. So the
+    count of shapes a document can actually land on and have declined is zero,
+    and this test is what would notice it stopping being zero.
+    """
+    schema = load_schema()
+    declined = sorted(
+        path
+        for path, node in _union_nodes(schema.raw["definitions"], "#/definitions")
+        if schema.resolve(node).unresolved is not None
+    )
+    assert declined == [
+        "#/definitions/EmailAddressDatatype",
+        "#/definitions/NonNegativeIntegerDatatype",
+        "#/definitions/PositiveIntegerDatatype",
+    ]
+    for name in declined:
+        assert schema.datatypes.get(name.rsplit("/", 1)[-1]) is not None, (
+            "a declined node that is not a datatype would be reachable by the walk"
+        )
+
+
+#: The shape ADR-0007 resolves, written the way the vendored schema writes it.
+_ONE = {"$ref": "#/definitions/x"}
+_MANY = {"type": "array", "minItems": 1, "items": {"$ref": "#/definitions/x"}}
+
+
+@pytest.mark.parametrize(
+    ("node", "why"),
+    [
+        ({"anyOf": [_ONE, _MANY, _ONE]}, "three branches are not this shape"),
+        ({"anyOf": [_ONE, "not an object"]}, "a branch that is not an object"),
+        ({"anyOf": [_ONE, {"$ref": "#/definitions/x"}]}, "neither branch is an array"),
+        ({"anyOf": [_ONE, {"type": "array"}]}, "the array declares no item shape"),
+        (
+            {"anyOf": [_ONE, {"type": "array", "items": {"type": "string"}}]},
+            "the array's items are not a bare $ref",
+        ),
+        (
+            {
+                "anyOf": [
+                    _ONE,
+                    {"type": "array", "items": {"$ref": "#/definitions/other"}},
+                ]
+            },
+            "two different targets are a real choice between alternatives",
+        ),
+        ({"anyOf": [{"properties": {}}, _MANY]}, "the singleton branch is not a bare $ref"),
+    ],
+)
+def test_anything_that_is_not_one_x_or_an_array_of_x_is_declined(
+    node: dict[str, Any], why: str
+) -> None:
+    """The guard the decision rests on: a real choice is still declined.
+
+    ADR-0007 resolves one shape because in that shape the schema decides which
+    branch applies and this tool chooses nothing. Every near miss below leaves
+    a choice to be made, and a walker that made it would be guessing at a shape
+    NIST did not state.
+    """
+    assert _one_or_many(node) is None, why
+
+
+def test_both_orders_of_the_two_branches_resolve_the_same() -> None:
+    """The schema writes the singleton first; nothing depends on that."""
+    assert _one_or_many({"anyOf": [_ONE, _MANY]}) == (_ONE, _MANY)
+    assert _one_or_many({"anyOf": [_MANY, _ONE]}) == (_ONE, _MANY)
