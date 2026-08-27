@@ -213,6 +213,20 @@ def _unsettled(constraint: Constraint, built: bool, incompleteness: str) -> str:
     return f"{incompleteness}, so whether this resolves cannot be settled here."
 
 
+def _unsettled_rule(built: bool) -> Rule:
+    """The authority for a report that the question was not settled.
+
+    The two reasons an ``index-has-key`` goes unsettled are different rules,
+    and citing one of them for the other sends the reader to do something that
+    cannot help. An index that was never built is this tool's own limit: no
+    document supplied with ``--resolve`` populates it. A document that was not
+    supplied is what NIST's cross-instance scope paragraph is about, and
+    supplying it settles the question. ``_unsettled`` picks the message on the
+    same fact, so the citation and the message cannot come apart.
+    """
+    return rules.CROSS_INSTANCE_SCOPE if built else rules.INDEX_NEVER_BUILT
+
+
 def _cross_reference(
     constraint: Constraint,
     selected: list[Located],
@@ -247,7 +261,7 @@ def _cross_reference(
                             else _unsettled(constraint, built, session.incompleteness)
                         )
                     ),
-                    rule=constraint_rule(constraint) if settled else rules.CROSS_INSTANCE_SCOPE,
+                    rule=constraint_rule(constraint) if settled else _unsettled_rule(built),
                 )
             )
     return findings
