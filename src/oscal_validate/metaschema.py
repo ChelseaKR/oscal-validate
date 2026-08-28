@@ -83,8 +83,26 @@ MODULE_MODELS: dict[str, tuple[str, ...]] = {
 #: Constraint kinds this module knows how to evaluate at all.
 EVALUATED_KINDS = ("is-unique", "index", "index-has-key", "has-cardinality")
 
+#: Constraint kinds whose target names a value rather than a node.
+VALUE_KINDS = ("allowed-values", "matches")
+
 #: Constraint kinds NIST declares that this module does not evaluate, with the
-#: reason. Reported rather than ignored; see the README's "Limits".
+#: sentence a report prints once per kind. The per-constraint reason is
+#: computed by ``_skip_reason`` and published in ``docs/CONSTRAINT-COVERAGE.md``;
+#: these are only the one-line summaries the report carries.
+#:
+#: The ``allowed-values`` sentence below is WRONG and is left in place under
+#: protest. 60 of the 200 vendored sets declare ``allow-other``, not "most",
+#: and the Metaschema specification makes the absent attribute mean the set is
+#: closed, so the sentence has the default backwards. It cannot be corrected in
+#: the same change that corrected the per-constraint reasons: this text reaches
+#: the model through ``ai/walkthrough.py``'s prompt block, and the cassette at
+#: ``tests/cassettes/walkthrough-nist-ssp.json`` is keyed on a hash of the exact
+#: prompt, so changing one character here misses the recording and fails
+#: ``tests/test_ai_walkthrough.py``. Re-recording is the procedure CONTRIBUTING
+#: prescribes and it needs a live call on the owner's Bedrock account, which is
+#: an owner action, not a code change. Until then the corrected reason is one
+#: click away in the coverage document this sentence already points at.
 UNEVALUATED_KINDS = {
     "expect": "the test is a Metapath expression, which this tool does not implement",
     "matches": "the value constraint is applied through Metapath datatype coercion",
@@ -92,7 +110,20 @@ UNEVALUATED_KINDS = {
     "them is not necessarily a violation",
 }
 
+#: What the Metaschema specification says an absent ``allow-other`` means:
+#:
+#:     no: (default) Identifies the expected value set as closed. This is the
+#:     implicit default value if no @allow-other is provided.
+#:
+#: Quoted rather than paraphrased, because it is the fact this repository had
+#: backwards. The published skip reason for all 200 ``allowed-values``
+#: constraints read "most allowed-value sets declare allow-other"; 60 of 200
+#: declare it, and the other 140 are closed by this default.
+#: https://pages.nist.gov/metaschema/specification/syntax/constraints/
+ALLOW_OTHER_DEFAULT = "no"
+
 DEFINITION_TAGS = (f"{NS}define-assembly", f"{NS}define-field")
+FLAG_TAG = f"{NS}define-flag"
 USE_TAGS = (f"{NS}assembly", f"{NS}field", f"{NS}define-assembly", f"{NS}define-field")
 
 _NAME = re.compile(r"^[A-Za-z][A-Za-z0-9._-]*$")
@@ -166,10 +197,41 @@ class Constraint:
     max_occurs: int | None
     paths: tuple[Path, ...] | None
     skipped: str
+    #: ``allow-other`` as declared, or the published default where it is not.
+    #: Only ever set on an ``allowed-values`` constraint.
+    allow_other: str
+    #: ``regex`` and ``datatype`` as declared on a ``matches`` constraint.
+    regex: str
+    datatype: str
+    #: ``test`` as declared on an ``expect`` constraint.
+    test: str
+    #: The flag definition this constraint is declared inside, if any. A
+    #: constraint declared on a flag targets that flag's value wherever the
+    #: flag is used, which is a different traversal from ``context``.
+    declared_on_flag: str
+    #: The parsed value target for a value-constraining kind, or None when the
+    #: kind does not constrain a value or its target was declined.
+    value_target: ValueTarget | None
 
     @property
     def evaluated(self) -> bool:
         return not self.skipped
+
+    @property
+    def skip_group(self) -> str:
+        """The one-line summary a report prints for this constraint's kind.
+
+        Distinct from ``skipped``, which is this constraint's own reason and is
+        what the coverage document prints. A report cannot print ``skipped``
+        directly: each of the twelve ``expect`` constraints names its own test,
+        so the kind would take twelve lines.
+        """
+        if not self.skipped:
+            return ""
+        return UNEVALUATED_KINDS.get(
+            self.kind,
+            "their target expressions are outside the Metapath subset this tool parses",
+        )
 
     @property
     def models(self) -> tuple[str, ...] | None:
@@ -188,6 +250,15 @@ class Metaschema:
     #: Effective name -> the JSON property names it can appear under.
     json_names: dict[str, frozenset[str]]
     constraints: tuple[Constraint, ...]
+    #: Effective field name -> the JSON key its own value is written under.
+    #: A field that declares flags cannot be a bare scalar in JSON, so the
+    #: metaschema declares ``json-value-key`` for it; ``hash`` writes its value
+    #: under ``value`` and ``telephone-number`` under ``number``. A field with
+    #: no flags is the scalar itself and has no entry here.
+    value_keys: dict[str, str]
+
+    def value_key_for(self, name: str) -> str:
+        return self.value_keys.get(name, "")
 
     def properties_for(self, name: str) -> frozenset[str]:
         return self.json_names.get(name, frozenset({name}))
@@ -278,6 +349,61 @@ def parse_target(expression: str) -> tuple[Path, ...] | None:
             return None
         paths.append(path)
     return tuple(paths)
+
+
+_FLAG_STEP = re.compile(r"^@([A-Za-z][A-Za-z0-9._-]*)$")
+
+
+@dataclass(frozen=True)
+class ValueTarget:
+    """A parsed target that names a value rather than a node.
+
+    ``allowed-values`` and ``matches`` constrain the value of a field or a
+    flag, so their targets end somewhere a node target never does. The
+    Metaschema specification gives the two shapes:
+
+        A @target is REQUIRED for allowed value constraints associated with a
+        field and assembly. A @target MUST NOT be provided for an allowed value
+        constraint associated with a flag, since such a constraint can only
+        target the flag's value. In flag use cases the @target MUST be
+        considered ., referring to the flag node.
+
+    ``flag`` is the flag name a trailing ``/@name`` step selects, or the empty
+    string when the target names the value of the nodes themselves.
+    """
+
+    paths: tuple[Path, ...]
+    flag: str
+
+
+def parse_value_target(expression: str) -> ValueTarget | None:
+    """Parse a value target, or return None.
+
+    Three shapes, all of them taken from the vendored files rather than from
+    the Metapath specification, per ADR-0004's method:
+
+    - ``@name``, a bare flag step: the named flag of the context node.
+    - ``path/@name``: the named flag of every node ``path`` selects, where
+      ``path`` is parsed by the existing node grammar and nothing is widened.
+    - anything the node grammar already parses: the values of those nodes.
+
+    A top-level union whose alternatives carry their own flag steps is
+    declined, because ``parse_target`` refuses the alternative that starts with
+    ``@``. Declining is the point: an under-selected value target checks fewer
+    values than NIST wrote.
+    """
+    text = expression.strip()
+    match = _FLAG_STEP.fullmatch(text)
+    if match:
+        return ValueTarget(((),), match.group(1))
+    if "/@" in text:
+        head, _, tail = text.rpartition("/@")
+        if _FLAG_STEP.fullmatch(f"@{tail}") is None:
+            return None
+        paths = parse_target(head)
+        return None if paths is None else ValueTarget(paths, tail)
+    paths = parse_target(text)
+    return None if paths is None else ValueTarget(paths, "")
 
 
 def _split_top(text: str, separator: str) -> list[str]:
@@ -467,42 +593,152 @@ def _integer(value: str | None) -> int | None:
         return None
 
 
-def _skip_reason(kind: str, paths: tuple[Path, ...] | None, target: str, context: str) -> str:
-    if kind in UNEVALUATED_KINDS:
-        return UNEVALUATED_KINDS[kind]
-    if paths is None:
-        if "doc(" in target:
+@dataclass(frozen=True)
+class _ConstraintAttributes:
+    """The published attributes a skipped constraint's reason is computed from.
+
+    Read straight off the element. ``allow_other`` carries the specification's
+    default where the attribute is absent, so that the value in hand is always
+    the effective one and no caller has to remember which way the default runs.
+    """
+
+    allow_other: str
+    regex: str
+    datatype: str
+    test: str
+
+
+def _attributes_of(element: ElementTree.Element, kind: str) -> _ConstraintAttributes:
+    return _ConstraintAttributes(
+        allow_other=(
+            str(element.attrib.get("allow-other", ALLOW_OTHER_DEFAULT))
+            if kind == "allowed-values"
+            else ""
+        ),
+        regex=str(element.attrib.get("regex", "")) if kind == "matches" else "",
+        datatype=str(element.attrib.get("datatype", "")) if kind == "matches" else "",
+        test=str(element.attrib.get("test", "")) if kind == "expect" else "",
+    )
+
+
+def _unparsed_target_reason(target: str) -> str:
+    if "doc(" in target:
+        return (
+            "its target dereferences a second document through doc(), which this tool "
+            f"does not implement: {target}"
+        )
+    return f"its target expression is outside the Metapath subset this tool parses: {target}"
+
+
+def _value_constraint_reason(
+    kind: str,
+    attributes: _ConstraintAttributes,
+    target: str,
+    context: str,
+    flag: str,
+    value_target: ValueTarget | None,
+) -> str:
+    """Why one ``allowed-values``, ``matches`` or ``expect`` constraint is skipped.
+
+    Computed from what the constraint declares, so a reader is told the
+    specific thing that is missing rather than a sentence about its kind. Where
+    the target itself cannot be read, that is named first, because nothing
+    later matters until it can be.
+    """
+    if kind in VALUE_KINDS and value_target is None:
+        return (
+            "its target names a value through an expression outside the subset this tool "
+            f"parses: {target}"
+        )
+    if kind in VALUE_KINDS and flag:
+        return (
+            f"it is declared on the flag {flag}, so it constrains that flag's value "
+            "wherever the flag is used, and this tool resolves constraints through the "
+            "assembly and field names a target selects by, not through flag definitions"
+        )
+    if kind == "allowed-values":
+        if attributes.allow_other == "yes":
             return (
-                "its target dereferences a second document through doc(), which this tool "
-                f"does not implement: {target}"
+                'it declares allow-other="yes", which opens its value set only if every '
+                "other allowed-values constraint sharing its target does too, and this "
+                "tool does not resolve that applicable set"
             )
-        return f"its target expression is outside the Metapath subset this tool parses: {target}"
+        return (
+            "its value set is closed, since allow-other defaults to "
+            f'"{ALLOW_OTHER_DEFAULT}" where it is not declared, and this tool does not '
+            "resolve the applicable set of constraints sharing its target, which is what "
+            "decides the permitted values"
+        )
+    if kind == "matches":
+        against = " and ".join(
+            part
+            for part in (
+                f"the regex {attributes.regex}" if attributes.regex else "",
+                f"the datatype {attributes.datatype}" if attributes.datatype else "",
+            )
+            if part
+        )
+        return f"its target is read, and this tool does not yet apply {against}"
+    return (
+        f"its test is a Metapath expression this tool does not implement: {attributes.test}"
+    ) + (f" (on {context})" if context else "")
+
+
+def _skip_reason(
+    kind: str,
+    paths: tuple[Path, ...] | None,
+    target: str,
+    context: str,
+    attributes: _ConstraintAttributes,
+    flag: str = "",
+    value_target: ValueTarget | None = None,
+) -> str:
+    if kind in UNEVALUATED_KINDS:
+        return _value_constraint_reason(kind, attributes, target, context, flag, value_target)
+    if paths is None:
+        return _unparsed_target_reason(target)
     if not context:
         return "it is declared outside any assembly this tool can locate in a document"
     return ""
 
 
-def _collect(root: ElementTree.Element, module: str) -> tuple[list[Constraint], dict[str, str]]:
+def _collect(
+    root: ElementTree.Element, module: str
+) -> tuple[list[Constraint], dict[str, str], dict[str, str]]:
     constraints: list[Constraint] = []
     effective: dict[str, str] = {}
+    value_keys: dict[str, str] = {}
 
-    def walk(element: ElementTree.Element, context: str) -> None:
+    def walk(element: ElementTree.Element, context: str, flag: str) -> None:
         for child in element:
             if child.tag in DEFINITION_TAGS:
                 name = str(child.attrib.get("name", ""))
+                own = _effective_name(child)
                 if name:
-                    effective[name] = _effective_name(child)
-                walk(child, _effective_name(child))
+                    effective[name] = own
+                key = _text_of(child, "json-value-key")
+                if key:
+                    value_keys[own] = key
+                walk(child, own, "")
+            elif child.tag == FLAG_TAG:
+                # A constraint inside a flag definition is declared on the
+                # flag, not on the assembly the flag happens to sit in. The
+                # specification says its target "MUST be considered .,
+                # referring to the flag node", so mistaking the enclosing
+                # assembly for its context would point it at the wrong value.
+                walk(child, context, _effective_name(child))
             elif child.tag == f"{NS}constraint":
-                constraints.extend(_constraints_in(child, module, context))
+                constraints.extend(_constraints_in(child, module, context, flag))
             else:
-                walk(child, context)
+                walk(child, context, flag)
 
-    walk(root, "")
-    return constraints, effective
+    walk(root, "", "")
+    return constraints, effective, value_keys
 
 
-def _constraints_in(element: ElementTree.Element, module: str, context: str) -> list[Constraint]:
+def _constraints_in(
+    element: ElementTree.Element, module: str, context: str, flag: str = ""
+) -> list[Constraint]:
     found: list[Constraint] = []
     for child in element:
         kind = child.tag.removeprefix(NS)
@@ -510,6 +746,8 @@ def _constraints_in(element: ElementTree.Element, module: str, context: str) -> 
             continue
         target = str(child.attrib.get("target", "."))
         paths = parse_target(target) if kind in EVALUATED_KINDS else None
+        attributes = _attributes_of(child, kind)
+        value_target = parse_value_target(target) if kind in VALUE_KINDS else None
         key_fields = tuple(
             KeyField(source=str(k.attrib.get("target", ".")), pattern=k.attrib.get("pattern"))
             for k in child
@@ -528,7 +766,13 @@ def _constraints_in(element: ElementTree.Element, module: str, context: str) -> 
                 min_occurs=_integer(child.attrib.get("min-occurs")),
                 max_occurs=_integer(child.attrib.get("max-occurs")),
                 paths=paths,
-                skipped=_skip_reason(kind, paths, target, context),
+                skipped=_skip_reason(kind, paths, target, context, attributes, flag, value_target),
+                allow_other=attributes.allow_other,
+                regex=attributes.regex,
+                datatype=attributes.datatype,
+                test=attributes.test,
+                declared_on_flag=flag,
+                value_target=value_target,
             )
         )
     return found
@@ -547,7 +791,7 @@ def _json_names(
                 ref = str(child.attrib.get("ref", ""))
                 # A use-site ``use-name`` renames the node at that use: the
                 # SSP uses ``system-component`` under the name ``component``,
-                # and that is the name NIST's constraint targets select by.
+                # and that is the name NIST's constraint *targets* select by.
                 use_name = _text_of(child, "use-name")
                 if use_name:
                     own = use_name
@@ -560,6 +804,18 @@ def _json_names(
                 group = child.find(f"{NS}group-as")
                 json_name = str(group.attrib["name"]) if group is not None else own
                 names.setdefault(own, set()).add(json_name)
+                # The definition's own name has to reach the same nodes. A
+                # constraint is declared on a definition, not on a use of one,
+                # and the specification says all constraints associated with a
+                # definition "MUST be evaluated against all associated content
+                # nodes". Registering only the use-name left every constraint
+                # declared on system-component looking for a JSON property
+                # called "system-component", which no OSCAL document has: the
+                # SSP writes those nodes under "components".
+                if ref:
+                    declared = effective.get(ref, ref)
+                    if declared:
+                        names.setdefault(declared, set()).add(json_name)
     return names
 
 
@@ -568,10 +824,12 @@ def load_metaschema() -> Metaschema:
     roots = [(name, _read_module(name)) for name in MODULES]
     constraints: list[Constraint] = []
     effective: dict[str, str] = {}
+    value_keys: dict[str, str] = {}
     for name, root in roots:
-        module_constraints, module_effective = _collect(root, name)
+        module_constraints, module_effective, module_value_keys = _collect(root, name)
         constraints.extend(module_constraints)
         effective.update(module_effective)
+        value_keys.update(module_value_keys)
     names = _json_names(roots, effective)
     # A definition is also reachable under its own effective name.
     for own in effective.values():
@@ -580,6 +838,7 @@ def load_metaschema() -> Metaschema:
         effective=effective,
         json_names={key: frozenset(value) for key, value in names.items()},
         constraints=tuple(constraints),
+        value_keys=value_keys,
     )
 
 
@@ -702,6 +961,42 @@ def _walk_descendants(
             _walk_descendants(f"{pointer}/{index}", item, properties, found)
 
 
+def select_values(
+    node: Any,
+    pointer: str,
+    target: ValueTarget,
+    metaschema: Metaschema,
+    value_key: str = "",
+) -> list[Located]:
+    """The values a parsed value target selects, each with its own pointer.
+
+    A flag step reads the named flag off each selected node. Without one, the
+    value is the selected node itself when that node is a scalar, and the node's
+    declared ``json-value-key`` when it is an object, which is how a field that
+    carries flags writes its own value in JSON.
+
+    A node that carries neither is not selected. That is deliberate: the
+    specification says the nodes a value target resolves to "are intended to be
+    field or flag nodes, which have a value", and a node with no value is not
+    one this tool can report about.
+    """
+    found: list[Located] = []
+    for located in select_paths(node, pointer, target.paths, metaschema):
+        if target.flag:
+            if isinstance(located.value, dict) and target.flag in located.value:
+                flag_value = located.value[target.flag]
+                if not isinstance(flag_value, dict | list):
+                    found.append(Located(f"{located.pointer}/{target.flag}", flag_value))
+            continue
+        if not isinstance(located.value, dict | list):
+            found.append(located)
+        elif value_key and isinstance(located.value, dict) and value_key in located.value:
+            own = located.value[value_key]
+            if not isinstance(own, dict | list):
+                found.append(Located(f"{located.pointer}/{value_key}", own))
+    return found
+
+
 def key_values(node: Any, key_field: KeyField, metaschema: Metaschema) -> list[str] | None:
     """The value(s) a key-field selects from a node, or None when it selects nothing."""
     if key_field.source == ".":
@@ -730,11 +1025,13 @@ def key_values(node: Any, key_field: KeyField, metaschema: Metaschema) -> list[s
 
 
 __all__ = [
+    "ALLOW_OTHER_DEFAULT",
     "EVALUATED_KINDS",
     "FORBIDDEN_MARKUP",
     "MODULES",
     "OSCAL_NS",
     "UNEVALUATED_KINDS",
+    "VALUE_KINDS",
     "Constraint",
     "KeyField",
     "Located",
@@ -742,10 +1039,13 @@ __all__ = [
     "Path",
     "Predicate",
     "Step",
+    "ValueTarget",
     "key_values",
     "load_metaschema",
     "parse_target",
+    "parse_value_target",
     "read_module_bytes",
     "select",
     "select_paths",
+    "select_values",
 ]

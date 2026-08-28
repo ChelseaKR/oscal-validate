@@ -27,6 +27,98 @@ and this project adheres to
 
 ### Fixed
 
+- **Four constraints were counted as evaluated and could never fire.** They are
+  declared on `system-component` and `defined-component`, and no OSCAL document
+  contains a JSON property by either name: the use site renames
+  `system-component` to `component` and groups it as `components`, which is
+  what an SSP and a component definition actually write. `_json_names`
+  registered a use site under its `use-name` only, so a constraint declared on
+  the definition looked for a property that has never existed and reported
+  nothing whatever the document said. The Metaschema specification is explicit
+  that this is the wrong reach: "All constraints associated with a definition
+  MUST be evaluated against all associated content nodes." A definition's own
+  name now reaches the JSON names of its use sites as well.
+
+  What this turns back on: `oscal-unique-system-component-responsible-role` and
+  `oscal-unique-defined-component-responsible-role` (duplicate responsible
+  roles on a component, ERROR), and `oscal-component-prop-physical-location`
+  and `oscal-index-metadata-location-uuid` (a `physical-location` prop naming
+  no declared location). Every published document in the corpus conforms to all
+  four, so no golden moved and no report byte moved, which is exactly why this
+  went unnoticed: the constraints were silent because they matched nothing, and
+  silence looked the same as conformance.
+
+### Added
+
+- **The target grammar reads a value, not only a node.** `allowed-values` and
+  `matches` constrain the value of a field or a flag, so their targets end
+  somewhere a node target never does: a trailing `/@name` flag step, a bare
+  `@name` (which the Metaschema specification says is the flag's own value),
+  or the value of the nodes a path selects. `parse_value_target` reads those
+  three shapes and refuses everything else, and `select_values` reads a flag
+  off a node, a scalar node itself, or the value an object writes under the
+  `json-value-key` its definition declares, which is how `hash` writes its
+  value under `value` and `telephone-number` under `number`. 155 of 200
+  `allowed-values` targets and 18 of 25 `matches` targets now parse. Nothing
+  new is evaluated by this: parsing a target is not evaluating a constraint,
+  and the count stays 102 of 340.
+
+### Fixed
+
+- **43 constraints were attributed to the wrong node.** A constraint declared
+  inside a `define-flag` constrains that flag's value wherever the flag is
+  used, and the specification says its target "MUST be considered `.`,
+  referring to the flag node". The collector did not descend into flag
+  definitions as definitions, so those 43 recorded the enclosing assembly as
+  their context and were published with the reason written for a constraint on
+  an assembly. They now name the flag they are declared on, and say that
+  resolving them needs a traversal through flag definitions that this tool
+  does not do.
+- **52 value targets were reported as blocked on the wrong thing.** They are
+  blocked on their target expression, which this tool cannot read, and until
+  it can, nothing about `allow-other` or a datatype matters. They say that
+  now, and the 18 `matches` targets that are read say instead that what is
+  missing is applying the regex or datatype they name.
+
+### Changed
+
+- **Every skipped constraint now says why it in particular was skipped**, not
+  why its kind was. The reason is computed from what that constraint declares
+  and published per constraint in
+  [`docs/CONSTRAINT-COVERAGE.md`](docs/CONSTRAINT-COVERAGE.md). The 200
+  `allowed-values` constraints now carry two reasons instead of one: 140 say
+  their value set is closed because `allow-other` defaults to `no` where it is
+  not declared, 60 say they declare `allow-other="yes"`, and both say that what
+  is missing is the applicable-set resolution. Each of the 12 `expect`
+  constraints prints its own `test`, so a reader can see the expression that
+  went unchecked. Each of the 25 `matches` constraints names the regex or the
+  datatype it would have applied.
+- **The README no longer says most allowed-value sets declare `allow-other`.**
+  Counted in the vendored files, 60 of 200 do. The Metaschema specification
+  makes the absent attribute mean the opposite of what that sentence implied:
+  "no: (default) Identifies the expected value set as closed. This is the
+  implicit default value if no @allow-other is provided." The tool was not
+  wrong about what it evaluates; it was wrong about why it does not.
+
+No verdict moved and no report byte moved: 102 of 340 is still 102 of 340, and
+the goldens in `tests/golden/` are untouched.
+
+### Known wrong, and blocked
+
+- **The one-line summary a report prints for the `allowed-values` kind still
+  carries the sentence above.** It is corrected in the coverage document that
+  the line points at, and it is labelled as wrong in `metaschema.py` where it
+  is declared, but the line itself cannot be corrected from inside the
+  repository. `ai/walkthrough.py` puts `finding.value` and the first 160
+  characters of `finding.message` into the model prompt, and
+  `tests/cassettes/walkthrough-nist-ssp.json` is keyed on a SHA-256 of the
+  exact prompt, so one changed character misses the recording and fails
+  `tests/test_ai_walkthrough.py`. Re-recording is the procedure `CONTRIBUTING.md`
+  prescribes and it is a live billed call on the owner's Bedrock account. It is
+  listed as an owner action in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+### Fixed
+
 - **One href produced two findings, and in one case two contradicting
   verdicts (ADR-0006).** `validator.py::_deduplicate` merges the reports the
   constraint layer and the prose rule in check 4 both make about a bare `#`
