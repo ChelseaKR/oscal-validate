@@ -499,10 +499,16 @@ that slips through; the boundary suite in [`evals/`](evals/) measures both.
 **It evaluates 102 of NIST's 340 published constraints.** Every one of the
 other 238 is listed with its reason in
 [`docs/CONSTRAINT-COVERAGE.md`](docs/CONSTRAINT-COVERAGE.md), which is generated
-from the vendored files and checked by a test so it cannot drift. In summary:
-200 `allowed-values` sets mostly declare `allow-other`, so a value outside them
-is not necessarily a violation; 25 `matches` and 12 `expect` constraints need a
-Metapath evaluator this tool does not implement; and exactly one target remains
+from the vendored files and checked by a test so it cannot drift, one reason
+per constraint rather than one per kind. In summary: of the 200
+`allowed-values` sets, 60 declare `allow-other` and 140 do not, and the
+Metaschema specification makes the absent attribute mean the set is closed
+("no: (default) Identifies the expected value set as closed"), so what is
+missing is not a judgment about openness but the applicable-set resolution that
+decides which values a value node permits; 25 `matches` constraints name a
+value this tool's target grammar cannot select; 12 `expect` constraints each
+carry a Metapath `test` this tool does not implement, and the coverage document
+prints each one; and exactly one target remains
 outside the parsed subset — `oscal-ssp-by-component-uuid-index`, which
 dereferences a second document through `doc()`. The predicate and
 interior-descendant targets that used to block 25 constraints are parsed under

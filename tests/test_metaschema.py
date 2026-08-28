@@ -9,11 +9,15 @@ source is worse than no claim.
 from __future__ import annotations
 
 from collections import Counter
+from xml.etree import ElementTree
 
 import pytest
 
 from oscal_validate.metaschema import (
+    ALLOW_OTHER_DEFAULT,
     EVALUATED_KINDS,
+    MODULES,
+    NS,
     OSCAL_NS,
     UNEVALUATED_KINDS,
     KeyField,
@@ -22,6 +26,7 @@ from oscal_validate.metaschema import (
     key_values,
     load_metaschema,
     parse_target,
+    read_module_bytes,
     select,
     select_paths,
 )
@@ -286,3 +291,106 @@ def test_a_union_of_overlapping_paths_selects_each_node_once() -> None:
     document = {"responsible-roles": [{"role-id": "r1"}], "statements": []}
     found = select_paths(document, "", paths, metaschema)
     assert len(found) == 1
+
+
+# -- the reason a constraint is skipped ---------------------------------------
+
+
+def _declared_value_constraints() -> list[tuple[str, dict[str, str]]]:
+    """Every allowed-values, matches and expect element, re-read from the files.
+
+    Deliberately a second, independent read: it walks the vendored XML with
+    ElementTree directly rather than going through ``load_metaschema``, so a
+    reason that is a constant in the parser cannot satisfy an assertion made
+    against what the file declares.
+    """
+    found: list[tuple[str, dict[str, str]]] = []
+    for name in MODULES:
+        # nosemgrep: python.lang.security.use-defused-xml-parse
+        # Same input and same guard as metaschema.py: hash-pinned package data
+        # read through read_module_bytes, which refuses any file with a DTD.
+        root = ElementTree.fromstring(read_module_bytes(name))  # noqa: S314
+        for element in root.iter():
+            kind = element.tag.removeprefix(NS)
+            if kind in ("allowed-values", "matches", "expect"):
+                found.append((kind, dict(element.attrib)))
+    return found
+
+
+def test_the_vendored_files_declare_allow_other_on_a_minority_of_sets() -> None:
+    """The count the published skip reason got backwards.
+
+    It read "most allowed-value sets declare allow-other". They do not, and the
+    Metaschema specification makes the absent attribute mean the opposite of
+    what that sentence implies: "no: (default) Identifies the expected value
+    set as closed."
+    """
+    sets = [
+        attributes for kind, attributes in _declared_value_constraints() if kind == "allowed-values"
+    ]
+    declared = [a for a in sets if "allow-other" in a]
+    assert len(sets) == 200
+    assert len(declared) == 60
+    assert len(sets) - len(declared) == 140
+    assert ALLOW_OTHER_DEFAULT == "no"
+
+
+def test_every_skipped_reason_names_what_that_constraint_declares() -> None:
+    """The reason is computed per constraint, not looked up by kind.
+
+    Each assertion below is against the attribute the vendored file carries on
+    that one element, so a per-kind constant cannot satisfy it.
+    """
+    skipped = {c.identifier: c for c in load_metaschema().skipped() if c.identifier}
+    checked = 0
+    for kind, attributes in _declared_value_constraints():
+        constraint = skipped.get(attributes.get("id", ""))
+        if constraint is None:
+            continue
+        checked += 1
+        reason = constraint.skipped
+        if kind == "allowed-values":
+            if attributes.get("allow-other") == "yes":
+                assert 'allow-other="yes"' in reason, constraint.identifier
+            else:
+                assert f'defaults to "{ALLOW_OTHER_DEFAULT}"' in reason, constraint.identifier
+        elif kind == "matches":
+            for attribute in ("regex", "datatype"):
+                if attribute in attributes:
+                    assert attributes[attribute] in reason, constraint.identifier
+        else:
+            assert attributes["test"] in reason, constraint.identifier
+    assert checked >= 200
+
+
+def test_a_kind_blocked_for_two_reasons_publishes_two_reasons() -> None:
+    """The failure this phase exists to prevent, asserted directly.
+
+    200 allowed-values constraints are not blocked for one reason: 140 are
+    closed sets and 60 declare allow-other. One sentence covering all of them
+    is how the wrong one got published.
+    """
+    by_kind: dict[str, set[str]] = {}
+    for constraint in load_metaschema().skipped():
+        by_kind.setdefault(constraint.kind, set()).add(constraint.skipped)
+    assert len(by_kind["allowed-values"]) == 2
+    # Every expect constraint names its own test, so no two share a reason.
+    assert len(by_kind["expect"]) == 12
+
+
+def test_the_kind_summary_and_the_constraint_reason_are_separate_things() -> None:
+    """A report prints one summary per kind; the coverage document prints 238 reasons.
+
+    Keeping them separate is what let the per-constraint reasons be corrected
+    without touching a byte of report output. The kind summary is corrected
+    separately, and is blocked: it reaches the model through the walkthrough
+    prompt, and the cassette is keyed on that prompt.
+    """
+    groups: dict[str, set[str]] = {}
+    for constraint in load_metaschema().skipped():
+        groups.setdefault(constraint.kind, set()).add(constraint.skip_group)
+    assert all(len(value) == 1 for value in groups.values())
+    for constraint in load_metaschema().skipped():
+        assert constraint.skip_group != constraint.skipped
+    for constraint in load_metaschema().evaluated():
+        assert constraint.skip_group == ""

@@ -135,3 +135,16 @@ rather than be filled with invented zeroes.
   C affordance should be declared N/A with a reason. Today it is neither.
 - Decide whether to add a release workflow or to declare releases N/A with a
   reason. "No release has been made yet" is a status, not a declaration.
+- Re-record `tests/cassettes/walkthrough-nist-ssp.json`. It is keyed on a
+  SHA-256 of the exact walkthrough prompt, and `ai/walkthrough.py` puts
+  `finding.value` and the first 160 characters of `finding.message` into that
+  prompt, so any change to what the validator reports misses the recording and
+  fails `tests/test_ai_walkthrough.py`. That is already blocking one correction
+  known to be needed: the report's per-kind `CONSTRAINT_NOT_EVALUATED` sentence
+  for `allowed-values` says "most allowed-value sets declare allow-other" where
+  60 of 200 declare it, and the Metaschema specification makes the absent
+  attribute mean the set is closed. The per-constraint reasons in
+  `docs/CONSTRAINT-COVERAGE.md` are correct; that one summary line is not, and
+  it is labelled as wrong in `metaschema.py` where it is declared. Re-recording
+  is a live billed call on the owner's Bedrock account, which is why this is an
+  owner action and not a code change. REVIEW, owner: maintainer.

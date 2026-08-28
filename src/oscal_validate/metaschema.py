@@ -84,13 +84,40 @@ MODULE_MODELS: dict[str, tuple[str, ...]] = {
 EVALUATED_KINDS = ("is-unique", "index", "index-has-key", "has-cardinality")
 
 #: Constraint kinds NIST declares that this module does not evaluate, with the
-#: reason. Reported rather than ignored; see the README's "Limits".
+#: sentence a report prints once per kind. The per-constraint reason is
+#: computed by ``_skip_reason`` and published in ``docs/CONSTRAINT-COVERAGE.md``;
+#: these are only the one-line summaries the report carries.
+#:
+#: The ``allowed-values`` sentence below is WRONG and is left in place under
+#: protest. 60 of the 200 vendored sets declare ``allow-other``, not "most",
+#: and the Metaschema specification makes the absent attribute mean the set is
+#: closed, so the sentence has the default backwards. It cannot be corrected in
+#: the same change that corrected the per-constraint reasons: this text reaches
+#: the model through ``ai/walkthrough.py``'s prompt block, and the cassette at
+#: ``tests/cassettes/walkthrough-nist-ssp.json`` is keyed on a hash of the exact
+#: prompt, so changing one character here misses the recording and fails
+#: ``tests/test_ai_walkthrough.py``. Re-recording is the procedure CONTRIBUTING
+#: prescribes and it needs a live call on the owner's Bedrock account, which is
+#: an owner action, not a code change. Until then the corrected reason is one
+#: click away in the coverage document this sentence already points at.
 UNEVALUATED_KINDS = {
     "expect": "the test is a Metapath expression, which this tool does not implement",
     "matches": "the value constraint is applied through Metapath datatype coercion",
     "allowed-values": "most allowed-value sets declare allow-other, so a value outside "
     "them is not necessarily a violation",
 }
+
+#: What the Metaschema specification says an absent ``allow-other`` means:
+#:
+#:     no: (default) Identifies the expected value set as closed. This is the
+#:     implicit default value if no @allow-other is provided.
+#:
+#: Quoted rather than paraphrased, because it is the fact this repository had
+#: backwards. The published skip reason for all 200 ``allowed-values``
+#: constraints read "most allowed-value sets declare allow-other"; 60 of 200
+#: declare it, and the other 140 are closed by this default.
+#: https://pages.nist.gov/metaschema/specification/syntax/constraints/
+ALLOW_OTHER_DEFAULT = "no"
 
 DEFINITION_TAGS = (f"{NS}define-assembly", f"{NS}define-field")
 USE_TAGS = (f"{NS}assembly", f"{NS}field", f"{NS}define-assembly", f"{NS}define-field")
@@ -166,10 +193,34 @@ class Constraint:
     max_occurs: int | None
     paths: tuple[Path, ...] | None
     skipped: str
+    #: ``allow-other`` as declared, or the published default where it is not.
+    #: Only ever set on an ``allowed-values`` constraint.
+    allow_other: str
+    #: ``regex`` and ``datatype`` as declared on a ``matches`` constraint.
+    regex: str
+    datatype: str
+    #: ``test`` as declared on an ``expect`` constraint.
+    test: str
 
     @property
     def evaluated(self) -> bool:
         return not self.skipped
+
+    @property
+    def skip_group(self) -> str:
+        """The one-line summary a report prints for this constraint's kind.
+
+        Distinct from ``skipped``, which is this constraint's own reason and is
+        what the coverage document prints. A report cannot print ``skipped``
+        directly: each of the twelve ``expect`` constraints names its own test,
+        so the kind would take twelve lines.
+        """
+        if not self.skipped:
+            return ""
+        return UNEVALUATED_KINDS.get(
+            self.kind,
+            "their target expressions are outside the Metapath subset this tool parses",
+        )
 
     @property
     def models(self) -> tuple[str, ...] | None:
@@ -467,16 +518,95 @@ def _integer(value: str | None) -> int | None:
         return None
 
 
-def _skip_reason(kind: str, paths: tuple[Path, ...] | None, target: str, context: str) -> str:
-    if kind in UNEVALUATED_KINDS:
-        return UNEVALUATED_KINDS[kind]
-    if paths is None:
-        if "doc(" in target:
+@dataclass(frozen=True)
+class _ConstraintAttributes:
+    """The published attributes a skipped constraint's reason is computed from.
+
+    Read straight off the element. ``allow_other`` carries the specification's
+    default where the attribute is absent, so that the value in hand is always
+    the effective one and no caller has to remember which way the default runs.
+    """
+
+    allow_other: str
+    regex: str
+    datatype: str
+    test: str
+
+
+def _attributes_of(element: ElementTree.Element, kind: str) -> _ConstraintAttributes:
+    return _ConstraintAttributes(
+        allow_other=(
+            str(element.attrib.get("allow-other", ALLOW_OTHER_DEFAULT))
+            if kind == "allowed-values"
+            else ""
+        ),
+        regex=str(element.attrib.get("regex", "")) if kind == "matches" else "",
+        datatype=str(element.attrib.get("datatype", "")) if kind == "matches" else "",
+        test=str(element.attrib.get("test", "")) if kind == "expect" else "",
+    )
+
+
+def _unparsed_target_reason(target: str) -> str:
+    if "doc(" in target:
+        return (
+            "its target dereferences a second document through doc(), which this tool "
+            f"does not implement: {target}"
+        )
+    return f"its target expression is outside the Metapath subset this tool parses: {target}"
+
+
+def _value_constraint_reason(
+    kind: str, attributes: _ConstraintAttributes, target: str, context: str
+) -> str:
+    """Why one ``allowed-values``, ``matches`` or ``expect`` constraint is skipped.
+
+    Computed from what the constraint declares, so that a reader is told the
+    specific thing that is missing rather than a sentence about its kind. The
+    three kinds are blocked for three different reasons and, within
+    ``allowed-values``, for two.
+    """
+    if kind == "allowed-values":
+        if attributes.allow_other == "yes":
             return (
-                "its target dereferences a second document through doc(), which this tool "
-                f"does not implement: {target}"
+                'it declares allow-other="yes", which opens its value set only if every '
+                "other allowed-values constraint sharing its target does too, and this "
+                "tool does not resolve that applicable set"
             )
-        return f"its target expression is outside the Metapath subset this tool parses: {target}"
+        return (
+            "its value set is closed, since allow-other defaults to "
+            f'"{ALLOW_OTHER_DEFAULT}" where it is not declared, and this tool does not '
+            "resolve the applicable set of constraints sharing its target, which is what "
+            "decides the permitted values"
+        )
+    if kind == "matches":
+        against = " and ".join(
+            part
+            for part in (
+                f"the regex {attributes.regex}" if attributes.regex else "",
+                f"the datatype {attributes.datatype}" if attributes.datatype else "",
+            )
+            if part
+        )
+        return (
+            f"it constrains a value against {against}, and this tool does not select the "
+            f"value its target names: {target}"
+        )
+    return (
+        f"its test is a Metapath expression this tool does not implement: {attributes.test}"
+    ) + (f" (on {context})" if context else "")
+
+
+def _skip_reason(
+    kind: str,
+    paths: tuple[Path, ...] | None,
+    target: str,
+    context: str,
+    attributes: _ConstraintAttributes,
+) -> str:
+    if kind in UNEVALUATED_KINDS:
+        return _value_constraint_reason(kind, attributes, target, context)
+    if paths is None:
+        return _unparsed_target_reason(target)
     if not context:
         return "it is declared outside any assembly this tool can locate in a document"
     return ""
@@ -510,6 +640,7 @@ def _constraints_in(element: ElementTree.Element, module: str, context: str) -> 
             continue
         target = str(child.attrib.get("target", "."))
         paths = parse_target(target) if kind in EVALUATED_KINDS else None
+        attributes = _attributes_of(child, kind)
         key_fields = tuple(
             KeyField(source=str(k.attrib.get("target", ".")), pattern=k.attrib.get("pattern"))
             for k in child
@@ -528,7 +659,11 @@ def _constraints_in(element: ElementTree.Element, module: str, context: str) -> 
                 min_occurs=_integer(child.attrib.get("min-occurs")),
                 max_occurs=_integer(child.attrib.get("max-occurs")),
                 paths=paths,
-                skipped=_skip_reason(kind, paths, target, context),
+                skipped=_skip_reason(kind, paths, target, context, attributes),
+                allow_other=attributes.allow_other,
+                regex=attributes.regex,
+                datatype=attributes.datatype,
+                test=attributes.test,
             )
         )
     return found
@@ -730,6 +865,7 @@ def key_values(node: Any, key_field: KeyField, metaschema: Metaschema) -> list[s
 
 
 __all__ = [
+    "ALLOW_OTHER_DEFAULT",
     "EVALUATED_KINDS",
     "FORBIDDEN_MARKUP",
     "MODULES",
