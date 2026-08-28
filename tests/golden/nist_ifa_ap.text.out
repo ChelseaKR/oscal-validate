@@ -25,8 +25,8 @@ UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/assessment-plan
     source: README.md (Limits) (retrieved -)
 
 UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  at=/assessment-plan
-    matches = 25 constraint(s)
-    NIST publishes 25 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
+    matches = 14 constraint(s)
+    NIST publishes 14 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.
     rule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.
     source: README.md (Limits) (retrieved -)
 

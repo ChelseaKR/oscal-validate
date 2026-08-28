@@ -100,7 +100,7 @@ fetched.
 | 0 | Which imports were supplied, which were not, and which were supplied more than once | `IMPORT_RESOLVED`, `IMPORT_NOT_SUPPLIED`, `IMPORT_AMBIGUOUS` | The report's own audit trail for every severity below |
 | 1 | Document shape against the published JSON Schema: required properties, properties the schema forbids, JSON type, arrays shorter than `minItems`, and objects no declared alternative accepts | `REQUIRED_PROPERTY_MISSING`, `PROPERTY_UNDECLARED`, `TYPE_MISMATCH`, `ARRAY_TOO_SHORT`, `NO_SCHEMA_ALTERNATIVE`, `SUBTREE_NOT_READ` | [`oscal_complete_schema.json`](https://github.com/usnistgov/OSCAL/releases/tag/v1.2.3) |
 | 2 | Scalar values against the datatype the schema declares at that position: UUID form (v4 or v5), timestamps with a required timezone, URIs, non-empty markup lines, and the lower bounds on OSCAL's two integer datatypes | `DATATYPE_MISMATCH`, `DATATYPE_BELOW_MINIMUM`, `PATTERN_NOT_CHECKED` | the same schema's own datatype patterns and bounds |
-| 3 | NIST's constraint layer: `is-unique`, `index` uniqueness, `index-has-key` cross-references, `has-cardinality` | `CONSTRAINT_NOT_UNIQUE`, `CONSTRAINT_CARDINALITY`, `REFERENCE_UNRESOLVED`, `REFERENCE_UNVERIFIABLE`, `CONSTRAINT_NOT_EVALUATED` | the vendored `*_metaschema_RESOLVED.xml` modules, at NIST's declared severity |
+| 3 | NIST's constraint layer: `is-unique`, `index` uniqueness, `index-has-key` cross-references, `has-cardinality`, and the `matches` constraints whose regex or datatype the vendored files carry | `CONSTRAINT_NOT_UNIQUE`, `CONSTRAINT_CARDINALITY`, `CONSTRAINT_VALUE_MISMATCH`, `REFERENCE_UNRESOLVED`, `REFERENCE_UNVERIFIABLE`, `CONSTRAINT_NOT_EVALUATED` | the vendored `*_metaschema_RESOLVED.xml` modules, at NIST's declared severity |
 | 4 | One UUID, one object, across the whole document | `UUID_NOT_UNIQUE` | [Identifier Use and UUIDs](https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/) |
 | 5 | Identifier references the constraint layer does not cover: `control-id`, `with-id`, `param-id`, `statement-id`, and bare `#` fragments | `REFERENCE_UNRESOLVED`, `REFERENCE_UNVERIFIABLE` | [URI Usage](https://pages.nist.gov/OSCAL/learn/concepts/uri-use/) |
 | 6 | Which OSCAL release the document was authored against, versus the one it was judged by | `OSCAL_VERSION_DIFFERS` | the schema's own `oscal-version` description |
@@ -346,7 +346,7 @@ what you cannot see, and never bless it either. Four things always report as
 UNVERIFIABLE rather than passing quietly:
 
 - references into a document that was not supplied,
-- the 238 published constraints this tool does not evaluate,
+- the 227 published constraints this tool does not evaluate,
 - references checked against an index that no evaluated constraint builds,
 - values governed by a pattern this tool cannot compile.
 
@@ -496,8 +496,8 @@ visible in a document's structure, and nothing in this tool looks at it. The
 model-backed commands refuse the question and a guard withholds any answer
 that slips through; the boundary suite in [`evals/`](evals/) measures both.
 
-**It evaluates 102 of NIST's 340 published constraints.** Every one of the
-other 238 is listed with its reason in
+**It evaluates 113 of NIST's 340 published constraints.** Every one of the
+other 227 is listed with its reason in
 [`docs/CONSTRAINT-COVERAGE.md`](docs/CONSTRAINT-COVERAGE.md), which is generated
 from the vendored files and checked by a test so it cannot drift, one reason
 per constraint rather than one per kind. In summary: of the 200
@@ -505,10 +505,12 @@ per constraint rather than one per kind. In summary: of the 200
 Metaschema specification makes the absent attribute mean the set is closed
 ("no: (default) Identifies the expected value set as closed"), so what is
 missing is not a judgment about openness but the applicable-set resolution that
-decides which values a value node permits; 25 `matches` constraints name a
-value this tool's target grammar cannot select; 12 `expect` constraints each
-carry a Metapath `test` this tool does not implement, and the coverage document
-prints each one; and exactly one target remains
+decides which values a value node permits; 11 of the 25 `matches` constraints
+are evaluated and the other 14 name a target this tool cannot read, a datatype
+the vendored schema does not define or defines without a pattern, or a regex
+whose meaning depends on which of two published dialects applies; 12 `expect`
+constraints each carry a Metapath `test` this tool does not implement, and the
+coverage document prints each one; and exactly one target remains
 outside the parsed subset — `oscal-ssp-by-component-uuid-index`, which
 dereferences a second document through `doc()`. The predicate and
 interior-descendant targets that used to block 25 constraints are parsed under
