@@ -461,14 +461,15 @@ def test_a_value_target_parses_the_shapes_the_vendored_files_use(
 @pytest.mark.parametrize(
     "expression",
     [
-        # A union whose alternatives carry their own flag steps. Reading only
-        # the last alternative would check a fraction of the values NIST wrote.
-        "responsible-role/@role-id|control-implementation/responsible-role/@role-id",
-        # A parenthesised context step carrying predicates: not in the node
-        # grammar, so the value target is refused whole rather than in part.
-        "(.)[@type='software']/prop/@name",
         # A flag with a predicate on the flag itself.
         "link[@rel='diagram']/@href[starts-with(.,'#')]",
+        # Negation, which the predicate grammar has never read.
+        ".[@rel=('reference') and not(starts-with(@href,'#'))]/@href",
+        # A parenthesised union of whole paths, not of names.
+        "(.|statement|.//by-component)/prop/@name",
+        # A union whose alternatives end in different flags. Reading it as one
+        # value set would merge two questions NIST asked separately.
+        "responsible-role/@role-id|link/@rel",
         # Not a flag name.
         "prop/@",
         "prop/@1bad",
@@ -476,6 +477,29 @@ def test_a_value_target_parses_the_shapes_the_vendored_files_use(
 )
 def test_a_value_target_outside_the_enumerated_shapes_is_refused(expression: str) -> None:
     assert parse_value_target(expression) is None
+
+
+@pytest.mark.parametrize(
+    ("expression", "flag", "step_count"),
+    [
+        # (.) is the context node in parentheses, bracketed only so a
+        # predicate can follow the group. 37 vendored targets are written so.
+        ("(.)[@type='software']/prop/@name", "name", 1),
+        # A union of names as one step, not only after //.
+        ("(component | inventory-item)/prop/@value", "value", 1),
+        # A union whose alternatives all end in the same flag.
+        (
+            "responsible-role/@role-id|control-implementation/responsible-role/@role-id",
+            "role-id",
+            2,
+        ),
+    ],
+)
+def test_the_widened_value_target_shapes_parse(expression: str, flag: str, step_count: int) -> None:
+    parsed = parse_value_target(expression)
+    assert parsed is not None
+    assert parsed.flag == flag
+    assert len(parsed.paths) == step_count
 
 
 def test_the_value_targets_that_parse_are_counted_and_pinned() -> None:
@@ -489,7 +513,7 @@ def test_the_value_targets_that_parse_are_counted_and_pinned() -> None:
         kind: sum(1 for c in constraints if c.kind == kind and c.value_target is not None)
         for kind in VALUE_KINDS
     }
-    assert parsed == {"allowed-values": 155, "matches": 18}
+    assert parsed == {"allowed-values": 198, "matches": 18}
     # Parsing is not evaluating: of the 18 matches targets that parse, 11 are
     # evaluated and 7 are blocked on what they would apply, not on their target.
     assert len(load_metaschema().evaluated()) == 113
