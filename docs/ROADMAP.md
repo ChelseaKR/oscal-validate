@@ -7,7 +7,10 @@ This file is the enforcement ledger required by the portfolio Quality & Metrics
 standard. A row is an AUTO-GATE, a concrete REVIEW-GATE with an evidence
 artifact, or an explicit N/A with a reason, never an unowned aspiration. Feature
 scope (what the tool deliberately does not check) lives in the README's "Limits"
-section and in `docs/CONSTRAINT-COVERAGE.md`.
+section and in `docs/CONSTRAINT-COVERAGE.md`. Where that scope is intended to
+move, and in what order, is [`docs/EXPANSION-PLAN.md`](EXPANSION-PLAN.md); the
+owner actions listed at the end of this file are carried there as its Phase 7,
+so that a decision waiting on a person is not filed as work waiting on time.
 
 ## Metrics
 
