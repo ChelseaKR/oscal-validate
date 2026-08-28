@@ -15,20 +15,25 @@ import pytest
 
 from oscal_validate.metaschema import (
     ALLOW_OTHER_DEFAULT,
+    DEFINITION_TAGS,
     EVALUATED_KINDS,
     MODULES,
     NS,
     OSCAL_NS,
     UNEVALUATED_KINDS,
+    VALUE_KINDS,
     KeyField,
+    Path,
     Predicate,
     Step,
     key_values,
     load_metaschema,
     parse_target,
+    parse_value_target,
     read_module_bytes,
     select,
     select_paths,
+    select_values,
 )
 
 #: The published constraint inventory of OSCAL 1.2.3, and what this tool runs.
@@ -349,6 +354,14 @@ def test_every_skipped_reason_names_what_that_constraint_declares() -> None:
             continue
         checked += 1
         reason = constraint.skipped
+        if constraint.value_target is None and kind in VALUE_KINDS:
+            # Blocked before its own declarations matter: the target cannot be
+            # read, so the reason names that and nothing further.
+            assert "outside the subset this tool parses" in reason, constraint.identifier
+            continue
+        if constraint.declared_on_flag:
+            assert "is declared on the flag" in reason, constraint.identifier
+            continue
         if kind == "allowed-values":
             if attributes.get("allow-other") == "yes":
                 assert 'allow-other="yes"' in reason, constraint.identifier
@@ -363,17 +376,21 @@ def test_every_skipped_reason_names_what_that_constraint_declares() -> None:
     assert checked >= 200
 
 
-def test_a_kind_blocked_for_two_reasons_publishes_two_reasons() -> None:
-    """The failure this phase exists to prevent, asserted directly.
+def test_a_kind_blocked_several_ways_publishes_several_reasons() -> None:
+    """The failure this work exists to prevent, asserted directly.
 
-    200 allowed-values constraints are not blocked for one reason: 140 are
-    closed sets and 60 declare allow-other. One sentence covering all of them
-    is how the wrong one got published.
+    The 200 allowed-values constraints are not blocked for one reason. Some
+    have targets this tool cannot read, some are declared on a flag, and of
+    the rest 140 are closed sets and 60 declare allow-other. One sentence
+    covering all of them is how the wrong one got published.
     """
     by_kind: dict[str, set[str]] = {}
     for constraint in load_metaschema().skipped():
         by_kind.setdefault(constraint.kind, set()).add(constraint.skipped)
-    assert len(by_kind["allowed-values"]) == 2
+    reasons = by_kind["allowed-values"]
+    assert len(reasons) > 2
+    assert sum(1 for r in reasons if 'allow-other="yes"' in r) == 1
+    assert sum(1 for r in reasons if f'defaults to "{ALLOW_OTHER_DEFAULT}"' in r) == 1
     # Every expect constraint names its own test, so no two share a reason.
     assert len(by_kind["expect"]) == 12
 
@@ -394,3 +411,135 @@ def test_the_kind_summary_and_the_constraint_reason_are_separate_things() -> Non
         assert constraint.skip_group != constraint.skipped
     for constraint in load_metaschema().evaluated():
         assert constraint.skip_group == ""
+
+
+# -- value targets ------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("expression", "flag", "steps"),
+    [
+        # A bare flag step: the specification's "flag use case", where the
+        # target is the flag's own value and no path is walked.
+        ("@resource-fragment", "resource-fragment", ((),)),
+        # A flag on the nodes a path selects.
+        ("link/@rel", "rel", ((Step(("link",), False),),)),
+        # The context node's own value, with and without a predicate.
+        (".", "", ((),)),
+        (
+            ".[@algorithm=('SHA-256')]",
+            "",
+            ((Step((), False, (Predicate("flag-equals", "algorithm", ("SHA-256",)),)),),),
+        ),
+    ],
+)
+def test_a_value_target_parses_the_shapes_the_vendored_files_use(
+    expression: str, flag: str, steps: tuple[Path, ...]
+) -> None:
+    parsed = parse_value_target(expression)
+    assert parsed is not None
+    assert parsed.flag == flag
+    assert parsed.paths == steps
+
+
+@pytest.mark.parametrize(
+    "expression",
+    [
+        # A union whose alternatives carry their own flag steps. Reading only
+        # the last alternative would check a fraction of the values NIST wrote.
+        "responsible-role/@role-id|control-implementation/responsible-role/@role-id",
+        # A parenthesised context step carrying predicates: not in the node
+        # grammar, so the value target is refused whole rather than in part.
+        "(.)[@type='software']/prop/@name",
+        # A flag with a predicate on the flag itself.
+        "link[@rel='diagram']/@href[starts-with(.,'#')]",
+        # Not a flag name.
+        "prop/@",
+        "prop/@1bad",
+    ],
+)
+def test_a_value_target_outside_the_enumerated_shapes_is_refused(expression: str) -> None:
+    assert parse_value_target(expression) is None
+
+
+def test_the_value_targets_that_parse_are_counted_and_pinned() -> None:
+    """Parsing a target is not evaluating a constraint, so no count of evaluated moves.
+
+    These numbers move when the grammar widens, which is the point of pinning
+    them: a widening that claims more reach than it has fails here.
+    """
+    constraints = load_metaschema().constraints
+    parsed = {
+        kind: sum(1 for c in constraints if c.kind == kind and c.value_target is not None)
+        for kind in VALUE_KINDS
+    }
+    assert parsed == {"allowed-values": 155, "matches": 18}
+    assert len(load_metaschema().evaluated()) == 102
+
+
+def test_a_constraint_declared_on_a_flag_is_recorded_against_that_flag() -> None:
+    """The context of a constraint inside a define-flag is not the enclosing assembly.
+
+    Before this was read, all 43 of them carried the reason written for a
+    constraint on an assembly, which pointed a reader at the wrong node. The
+    count is re-derived from the vendored XML rather than trusted.
+    """
+    declared = 0
+    for name in MODULES:
+        # nosemgrep: python.lang.security.use-defused-xml-parse
+        root = ElementTree.fromstring(read_module_bytes(name))  # noqa: S314
+        parents = {child: parent for parent in root.iter() for child in parent}
+        for element in root.iter():
+            if element.tag.removeprefix(NS) not in ("allowed-values", "matches", "expect"):
+                continue
+            walker = parents.get(element)
+            while walker is not None:
+                tag = walker.tag
+                if tag == f"{NS}define-flag":
+                    declared += 1
+                    break
+                if tag in DEFINITION_TAGS:
+                    break
+                walker = parents.get(walker)
+    assert declared == 43
+
+    on_flag = [c for c in load_metaschema().constraints if c.declared_on_flag]
+    assert len(on_flag) == declared
+    for constraint in on_flag:
+        assert "is declared on the flag" in constraint.skipped
+        assert constraint.declared_on_flag in constraint.skipped
+
+
+def test_json_value_keys_are_read_from_the_vendored_files() -> None:
+    """A field that declares flags writes its own value under a declared key."""
+    value_keys = load_metaschema().value_keys
+    assert value_keys["hash"] == "value"
+    assert value_keys["telephone-number"] == "number"
+    assert value_keys["document-id"] == "identifier"
+    # A field with no flags is the scalar itself and declares no key.
+    assert load_metaschema().value_key_for("title") == ""
+
+
+def test_select_values_reads_a_flag_a_scalar_and_a_declared_value_key() -> None:
+    metaschema = load_metaschema()
+    document = {
+        "hash": {"algorithm": "SHA-256", "value": "abc"},
+        "links": [{"rel": "reference", "href": "#x"}, {"href": "#y"}],
+        "title": "a title",
+    }
+    flag_target = parse_value_target("links/@rel")
+    assert flag_target is not None
+    found = select_values(document, "", flag_target, metaschema)
+    # The link with no rel flag is not selected; a missing flag is not a value.
+    assert [(f.pointer, f.value) for f in found] == [("/links/0/rel", "reference")]
+
+    scalar_target = parse_value_target("title")
+    assert scalar_target is not None
+    assert [f.value for f in select_values(document, "", scalar_target, metaschema)] == ["a title"]
+
+    own_target = parse_value_target("hash")
+    assert own_target is not None
+    # Without the declared key the object carries no value this tool can read.
+    assert select_values(document, "", own_target, metaschema) == []
+    with_key = select_values(document, "", own_target, metaschema, value_key="value")
+    assert [(f.pointer, f.value) for f in with_key] == [("/hash/value", "abc")]

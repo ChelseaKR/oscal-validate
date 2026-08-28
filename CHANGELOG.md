@@ -8,6 +8,38 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- **The target grammar reads a value, not only a node.** `allowed-values` and
+  `matches` constrain the value of a field or a flag, so their targets end
+  somewhere a node target never does: a trailing `/@name` flag step, a bare
+  `@name` (which the Metaschema specification says is the flag's own value),
+  or the value of the nodes a path selects. `parse_value_target` reads those
+  three shapes and refuses everything else, and `select_values` reads a flag
+  off a node, a scalar node itself, or the value an object writes under the
+  `json-value-key` its definition declares, which is how `hash` writes its
+  value under `value` and `telephone-number` under `number`. 155 of 200
+  `allowed-values` targets and 18 of 25 `matches` targets now parse. Nothing
+  new is evaluated by this: parsing a target is not evaluating a constraint,
+  and the count stays 102 of 340.
+
+### Fixed
+
+- **43 constraints were attributed to the wrong node.** A constraint declared
+  inside a `define-flag` constrains that flag's value wherever the flag is
+  used, and the specification says its target "MUST be considered `.`,
+  referring to the flag node". The collector did not descend into flag
+  definitions as definitions, so those 43 recorded the enclosing assembly as
+  their context and were published with the reason written for a constraint on
+  an assembly. They now name the flag they are declared on, and say that
+  resolving them needs a traversal through flag definitions that this tool
+  does not do.
+- **52 value targets were reported as blocked on the wrong thing.** They are
+  blocked on their target expression, which this tool cannot read, and until
+  it can, nothing about `allow-other` or a datatype matters. They say that
+  now, and the 18 `matches` targets that are read say instead that what is
+  missing is applying the regex or datatype they name.
+
 ### Changed
 
 - **Every skipped constraint now says why it in particular was skipped**, not
