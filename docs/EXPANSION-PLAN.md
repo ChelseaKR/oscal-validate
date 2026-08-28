@@ -107,6 +107,51 @@ from the vendored files and fails if the published reason disagrees; the
 README's Limits section states the counted split rather than "mostly"; the
 evaluated count is unchanged, because this phase changes no verdict.
 
+## The cassette, which decides what can land and what cannot
+
+This belongs here rather than in a footnote, because it governs Phases 4 and 5
+entirely and it is not a thing code can solve.
+
+`ai/walkthrough.py` builds the model prompt from the validator's own findings.
+Its `prompt_block` writes `finding.value` and the first 160 characters of
+`finding.message` for the first three findings of each group, and
+`tests/cassettes/walkthrough-nist-ssp.json` is keyed on a SHA-256 of the exact
+prompt. So any change to what the validator reports about those three findings
+misses the recording, and `tests/test_ai_walkthrough.py` fails the merge gate.
+
+The block that gets sent, as it stands, is:
+
+    G3  UNVERIFIABLE CONSTRAINT_NOT_EVALUATED  4 finding(s)
+        F2 ... allowed-values=200 constraint(s): ...
+        F3 ... expect=12 constraint(s): ...
+        F4 ... index=1 constraint(s): ...
+        ... and 1 more in G3
+
+Three consequences, all measured rather than assumed:
+
+- Phase 3 was safe. `matches` sorts last of the four and falls past the
+  three-example cutoff into "and 1 more", so its count moved from 25 to 14 with
+  the prompt unchanged.
+- **Phase 4 is blocked.** Evaluating any `allowed-values` constraint moves the
+  200 on line F2.
+- **Phase 5 is blocked.** Evaluating any `expect` constraint moves the 12 on
+  line F3. Measured directly: making the three constraints whose test is
+  `@uuid` evaluable produced `no recorded completion for prompt b25c085f583f`
+  and failed the gate.
+
+`CONTRIBUTING.md` prescribes the remedy, re-recording with
+`OSCAL_VALIDATE_AI_RECORD=1`. That is a live billed call on the owner's Bedrock
+account, so it is an owner action. Whoever does it should do it once, after
+both phases land, rather than twice.
+
+There is a second route and it is also the owner's: decouple the recording from
+live validator output, by building the walkthrough replay test's prompt from a
+frozen findings fixture rather than from a fresh validation. The current
+recording would still replay, because the frozen fixture would be exactly the
+output the recording was made against, and the test would stop breaking every
+time the validator improves. That is a change to a guardrail's subject and it
+needs an ADR and a decision, which is why it is proposed here and not made.
+
 ## Phase 2: value targets
 
 **Delivers.** The target grammar gains the two shapes a value constraint needs
@@ -195,8 +240,10 @@ and a top-level union whose alternatives end in flag steps. Each shape is
 enumerated from the vendored files first and implemented only if the
 enumeration is closed.
 
-**Depends on.** Phase 4, because the value of this phase is measured in
-applicable sets that become provably complete.
+**Depends on.** Phase 4 in principle, because the value of this phase is
+measured in applicable sets that become provably complete. In practice it was
+brought forward, because it changes no output and therefore lands while Phase 4
+cannot.
 
 **Done when.** The count of `allowed-values` targets that parse is pinned
 higher by a test; the coverage table shows the movement; every shape that is
@@ -218,6 +265,12 @@ them is a coding task:
 - The repository settings that cannot be changed from inside the repository:
   branch protection on `main`, private vulnerability reporting, and the
   incident labels.
+- Re-recording `tests/cassettes/walkthrough-nist-ssp.json`, or deciding to
+  decouple that recording from live validator output. Phases 4 and 5 cannot go
+  green until one of the two happens. See "The cassette" above.
+- Correcting the one-line summary a report prints for the `allowed-values`
+  kind, which still carries the sentence Phase 1 proved wrong. It is the same
+  block: that sentence is line F2 of the prompt.
 
 ---
 
