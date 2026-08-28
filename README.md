@@ -508,7 +508,9 @@ dereferences a second document through `doc()`. The predicate and
 interior-descendant targets that used to block 25 constraints are parsed under
 the bounded grammar of
 [ADR-0004](docs/adr/0004-bounded-predicate-grammar.md), enumerated from the
-vendored files rather than the Metapath specification. A constraint is also
+vendored files rather than the Metapath specification. The order in which the
+rest of that gap is intended to close, and what each step is waiting on, is
+[`docs/EXPANSION-PLAN.md`](docs/EXPANSION-PLAN.md). A constraint is also
 only applied to documents of the models its module governs, since assembly
 names repeat across models and a catalog's `part` is not assessment-common's.
 

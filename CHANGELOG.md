@@ -8,6 +8,23 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- **A plan for the 238 constraints NIST publishes that this tool does not
+  evaluate**, in [`docs/EXPANSION-PLAN.md`](docs/EXPANSION-PLAN.md). Seven
+  phases over roughly two to three years, each stating what it delivers, what
+  it depends on, and what would show it is done. The subject is one number in
+  a generated table: 102 of 340. Every one of the other 238 is already
+  vendored and already hash-pinned, so none of this needs a network call or a
+  new source. The plan records three measurements that shape it: the published
+  reason for skipping all 200 `allowed-values` constraints is wrong (60 of 200
+  declare `allow-other`, not "most", and the vendored specification makes `no`
+  the default), a missing flag step in the target grammar is the single shared
+  blocker for 155 `allowed-values` and 18 `matches` targets, and all 12
+  `expect` targets already parse so only their `@test` is missing. It also
+  carries what only the owner can decide, so undone-by-choice is not mistaken
+  for undone-by-neglect.
+
 ### Fixed
 
 - **One href produced two findings, and in one case two contradicting
