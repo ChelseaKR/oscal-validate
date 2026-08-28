@@ -656,6 +656,15 @@ def _value_constraint_reason(
             "wherever the flag is used, and this tool resolves constraints through the "
             "assembly and field names a target selects by, not through flag definitions"
         )
+    kind: str, attributes: _ConstraintAttributes, target: str, context: str
+) -> str:
+    """Why one ``allowed-values``, ``matches`` or ``expect`` constraint is skipped.
+
+    Computed from what the constraint declares, so that a reader is told the
+    specific thing that is missing rather than a sentence about its kind. The
+    three kinds are blocked for three different reasons and, within
+    ``allowed-values``, for two.
+    """
     if kind == "allowed-values":
         if attributes.allow_other == "yes":
             return (
@@ -679,6 +688,10 @@ def _value_constraint_reason(
             if part
         )
         return f"its target is read, and this tool does not yet apply {against}"
+        return (
+            f"it constrains a value against {against}, and this tool does not select the "
+            f"value its target names: {target}"
+        )
     return (
         f"its test is a Metapath expression this tool does not implement: {attributes.test}"
     ) + (f" (on {context})" if context else "")
@@ -695,6 +708,9 @@ def _skip_reason(
 ) -> str:
     if kind in UNEVALUATED_KINDS:
         return _value_constraint_reason(kind, attributes, target, context, flag, value_target)
+) -> str:
+    if kind in UNEVALUATED_KINDS:
+        return _value_constraint_reason(kind, attributes, target, context)
     if paths is None:
         return _unparsed_target_reason(target)
     if not context:
@@ -767,6 +783,7 @@ def _constraints_in(
                 max_occurs=_integer(child.attrib.get("max-occurs")),
                 paths=paths,
                 skipped=_skip_reason(kind, paths, target, context, attributes, flag, value_target),
+                skipped=_skip_reason(kind, paths, target, context, attributes),
                 allow_other=attributes.allow_other,
                 regex=attributes.regex,
                 datatype=attributes.datatype,

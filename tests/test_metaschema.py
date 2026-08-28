@@ -383,6 +383,12 @@ def test_a_kind_blocked_several_ways_publishes_several_reasons() -> None:
     have targets this tool cannot read, some are declared on a flag, and of
     the rest 140 are closed sets and 60 declare allow-other. One sentence
     covering all of them is how the wrong one got published.
+def test_a_kind_blocked_for_two_reasons_publishes_two_reasons() -> None:
+    """The failure this phase exists to prevent, asserted directly.
+
+    200 allowed-values constraints are not blocked for one reason: 140 are
+    closed sets and 60 declare allow-other. One sentence covering all of them
+    is how the wrong one got published.
     """
     by_kind: dict[str, set[str]] = {}
     for constraint in load_metaschema().skipped():
@@ -391,6 +397,7 @@ def test_a_kind_blocked_several_ways_publishes_several_reasons() -> None:
     assert len(reasons) > 2
     assert sum(1 for r in reasons if 'allow-other="yes"' in r) == 1
     assert sum(1 for r in reasons if f'defaults to "{ALLOW_OTHER_DEFAULT}"' in r) == 1
+    assert len(by_kind["allowed-values"]) == 2
     # Every expect constraint names its own test, so no two share a reason.
     assert len(by_kind["expect"]) == 12
 

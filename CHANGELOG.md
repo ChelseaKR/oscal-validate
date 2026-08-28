@@ -24,6 +24,42 @@ and this project adheres to
   `expect` targets already parse so only their `@test` is missing. It also
   carries what only the owner can decide, so undone-by-choice is not mistaken
   for undone-by-neglect.
+### Changed
+
+- **Every skipped constraint now says why it in particular was skipped**, not
+  why its kind was. The reason is computed from what that constraint declares
+  and published per constraint in
+  [`docs/CONSTRAINT-COVERAGE.md`](docs/CONSTRAINT-COVERAGE.md). The 200
+  `allowed-values` constraints now carry two reasons instead of one: 140 say
+  their value set is closed because `allow-other` defaults to `no` where it is
+  not declared, 60 say they declare `allow-other="yes"`, and both say that what
+  is missing is the applicable-set resolution. Each of the 12 `expect`
+  constraints prints its own `test`, so a reader can see the expression that
+  went unchecked. Each of the 25 `matches` constraints names the regex or the
+  datatype it would have applied.
+- **The README no longer says most allowed-value sets declare `allow-other`.**
+  Counted in the vendored files, 60 of 200 do. The Metaschema specification
+  makes the absent attribute mean the opposite of what that sentence implied:
+  "no: (default) Identifies the expected value set as closed. This is the
+  implicit default value if no @allow-other is provided." The tool was not
+  wrong about what it evaluates; it was wrong about why it does not.
+
+No verdict moved and no report byte moved: 102 of 340 is still 102 of 340, and
+the goldens in `tests/golden/` are untouched.
+
+### Known wrong, and blocked
+
+- **The one-line summary a report prints for the `allowed-values` kind still
+  carries the sentence above.** It is corrected in the coverage document that
+  the line points at, and it is labelled as wrong in `metaschema.py` where it
+  is declared, but the line itself cannot be corrected from inside the
+  repository. `ai/walkthrough.py` puts `finding.value` and the first 160
+  characters of `finding.message` into the model prompt, and
+  `tests/cassettes/walkthrough-nist-ssp.json` is keyed on a SHA-256 of the
+  exact prompt, so one changed character misses the recording and fails
+  `tests/test_ai_walkthrough.py`. Re-recording is the procedure `CONTRIBUTING.md`
+  prescribes and it is a live billed call on the owner's Bedrock account. It is
+  listed as an owner action in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ### Fixed
 
