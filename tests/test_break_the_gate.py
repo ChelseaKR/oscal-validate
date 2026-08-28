@@ -511,3 +511,68 @@ def _component_definition(start: float, end: float) -> dict[str, Any]:
             ],
         }
     }
+
+
+# -- a constraint whose definition is renamed where it is used ----------------
+
+
+def test_a_duplicate_responsible_role_on_a_component_is_caught(tmp_path: Path) -> None:
+    """oscal-unique-system-component-responsible-role, declared on system-component.
+
+    An SSP writes those nodes under "components", because the use site renames
+    system-component to component and groups it as components. Before the
+    context was resolved through that rename, this constraint looked for a JSON
+    property called "system-component", found nothing in any OSCAL document
+    ever written, and reported no finding whatever the document said. It was
+    counted among the evaluated constraints the whole time.
+    """
+    document = copy.deepcopy(load_fixture("nist_ssp_example.json"))
+    component = document["system-security-plan"]["system-implementation"]["components"][0]
+    role = component.get("responsible-roles", [{"role-id": "provider"}])[0]["role-id"]
+    component["responsible-roles"] = [{"role-id": role}, {"role-id": role}]
+    findings = [
+        f
+        for f in validate_file(write(tmp_path, "s.json", document))
+        if f.code == "CONSTRAINT_NOT_UNIQUE"
+        and f.location.startswith("/system-security-plan/system-implementation/components/0")
+    ]
+    assert findings, "a duplicated responsible-role on a component was not caught"
+    assert findings[0].severity is Severity.ERROR
+    assert "oscal-unique-system-component-responsible-role" in findings[0].message
+
+
+def test_a_component_physical_location_that_names_no_location_is_caught(
+    tmp_path: Path,
+) -> None:
+    """oscal-component-prop-physical-location, also declared on system-component."""
+    document = copy.deepcopy(load_fixture("nist_ssp_example.json"))
+    component = document["system-security-plan"]["system-implementation"]["components"][0]
+    component.setdefault("props", []).append(
+        {"name": "physical-location", "value": "11111111-2222-4333-8444-555555555555"}
+    )
+    codes = {
+        f.code
+        for f in validate_file(write(tmp_path, "s.json", document))
+        if f.location.startswith("/system-security-plan/system-implementation/components/0")
+    }
+    assert codes & {"REFERENCE_UNRESOLVED", "REFERENCE_UNVERIFIABLE"}, (
+        "a physical-location naming no location was not reported at all"
+    )
+
+
+def test_a_component_with_distinct_responsible_roles_is_not_caught(tmp_path: Path) -> None:
+    """The negative control: the same shape, correct, produces nothing.
+
+    Without it, a constraint that reported every responsible-role would pass
+    the case above.
+    """
+    document = copy.deepcopy(load_fixture("nist_ssp_example.json"))
+    component = document["system-security-plan"]["system-implementation"]["components"][0]
+    component["responsible-roles"] = [{"role-id": "provider"}, {"role-id": "asset-owner"}]
+    findings = [
+        f
+        for f in validate_file(write(tmp_path, "s.json", document))
+        if f.code == "CONSTRAINT_NOT_UNIQUE"
+        and f.location.startswith("/system-security-plan/system-implementation/components/0")
+    ]
+    assert findings == []

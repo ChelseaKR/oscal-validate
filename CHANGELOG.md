@@ -8,6 +8,29 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- **Four constraints were counted as evaluated and could never fire.** They are
+  declared on `system-component` and `defined-component`, and no OSCAL document
+  contains a JSON property by either name: the use site renames
+  `system-component` to `component` and groups it as `components`, which is
+  what an SSP and a component definition actually write. `_json_names`
+  registered a use site under its `use-name` only, so a constraint declared on
+  the definition looked for a property that has never existed and reported
+  nothing whatever the document said. The Metaschema specification is explicit
+  that this is the wrong reach: "All constraints associated with a definition
+  MUST be evaluated against all associated content nodes." A definition's own
+  name now reaches the JSON names of its use sites as well.
+
+  What this turns back on: `oscal-unique-system-component-responsible-role` and
+  `oscal-unique-defined-component-responsible-role` (duplicate responsible
+  roles on a component, ERROR), and `oscal-component-prop-physical-location`
+  and `oscal-index-metadata-location-uuid` (a `physical-location` prop naming
+  no declared location). Every published document in the corpus conforms to all
+  four, so no golden moved and no report byte moved, which is exactly why this
+  went unnoticed: the constraints were silent because they matched nothing, and
+  silence looked the same as conformance.
+
 ### Added
 
 - **The target grammar reads a value, not only a node.** `allowed-values` and

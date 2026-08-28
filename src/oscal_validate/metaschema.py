@@ -791,7 +791,7 @@ def _json_names(
                 ref = str(child.attrib.get("ref", ""))
                 # A use-site ``use-name`` renames the node at that use: the
                 # SSP uses ``system-component`` under the name ``component``,
-                # and that is the name NIST's constraint targets select by.
+                # and that is the name NIST's constraint *targets* select by.
                 use_name = _text_of(child, "use-name")
                 if use_name:
                     own = use_name
@@ -804,6 +804,18 @@ def _json_names(
                 group = child.find(f"{NS}group-as")
                 json_name = str(group.attrib["name"]) if group is not None else own
                 names.setdefault(own, set()).add(json_name)
+                # The definition's own name has to reach the same nodes. A
+                # constraint is declared on a definition, not on a use of one,
+                # and the specification says all constraints associated with a
+                # definition "MUST be evaluated against all associated content
+                # nodes". Registering only the use-name left every constraint
+                # declared on system-component looking for a JSON property
+                # called "system-component", which no OSCAL document has: the
+                # SSP writes those nodes under "components".
+                if ref:
+                    declared = effective.get(ref, ref)
+                    if declared:
+                        names.setdefault(declared, set()).add(json_name)
     return names
 
 
