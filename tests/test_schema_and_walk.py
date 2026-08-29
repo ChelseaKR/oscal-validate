@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import json
 from pathlib import Path
 from typing import Any
@@ -228,3 +229,96 @@ def test_both_orders_of_the_two_branches_resolve_the_same() -> None:
     """The schema writes the singleton first; nothing depends on that."""
     assert _one_or_many({"anyOf": [_ONE, _MANY]}) == (_ONE, _MANY)
     assert _one_or_many({"anyOf": [_MANY, _ONE]}) == (_ONE, _MANY)
+
+
+# -- what makes SUBTREE_NOT_READ reachable, counted rather than asserted -------
+#
+# ADR-0007 states that SUBTREE_NOT_READ "remains reachable and is not dead
+# code" and named three reasons for it. The walk records an unread subtree in
+# four places, and against the vendored OSCAL 1.2.3 schema only one of them is
+# reachable. These tests count each, so the ADR describes a schema that was
+# measured rather than one that was remembered, and so a later release that
+# moves a count says so.
+
+
+def _array_nodes_without_item_shapes() -> list[str]:
+    found: list[str] = []
+
+    def walk(node: Any, path: str) -> None:
+        if isinstance(node, dict):
+            if node.get("type") == "array" and not isinstance(node.get("items"), dict):
+                found.append(path)
+            for key, value in node.items():
+                walk(value, f"{path}/{key}")
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                walk(value, f"{path}/{index}")
+
+    walk(load_schema().raw, "#")
+    return found
+
+
+def test_no_array_in_the_vendored_schema_declares_its_items_without_a_shape() -> None:
+    """The first reason ADR-0007 gave, measured: it does not occur in 1.2.3.
+
+    ``document.py`` reports an unread subtree when an array's ``items`` is not
+    an object, because there is nothing to walk each element against. No node
+    anywhere in the vendored schema writes ``"type": "array"`` that way, so
+    that branch cannot be reached by any document judged against this release.
+    """
+    assert _array_nodes_without_item_shapes() == []
+
+
+def _branch_sites() -> list[tuple[str, tuple[dict[str, Any], ...]]]:
+    schema = load_schema()
+    sites = []
+    for path, node in _union_nodes(schema.raw["definitions"], "#/definitions"):
+        resolved = schema.resolve(node)
+        if resolved.branches:
+            sites.append((path, resolved.branches))
+    return sites
+
+
+def test_the_vendored_schema_has_the_branch_sites_this_walk_expects() -> None:
+    # A count of zero would make both tests below true and mean nothing.
+    assert len(_branch_sites()) == 13
+
+
+def test_no_two_alternatives_in_the_vendored_schema_can_disagree_about_one_object() -> None:
+    """The second reason ADR-0007 gave, measured: it does not occur either.
+
+    The walk reports an unread subtree when more than one alternative accepts
+    an object and the alternatives disagree about what its properties mean.
+    Reaching that needs two alternatives that both accept one object, which
+    needs an object holding the union of their required names and, where an
+    alternative closes itself with ``additionalProperties: false``, holding
+    only names that alternative declares. Six pairs in the vendored schema
+    clear that bar, and every one of them agrees: their required sets are
+    identical and no property they both declare is declared differently.
+    """
+    from oscal_validate.document import _accepts, _agree_on, _required_of
+
+    disagreements = []
+    for path, branches in _branch_sites():
+        for first, second in itertools.combinations(branches, 2):
+            instance = dict.fromkeys(_required_of(first) | _required_of(second), "x")
+            if not (_accepts(first, instance) and _accepts(second, instance)):
+                continue
+            shared = set(first.get("properties", {})) & set(second.get("properties", {}))
+            differing = [
+                name for name in shared if first["properties"][name] != second["properties"][name]
+            ]
+            if differing or not _agree_on([first, second], instance):
+                disagreements.append((path, sorted(differing)))
+    assert disagreements == []
+
+
+def test_a_branching_assembly_holding_a_non_object_is_the_one_reachable_route() -> None:
+    """The third reason, which is reachable, and the position behind it.
+
+    Every branch site is a position a document can put a scalar in and get an
+    honest "not read" rather than silence. ``tests/test_break_the_gate.py``
+    breaks one of them for real.
+    """
+    parties = "#/definitions/oscal-complete-oscal-metadata:metadata/properties/parties/items"
+    assert parties in {path for path, _ in _branch_sites()}
