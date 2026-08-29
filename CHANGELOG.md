@@ -8,6 +8,107 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- **The report stated something false about NIST's `allow-other` semantics on
+  every run that produced an `allowed-values` coverage finding, and no longer
+  does.** The per-kind `CONSTRAINT_NOT_EVALUATED` sentence read "most
+  allowed-value sets declare allow-other, so a value outside them is not
+  necessarily a violation". Both halves were wrong. 60 of the 200 vendored sets
+  declare `allow-other` and 140 do not, so "most" is contradicted by the files;
+  and Metaschema states `no : (default) Identifies the expected value set as
+  closed. This is the implicit default value if no @allow-other is provided`,
+  so the leniency the sentence implied has the default backwards. It now gives
+  the reason the per-constraint reasons and the README's Limits section already
+  gave: which values a value node permits is decided by the applicable set of
+  constraints sharing a target, and this tool does not resolve that set. The
+  spec is explicit that the applicable set is what decides, since
+  `allow-other="yes"` opens a set only "as long as no other `<allowed-values>`
+  constraint in the applicable set has `@allow-other="no"` declared explicitly
+  or implicitly", re-read at the published URL on 2026-08-29.
+
+  It had been left in place under protest, and the protest is worth recording
+  because it was a real constraint rather than an excuse: the sentence reached
+  the model through the walkthrough's prompt block, the cassette is keyed on a
+  hash of the exact prompt, and correcting one character missed the recording
+  and failed the suite. Correcting a sentence a human reads was therefore
+  blocked on a billed call. That is now fixed at the root, below.
+
+- **`tests/test_metaschema.py` holds the sentence against the files it
+  describes.** The 60/140 split is measured off the vendored metaschema rather
+  than remembered, so a vendored bump that moves it fails a test instead of
+  quietly restating a stale figure, and the summary is rejected if it carries a
+  frequency claim the files contradict. Reintroducing the old sentence turns it
+  red.
+
+- **A walkthrough that could not be produced no longer exits 0.** `walk`
+  carries a structured `unevaluated` flag, set when the model call failed or
+  its reply was unusable and not when there were simply no findings; the
+  command renders `walkthrough NOT EVALUATED`, says in as many words that this
+  is neither a clean walkthrough nor an empty one, and exits 2 in both output
+  formats. A stale cassette lands exactly there. Previously it printed a note
+  and exited 0, which is the shape of a check that cannot fail.
+
+- **`tests/golden/capture.py` refuses to write a manifest smaller than the
+  committed one.** The eight cached NIST documents are absent on most machines,
+  and capturing without them silently dropped their entries: the gate shrank
+  from twelve documents to four and said nothing, leaving eight goldens on disk
+  that nothing would compare against again. Found while recapturing for this
+  change.
+
+### Changed
+
+- **The walkthrough prompt is built from structured facts, not from the
+  report's prose.** `Group.prompt_block` carried `finding.message`, so every
+  copy edit to a report sentence was a change to a recorded model interaction.
+  It now carries the finding's own fields (label, location, property, value)
+  under tier text authored for the prompt.
+  [`tests/test_ai_prompt_decoupling.py`](tests/test_ai_prompt_decoupling.py)
+  holds the separation two ways: no finding's message appears in the built
+  prompt, and rewriting every message in a run leaves the prompt byte-identical,
+  so the cassette key does not move. Measured: with a copy edit applied to the
+  `CONSTRAINT_NOT_EVALUATED` template, the prompt key is unchanged at
+  `002731482aef...` and the cassette-bound tests stay green, while the golden
+  byte-identity tests correctly fail, which is the split that was wanted.
+
+- **The 24 files in `tests/golden/` were recaptured**, offline and with no model
+  call, from the same twelve documents, each verified by SHA-256 against the
+  manifest that recorded them. Exactly one line changed per file and it is the
+  corrected sentence. This is the only recapture since `6978895`; the README no
+  longer claims the bytes have never moved, and says instead what moved them and
+  when, keeping the claim the gate exists for: the model-backed layer has never
+  moved them.
+
+- `PROMPT_VERSION` is `2026-08-29.1`.
+
+### Deferred, with the measurement
+
+- **`tests/cassettes/walkthrough-nist-ssp.json` is stale and declared stale**,
+  in the new [`tests/cassettes/pending-rerecord.json`](tests/cassettes/pending-rerecord.json):
+  dated, owned, expiring, one entry per cassette. Re-recording needs the owner's
+  Bedrock account, so it is an owner action; `make rerecord-walkthrough` is the
+  command, and removing the entry is part of it. The suite fails if a stale
+  cassette is not declared, if a declaration outlives the staleness it
+  describes, or if the deadline passes. No recording was re-keyed to replay an
+  answer given to a different prompt, which is the one repair that was available
+  and is not honest.
+
+- **The grounding eval corpus is partly orphaned by the same change**, measured
+  by replay on 2026-08-29: walkthrough documents 12 to 0, grounded explanations
+  34 to 6. `evals/` is not in `make verify` (`testpaths = ["tests"]`), so no
+  gate is green over a stale recording; `repair` and `refusal` are untouched.
+  Whether to spend the re-record is recorded in `docs/ROADMAP.md`.
+
+- **Two couplings of the same kind were left in place deliberately.**
+  `ai/sources.py` still selects NIST passages by keyword-matching
+  `finding.message`, which is what orphans the grounding explanations; changing
+  it was measured to break `explain-broken-catalog.json` and
+  `repair-broken-catalog.json` as well, so it spends re-records rather than
+  saving them and the decision is the owner's. And `explain`, `repair` and `ask`
+  still exit 0 when the model cannot be reached, where `walkthrough` now exits
+  2; that difference is stated in the test that pins it rather than changed in
+  passing.
+
 ### Added
 
 - **A census that proves every finding code this tool can emit is exercised by

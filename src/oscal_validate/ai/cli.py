@@ -216,13 +216,20 @@ def _walkthrough(args: argparse.Namespace) -> int:
     if client is None:
         return 2
     result = walkthrough_command.walk(run, client)
+    # A walkthrough that could not be produced exits non-zero, in both formats.
+    # The reason is printed either way; what changes is that a caller which
+    # only reads the exit code cannot mistake "the model was never reached"
+    # for "the walkthrough came back and found nothing to say". A stale
+    # cassette reaches exactly this path. Having no findings at all is not
+    # this case and still exits 0.
+    status = 2 if result.unevaluated else 0
     if args.format == "json":
         print(json.dumps(walkthrough_command.render_json(result, client, run), indent=2))
-        return 0
+        return status
     print(banner(client))
     print(f"model: {run.model}; {len(run.findings)} finding(s) in {len(result.groups)} group(s)\n")
     print(walkthrough_command.render_text(result, run, index=not args.no_index))
-    return 0
+    return status
 
 
 def _ask(args: argparse.Namespace) -> int:

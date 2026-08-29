@@ -2,20 +2,40 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 from pathlib import Path
 
 import pytest
 
-from oscal_validate.ai import walkthrough
-from oscal_validate.ai.client import ScriptedClient
+from oscal_validate.ai import prompts, walkthrough
+from oscal_validate.ai.client import ScriptedClient, prompt_key
 from oscal_validate.ai.guard import WITHHELD
 from oscal_validate.ai.run import prepare
 from oscal_validate.cli import main
 
 from .conftest import fixture_path
 
-CASSETTE = Path(__file__).resolve().parent / "cassettes" / "walkthrough-nist-ssp.json"
+CASSETTES = Path(__file__).resolve().parent / "cassettes"
+CASSETTE = CASSETTES / "walkthrough-nist-ssp.json"
+PENDING = CASSETTES / "pending-rerecord.json"
+
+
+def _walkthrough_prompt_key() -> str:
+    """The key the walkthrough would look up for the recorded fixture, today."""
+    run = prepare(fixture_path("nist_ssp_example.json"))
+    blocks = "\n\n".join(g.prompt_block(run) for g in walkthrough.group(run))
+    user = prompts.walkthrough_user(run.model, blocks, run.notes_for())
+    return prompt_key(prompts.SYSTEM, user)
+
+
+def _pending() -> dict[str, dict[str, str]]:
+    return dict(json.loads(PENDING.read_text(encoding="utf-8"))["cassettes"])
+
+
+def _cassette_is_stale() -> bool:
+    recorded = json.loads(CASSETTE.read_text(encoding="utf-8"))
+    return _walkthrough_prompt_key() not in recorded
 
 
 def test_every_finding_lands_in_exactly_one_group_in_fix_order() -> None:
@@ -117,26 +137,74 @@ def test_failures_and_empty_reports_show_nothing_from_the_model() -> None:
     run = prepare(fixture_path("broken_catalog.json"))
     failed = walkthrough.walk(run, ScriptedClient([]))
     assert "model call failed" in failed.skipped
-    assert "no walkthrough" in walkthrough.render_text(failed, run)
+    assert failed.unevaluated is True
+    assert "walkthrough NOT EVALUATED" in walkthrough.render_text(failed, run)
     assert failed.to_dict(run)["skipped"] == failed.skipped
     unusable = walkthrough.walk(run, ScriptedClient(["nope"]))
     assert "unusable" in unusable.skipped
+    assert unusable.unevaluated is True
     run.findings = []
     run.labels = {}
-    assert "no findings" in walkthrough.walk(run, ScriptedClient([])).skipped
+    empty = walkthrough.walk(run, ScriptedClient([]))
+    assert "no findings" in empty.skipped
+    # Nothing to walk through is not the same as a walkthrough that did not run.
+    assert empty.unevaluated is False
+    assert "no walkthrough" in walkthrough.render_text(empty, run)
 
 
+def test_a_stale_cassette_is_declared_and_a_declared_one_is_stale() -> None:
+    """The pending list and the recordings cannot drift apart in either direction.
+
+    Silence is the failure this exists to prevent: a cassette whose prompt has
+    moved, quietly replaying nothing and quietly passing. It is equally a
+    failure for an entry to outlive the staleness it describes, which is how a
+    waiver becomes permanent, so a fresh cassette with an entry fails too.
+    """
+    pending = _pending()
+    stale = _cassette_is_stale()
+    listed = CASSETTE.name in pending
+    assert stale == listed, (
+        f"{CASSETTE.name}: stale={stale} but listed in pending-rerecord.json={listed}. "
+        "A stale cassette must be declared; a fresh one must have its entry removed."
+    )
+    for name, entry in pending.items():
+        assert (CASSETTES / name).is_file(), f"{name} is declared but does not exist"
+        for required in ("stale_since", "expires", "owner", "reason", "rerecord"):
+            assert entry.get(required), f"{name} declares no {required}"
+        expires = dt.date.fromisoformat(entry["expires"])
+        assert expires > dt.date.today(), (
+            f"{name}: the re-record deadline {expires} has passed. Re-record it "
+            f"({entry['rerecord']}) or take a fresh decision and re-date the entry."
+        )
+
+
+@pytest.mark.skipif(
+    _cassette_is_stale(), reason="cassette pending re-record; see pending-rerecord.json"
+)
 def test_the_cli_replays_a_recorded_live_walkthrough(
     capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Recorded from Amazon Bedrock (claude-sonnet-4-6) on 2026-08-21 over NIST's SSP example."""
+    """Recorded from Amazon Bedrock over NIST's SSP example.
+
+    Skipped only while the cassette is declared stale, and the test above fails
+    if that declaration is missing or expired, so the skip can never be the
+    quiet state.
+
+    The served model is asserted against the one the cassette recorded rather
+    than against a literal. What this is checking is that provenance reports
+    the model that answered, not the model that was configured; pinning a
+    version string here would also have made a re-record on a later model a
+    test edit, which is how a re-record acquires reasons to be deferred.
+    """
     monkeypatch.setenv("OSCAL_VALIDATE_AI_CASSETTE", str(CASSETTE))
     monkeypatch.delenv("OSCAL_VALIDATE_AI_RECORD", raising=False)
     doc = str(fixture_path("nist_ssp_example.json"))
+    recorded = json.loads(CASSETTE.read_text(encoding="utf-8"))
+    served = {entry["model"] for entry in recorded.values()}
     assert main(["walkthrough", doc, "--format", "json"]) == 0
     payload = json.loads(capsys.readouterr().out)
     w = payload["walkthrough"]
-    assert payload["provenance"]["model"] == "claude-sonnet-4-6"
+    assert payload["provenance"]["model"] in served
     assert w["groups_covered"] == len(w["groups"]) == 5
     assert w["invented_labels"] == [] and w["not_covered"] == []
     assert w["withheld_sentences"] == 0
@@ -144,3 +212,42 @@ def test_the_cli_replays_a_recorded_live_walkthrough(
     assert main(["walkthrough", doc, "--no-index"]) == 0
     text = capsys.readouterr().out
     assert "5 of 5 group(s) covered" in text and "index:" not in text
+
+
+def test_a_cassette_that_does_not_answer_this_prompt_fails_closed(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The stale-cassette path, exercised whatever state the real cassette is in.
+
+    A recording that cannot answer the prompt must not look like a walkthrough
+    that came back with nothing to say. It reports NOT EVALUATED, it exits
+    non-zero in both formats, and it shows nothing from the model.
+    """
+    empty = CASSETTES / "does-not-answer-this-prompt.json"
+    monkeypatch.setenv("OSCAL_VALIDATE_AI_CASSETTE", str(empty))
+    monkeypatch.delenv("OSCAL_VALIDATE_AI_RECORD", raising=False)
+    doc = str(fixture_path("nist_ssp_example.json"))
+
+    assert main(["walkthrough", doc]) == 2
+    text = capsys.readouterr().out
+    assert "walkthrough NOT EVALUATED" in text
+    assert "no recorded completion" in text
+    assert "not a clean walkthrough and not an empty one" in text
+    # The validator's own findings are still there; only the narrative is absent.
+    assert "index:" in text
+
+    assert main(["walkthrough", doc, "--format", "json"]) == 2
+    payload = json.loads(capsys.readouterr().out)
+    w = payload["walkthrough"]
+    assert w["unevaluated"] is True
+    assert "skipped" in w
+    assert "overview" not in w and "steps" not in w
+
+
+def test_having_no_findings_is_not_an_unevaluated_walkthrough() -> None:
+    """The one skip that is a legitimate nothing-to-do keeps exit 0."""
+    run = prepare(fixture_path("nist_ssp_example.json"))
+    run.findings = []
+    run.labels = {}
+    result = walkthrough.walk(run, ScriptedClient([]))
+    assert result.skipped and result.unevaluated is False

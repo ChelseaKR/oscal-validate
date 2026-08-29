@@ -24,7 +24,7 @@ so that a decision waiting on a person is not filed as work waiting on time.
 | Vendored snapshot integrity | SHA-256 of every vendored file matches `vendor/SOURCES.md`, and no vendored file lacks a hash row | `tests/test_vendor_integrity.py` | AUTO | Maintainer |
 | Gate self-test | Every seeded corruption of a clean document is caught | `tests/test_break_the_gate.py` | AUTO | Maintainer |
 | The validator stays offline | 0 sockets opened by the default command; 0 network imports under `src/` outside `oscal_validate/ai/`; nothing outside `ai/` imports it; `ai/` imports the SDK only inside a function | `tests/test_offline_guarantee.py` | AUTO | Maintainer |
-| Default path byte identity | The default command's stdout and exit code over the fixtures and nine published NIST documents equal the goldens captured from commit `6978895`, the last before ADR-0005; a validation run in a fresh process loads neither `oscal_validate.ai` nor the SDK | `tests/test_default_path_byte_identity.py` | AUTO | Maintainer |
+| Default path byte identity | The default command's stdout and exit code over the fixtures and nine published NIST documents equal the goldens first captured from commit `6978895`, the last before ADR-0005, and recaptured once on 2026-08-29 from the same documents when a false sentence in the report was corrected (README, Limits); a validation run in a fresh process loads neither `oscal_validate.ai` nor the SDK | `tests/test_default_path_byte_identity.py` | AUTO | Maintainer |
 | Constraint coverage honesty | The published coverage table equals what the vendored files contain | `tests/test_constraint_coverage.py` | AUTO | Maintainer |
 | Constraint inventory drift | The published constraint counts equal the vendored inventory | `tests/test_metaschema.py` | AUTO | Maintainer |
 | Severity contract accuracy | UNVERIFIABLE never gates the exit code; ERROR always does | `tests/test_cli.py` plus release review of any severity change | AUTO + REVIEW | Maintainer |
@@ -138,42 +138,44 @@ rather than be filled with invented zeroes.
   C affordance should be declared N/A with a reason. Today it is neither.
 - Decide whether to add a release workflow or to declare releases N/A with a
   reason. "No release has been made yet" is a status, not a declaration.
-- Re-record the cassettes that the `allowed-values` skip summary reaches. The
-  correction that is blocked: the report's per-kind `CONSTRAINT_NOT_EVALUATED`
-  sentence for `allowed-values` says "most allowed-value sets declare
-  allow-other" where 60 of 200 declare it, and the Metaschema specification
-  makes the absent attribute mean the set is closed. The per-constraint reasons
-  in `docs/CONSTRAINT-COVERAGE.md` are correct; that one summary line is not,
-  and it is labelled as wrong in `metaschema.py` where it is declared.
-  Re-recording is a live billed call on the owner's Bedrock account, which is
-  why this is an owner action and not a code change. REVIEW, owner: maintainer.
+- Re-record `tests/cassettes/walkthrough-nist-ssp.json`, and decide whether to
+  re-record the grounding eval corpus. **The false sentence is gone as of
+  2026-08-29; this entry is now only about the recordings it orphaned.** The
+  report's per-kind `CONSTRAINT_NOT_EVALUATED` sentence for `allowed-values`
+  said "most allowed-value sets declare allow-other, so a value outside them is
+  not necessarily a violation", where 60 of 200 declare it and the Metaschema
+  specification makes the absent attribute mean the set is closed. It now
+  states the applicable-set reason that the per-constraint reasons and the
+  README's Limits section already gave, and
+  `tests/test_metaschema.py::test_the_allowed_values_summary_claims_nothing_the_vendored_files_contradict`
+  measures the 60/140 split off the vendored files and fails if a frequency
+  claim they contradict returns. The 24 files in `tests/golden/` were
+  recaptured offline in the same change. REVIEW, owner: maintainer.
 
-  **Scope, measured on 2026-08-28** by replacing that one sentence and
-  replaying every cassette and the whole suite. Cassettes are keyed on a
-  SHA-256 of the exact prompt, so this is the exact set of recordings the
-  change orphans:
+  **What is left is a live billed call on the owner's Bedrock account**, which
+  is why it is an owner action and not a code change:
 
-  | Cassette | Entries | Orphaned | Recorded input tokens | Recorded output tokens |
-  |---|---|---|---|---|
-  | `tests/cassettes/walkthrough-nist-ssp.json` | 1 | 1 | 1,798 | 1,748 |
-  | `evals/cassettes/grounding.json` | 60 | 23 | 45,870 | 48,004 |
-  | `evals/cassettes/repair.json` | 61 | 0 | 0 | 0 |
-  | `evals/cassettes/refusal.json` | 216 | 0 | 0 | 0 |
-  | **Total** | **338** | **24** | **47,668** | **49,752** |
+  | Corpus | State | In `make verify`? |
+  |---|---|---|
+  | `tests/cassettes/walkthrough-nist-ssp.json` | stale, declared in `tests/cassettes/pending-rerecord.json`, re-record with `make rerecord-walkthrough` | yes, and it fails closed |
+  | `evals/cassettes/grounding.json` | partly orphaned; replay measured 2026-08-29 at 12 walkthrough documents to 0, and grounded explanations 34 to 6 | no: `testpaths = ["tests"]` |
+  | `evals/cassettes/repair.json`, `evals/cassettes/refusal.json` | untouched, those prompts never carried the sentence | no |
 
-  So the billed part is 24 calls, not the whole recorded corpus: `repair` and
-  `refusal` prompts never carry that sentence, and 37 of the 60 grounding
-  entries do not either. The orphaned grounding entries are the 12 walkthroughs
-  and 11 of the explanations; with the sentence changed and the cassettes as
-  they stand, the grounding replay drops from 12 walkthroughs to 0 and from 48
-  explanations to 37, which is what the arithmetic above is read from.
+  Until the walkthrough cassette is re-recorded, the command reports itself
+  `walkthrough NOT EVALUATED` and exits 2, and the suite holds it to exactly
+  that: a stale cassette that is not declared fails, a declaration that outlives
+  its staleness fails, and the declared re-record deadline expiring fails. The
+  one thing that cannot happen is the recording quietly replaying an answer to
+  a question the tool no longer asks.
 
-  **The larger half of the obligation costs nothing and is not listed here
-  today.** The same sentence appears in the `CONSTRAINT_NOT_EVALUATED` finding
-  of every report, so all 24 files in `tests/golden/` move: 12 documents in two
-  formats each. `uv run python tests/golden/capture.py` regenerates them
-  offline with no model call. What that spends instead is the README's claim
-  that "the default output has not moved by a byte" since `6978895`, which is a
-  documentation decision rather than a billed one, and it is the real reason
-  this has stayed open. It is worth deciding alongside the cassettes rather
-  than after them.
+  The prompt is no longer built from the report's prose, so this class of
+  obligation does not recur: a copy edit to a report sentence now leaves the
+  prompt byte-identical, proven by
+  `tests/test_ai_prompt_decoupling.py`. Two couplings of the same kind remain
+  and were deliberately left, because fixing them spends re-records rather than
+  saving them, and the choice is the owner's: `ai/sources.py` still selects NIST
+  passages by keyword-matching `finding.message`, which is what orphans the
+  grounding explanations above and would orphan `explain-broken-catalog.json`
+  and `repair-broken-catalog.json` if changed (measured: both fail); and
+  `explain`, `repair` and `ask` still exit 0 when the model cannot be reached,
+  where `walkthrough` now exits 2.
