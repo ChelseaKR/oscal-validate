@@ -138,16 +138,42 @@ rather than be filled with invented zeroes.
   C affordance should be declared N/A with a reason. Today it is neither.
 - Decide whether to add a release workflow or to declare releases N/A with a
   reason. "No release has been made yet" is a status, not a declaration.
-- Re-record `tests/cassettes/walkthrough-nist-ssp.json`. It is keyed on a
-  SHA-256 of the exact walkthrough prompt, and `ai/walkthrough.py` puts
-  `finding.value` and the first 160 characters of `finding.message` into that
-  prompt, so any change to what the validator reports misses the recording and
-  fails `tests/test_ai_walkthrough.py`. That is already blocking one correction
-  known to be needed: the report's per-kind `CONSTRAINT_NOT_EVALUATED` sentence
-  for `allowed-values` says "most allowed-value sets declare allow-other" where
-  60 of 200 declare it, and the Metaschema specification makes the absent
-  attribute mean the set is closed. The per-constraint reasons in
-  `docs/CONSTRAINT-COVERAGE.md` are correct; that one summary line is not, and
-  it is labelled as wrong in `metaschema.py` where it is declared. Re-recording
-  is a live billed call on the owner's Bedrock account, which is why this is an
-  owner action and not a code change. REVIEW, owner: maintainer.
+- Re-record the cassettes that the `allowed-values` skip summary reaches. The
+  correction that is blocked: the report's per-kind `CONSTRAINT_NOT_EVALUATED`
+  sentence for `allowed-values` says "most allowed-value sets declare
+  allow-other" where 60 of 200 declare it, and the Metaschema specification
+  makes the absent attribute mean the set is closed. The per-constraint reasons
+  in `docs/CONSTRAINT-COVERAGE.md` are correct; that one summary line is not,
+  and it is labelled as wrong in `metaschema.py` where it is declared.
+  Re-recording is a live billed call on the owner's Bedrock account, which is
+  why this is an owner action and not a code change. REVIEW, owner: maintainer.
+
+  **Scope, measured on 2026-08-28** by replacing that one sentence and
+  replaying every cassette and the whole suite. Cassettes are keyed on a
+  SHA-256 of the exact prompt, so this is the exact set of recordings the
+  change orphans:
+
+  | Cassette | Entries | Orphaned | Recorded input tokens | Recorded output tokens |
+  |---|---|---|---|---|
+  | `tests/cassettes/walkthrough-nist-ssp.json` | 1 | 1 | 1,798 | 1,748 |
+  | `evals/cassettes/grounding.json` | 60 | 23 | 45,870 | 48,004 |
+  | `evals/cassettes/repair.json` | 61 | 0 | 0 | 0 |
+  | `evals/cassettes/refusal.json` | 216 | 0 | 0 | 0 |
+  | **Total** | **338** | **24** | **47,668** | **49,752** |
+
+  So the billed part is 24 calls, not the whole recorded corpus: `repair` and
+  `refusal` prompts never carry that sentence, and 37 of the 60 grounding
+  entries do not either. The orphaned grounding entries are the 12 walkthroughs
+  and 11 of the explanations; with the sentence changed and the cassettes as
+  they stand, the grounding replay drops from 12 walkthroughs to 0 and from 48
+  explanations to 37, which is what the arithmetic above is read from.
+
+  **The larger half of the obligation costs nothing and is not listed here
+  today.** The same sentence appears in the `CONSTRAINT_NOT_EVALUATED` finding
+  of every report, so all 24 files in `tests/golden/` move: 12 documents in two
+  formats each. `uv run python tests/golden/capture.py` regenerates them
+  offline with no model call. What that spends instead is the README's claim
+  that "the default output has not moved by a byte" since `6978895`, which is a
+  documentation decision rather than a billed one, and it is the real reason
+  this has stayed open. It is worth deciding alongside the cassettes rather
+  than after them.

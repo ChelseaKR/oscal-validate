@@ -29,7 +29,7 @@ from ..findings import Finding, Severity
 from ..session import Session
 
 #: Schema titles that mark a value as *declaring* an identifier. Read from the
-#: vendored schema's own titles; pinned by tests/test_reference_titles.py.
+#: vendored schema's own titles; pinned by tests/test_schema_and_walk.py.
 IDENTITY_TITLES = frozenset(
     {
         "Control Identifier",

@@ -23,8 +23,26 @@ def test_python_policy_is_aligned_on_312() -> None:
     assert (ROOT / ".python-version").read_text(encoding="utf-8").strip() == "3.12"
 
 
+def _workflows() -> list[Path]:
+    """Every workflow file, under either spelling GitHub accepts.
+
+    Globbing one extension is how a workflow gets added as `.yaml` and is never
+    scanned again, and iterating an empty result is how this whole file passes
+    having read nothing. `test_the_workflow_directory_is_not_empty` is the
+    other half of that.
+    """
+    return sorted({*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml")})
+
+
+def test_the_workflow_directory_is_not_empty() -> None:
+    # Every assertion below runs inside a loop over this list. An empty list
+    # would make all of them pass without pinning a single action.
+    found = {path.name for path in _workflows()}
+    assert found >= {"ci.yml", "semgrep.yml", "trufflehog.yml"}, found
+
+
 def test_every_action_is_pinned_to_a_full_commit_sha() -> None:
-    for workflow in sorted(WORKFLOWS.glob("*.yml")):
+    for workflow in _workflows():
         text = workflow.read_text(encoding="utf-8")
         for reference in re.findall(r"uses:\s*(\S+)", text):
             if reference.startswith("./"):
