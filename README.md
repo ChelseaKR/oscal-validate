@@ -1,6 +1,7 @@
 # oscal-validate
 
-Deterministic structural validation for [OSCAL](https://pages.nist.gov/OSCAL/)
+Deterministic structural validation for
+[OSCAL (Open Security Controls Assessment Language)](https://pages.nist.gov/OSCAL/)
 documents, meant to run before you hand a package to anyone. Point it at a
 catalog, profile, SSP, component definition, assessment plan, assessment
 results, or POA&M, and it checks the things a publisher can get wrong silently:
