@@ -138,9 +138,9 @@ rather than be filled with invented zeroes.
   C affordance should be declared N/A with a reason. Today it is neither.
 - Decide whether to add a release workflow or to declare releases N/A with a
   reason. "No release has been made yet" is a status, not a declaration.
-- Re-record `tests/cassettes/walkthrough-nist-ssp.json`, and decide whether to
-  re-record the grounding eval corpus. **The false sentence is gone as of
-  2026-08-29; this entry is now only about the recordings it orphaned.** The
+- Decide whether to re-record the grounding eval corpus. **The false sentence
+  is gone as of 2026-08-29, and `tests/cassettes/walkthrough-nist-ssp.json` was
+  re-recorded the same day; this entry is now only about the eval corpus.** The
   report's per-kind `CONSTRAINT_NOT_EVALUATED` sentence for `allowed-values`
   said "most allowed-value sets declare allow-other, so a value outside them is
   not necessarily a violation", where 60 of 200 declare it and the Metaschema
@@ -157,14 +157,15 @@ rather than be filled with invented zeroes.
 
   | Corpus | State | In `make verify`? |
   |---|---|---|
-  | `tests/cassettes/walkthrough-nist-ssp.json` | stale, declared in `tests/cassettes/pending-rerecord.json`, re-record with `make rerecord-walkthrough` | yes, and it fails closed |
+  | `tests/cassettes/walkthrough-nist-ssp.json` | **re-recorded 2026-08-29** on `global.anthropic.claude-sonnet-4-6`, 1,424 in / 1,710 out; declaration removed and the replay test runs again | yes, and it fails closed |
   | `evals/cassettes/grounding.json` | partly orphaned; replay measured 2026-08-29 at 12 walkthrough documents to 0, and grounded explanations 34 to 6 | no: `testpaths = ["tests"]` |
   | `evals/cassettes/repair.json`, `evals/cassettes/refusal.json` | untouched, those prompts never carried the sentence | no |
 
-  Until the walkthrough cassette is re-recorded, the command reports itself
-  `walkthrough NOT EVALUATED` and exits 2, and the suite holds it to exactly
-  that: a stale cassette that is not declared fails, a declaration that outlives
-  its staleness fails, and the declared re-record deadline expiring fails. The
+  The fail-closed path is unchanged by the re-record and was re-checked against
+  the new cassette on 2026-08-29: a cassette that cannot answer the prompt makes
+  the command report `walkthrough NOT EVALUATED` and exit 2 in both formats, a
+  stale cassette that is not declared fails the suite, a declaration that
+  outlives its staleness fails, and the declared deadline expiring fails. The
   one thing that cannot happen is the recording quietly replaying an answer to
   a question the tool no longer asks.
 

@@ -81,17 +81,41 @@ and this project adheres to
 
 - `PROMPT_VERSION` is `2026-08-29.1`.
 
-### Deferred, with the measurement
+### Re-recorded
 
-- **`tests/cassettes/walkthrough-nist-ssp.json` is stale and declared stale**,
-  in the new [`tests/cassettes/pending-rerecord.json`](tests/cassettes/pending-rerecord.json):
-  dated, owned, expiring, one entry per cassette. Re-recording needs the owner's
-  Bedrock account, so it is an owner action; `make rerecord-walkthrough` is the
-  command, and removing the entry is part of it. The suite fails if a stale
-  cassette is not declared, if a declaration outlives the staleness it
-  describes, or if the deadline passes. No recording was re-keyed to replay an
-  answer given to a different prompt, which is the one repair that was available
-  and is not honest.
+- **`tests/cassettes/walkthrough-nist-ssp.json` was re-recorded on 2026-08-29**
+  against the prompt this release ships, and its entry in
+  `tests/cassettes/pending-rerecord.json` is removed, which is what the suite
+  requires: a fresh cassette carrying a stale-declaration fails, so the removal
+  cannot be forgotten. `tests/test_ai_walkthrough.py::test_the_cli_replays_a_recorded_live_walkthrough`
+  now runs instead of being skipped. One live call, on Amazon Bedrock:
+  **1,424 input tokens and 1,710 output tokens**, `stop_reason` `end_turn`.
+
+  Recorded with `global.anthropic.claude-sonnet-4-6`, the same model as the
+  recording it replaces, so the two artifacts stay comparable. That is a
+  deliberate pin and not an availability constraint: `claude-sonnet-5` is ACTIVE
+  on this account today under both the `global.` and `us.` prefixes, so the
+  repository default would also have resolved. `make rerecord-walkthrough` now
+  carries the model as `RERECORD_MODEL` rather than inheriting whatever the
+  provider default drifts to, and records to a temporary file that replaces the
+  committed cassette only on success, so a failed call can no longer destroy
+  the recording it was meant to replace.
+
+  **Two differences from the recording it replaces, neither hidden.** The
+  prompt is 374 input tokens smaller (1,798 to 1,424), which is the decoupling
+  above removing the report's prose from it. And the new reply has two
+  sentences withheld by the boundary guard where the old had none: one is a
+  sentence about fix order containing "must be addressed", which the guard
+  screens as a judgment. The guard erring toward withholding is the direction
+  it is built to err in, and the substantive properties are unchanged: 5 of 5
+  groups covered, no invented labels, nothing left uncovered, 23 findings. The
+  count is asserted as a named constant that a later re-record is expected to
+  move, beside a new assertion that the number reported is the number of
+  withholdings the reader is actually shown.
+
+  No recording was re-keyed to replay an answer given to a different prompt.
+
+### Deferred, with the measurement
 
 - **The grounding eval corpus is partly orphaned by the same change**, measured
   by replay on 2026-08-29: walkthrough documents 12 to 0, grounded explanations
