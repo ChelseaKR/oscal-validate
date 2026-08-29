@@ -10,6 +10,39 @@ and this project adheres to
 
 ### Added
 
+- **A census that proves every finding code this tool can emit is exercised by
+  a test**, in [`tests/test_finding_code_census.py`](tests/test_finding_code_census.py).
+  The 19 codes are enumerated from the source by AST rather than by pattern,
+  through conditional expressions and through local names bound to literals,
+  so a code spelled with a digit or passed through a variable cannot hide from
+  it. Two assertions follow: the enumerated set must equal a declared roster,
+  and every code on that roster must be produced by a witness the test runs
+  against a real document. Adding a code without a witness fails the gate.
+- **Gate-break cases for `CONSTRAINT_CARDINALITY` and `SUBTREE_NOT_READ`**, the
+  two codes the census found unexercised. A back-matter resource with neither
+  `rlink` nor `base64` produces the first at NIST's declared WARNING, and a
+  location naming no way to reach it produces it at NIST's ERROR; a party that
+  is not an object produces the second. Each has the clean counterpart, so the
+  checks cannot pass by reporting everything.
+- **A measurement behind what keeps `SUBTREE_NOT_READ` reachable.** Four
+  counts, read off the vendored schema in
+  [`tests/test_schema_and_walk.py`](tests/test_schema_and_walk.py): zero
+  reachable declined union shapes, zero arrays declaring no item shape, zero
+  branch pairs that can accept one object and disagree about it, and thirteen
+  branch sites where a scalar can stand in for an object. A later release that
+  moves any of them fails a test rather than quietly widening the claim.
+- **The Bedrock re-record owner action is now decidable**, in
+  [`docs/ROADMAP.md`](docs/ROADMAP.md). Measured by changing the sentence and
+  replaying every cassette: 24 recordings of 338 are orphaned, in two
+  cassettes of the four, at 47,668 recorded input tokens and 49,752 output
+  tokens. `repair` and `refusal` are untouched. The entry also names the half
+  that costs nothing and was not listed: all 24 files in `tests/golden/` move,
+  regenerable offline, at the price of the README's "not moved by a byte"
+  claim.
+- **[`docs/plans/improvement-plan.md`](docs/plans/improvement-plan.md)**, the
+  audit this entry comes from, including the named gate traps that were checked
+  and found already handled.
+
 - **A plan for the 238 constraints NIST publishes that this tool does not
   evaluate**, in [`docs/EXPANSION-PLAN.md`](docs/EXPANSION-PLAN.md). Seven
   phases over roughly two to three years, each stating what it delivers, what
@@ -26,6 +59,28 @@ and this project adheres to
   for undone-by-neglect.
 
 ### Fixed
+
+- **`ADR-0007` named three reasons `SUBTREE_NOT_READ` is not dead code and two
+  of them cannot occur.** Against the vendored OSCAL 1.2.3 schema no array
+  declares its items without a shape and no two alternatives can accept one
+  object and disagree about it, so one route of the four is reachable, not
+  three. The paragraph now carries the counts and points at the tests that
+  hold them. A claim about what keeps a code alive is worth no more than the
+  count behind it.
+- **A test promised to fail on a change it could not observe.**
+  `test_the_unread_mapping_subtree_is_reported_on_every_mapping_collection`
+  said a future change making the walker resolve `/mapping-collection/mappings`
+  would fail it. That change landed in #25; the test reads a frozen survey JSON
+  and stayed green. It is renamed to say it pins the 2026-08-19 record, and a
+  live counterpart now asserts what the walker does today.
+- **`checks/references.py` cited a test file that does not exist.**
+  `IDENTITY_TITLES` is pinned in `tests/test_schema_and_walk.py`, not in
+  `tests/test_reference_titles.py`.
+- **The workflow pinning gate would have passed over an empty directory.**
+  `test_every_action_is_pinned_to_a_full_commit_sha` asserted only inside a
+  loop over `*.yml`, so a renamed directory or a workflow written as `.yaml`
+  left it green having pinned nothing. It now globs both spellings and a
+  separate test names the workflows that must be found.
 
 - **Four constraints were counted as evaluated and could never fire.** They are
   declared on `system-component` and `defined-component`, and no OSCAL document
