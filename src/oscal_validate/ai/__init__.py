@@ -17,6 +17,6 @@ from __future__ import annotations
 
 #: Bumped whenever any prompt text changes. Recorded in every eval result so a
 #: number can be tied to the exact wording that produced it.
-PROMPT_VERSION = "2026-08-21.2"
+PROMPT_VERSION = "2026-08-29.1"
 
 __all__ = ["PROMPT_VERSION"]

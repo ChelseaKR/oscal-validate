@@ -65,10 +65,33 @@ def run(document: Path, resolve: list[Path], fmt: str) -> bytes:
 def main() -> None:
     manifest: dict[str, dict[str, object]] = {}
     cases = list(CASES)
+    missing: list[str] = []
     for name, relative in CACHED:
         path = CACHE / relative
         if path.is_file():
             cases.append((name, path, []))
+        else:
+            missing.append(f"{name}: {relative}")
+    # Refuse to write a smaller manifest than the one already committed. The
+    # cached documents are absent on most machines, and capturing without them
+    # used to drop their entries silently: the goldens for those eight stayed
+    # on disk holding output nobody would compare against again, and the gate
+    # shrank from twelve documents to four without saying so. A capture that
+    # cannot cover what the manifest already covers is refused, not narrowed.
+    existing_path = GOLDEN / "manifest.json"
+    if missing and existing_path.is_file():
+        existing = json.loads(existing_path.read_text(encoding="utf-8"))
+        covered = {name for name, _, _ in cases}
+        lost = sorted(set(existing) - covered)
+        if lost:
+            print(
+                "refusing to capture: the committed manifest covers "
+                f"{len(existing)} case(s) and this run can only reach {len(covered)}.\n"
+                "Populate the cache first, or these goldens would be dropped:\n  "
+                + "\n  ".join(lost),
+                file=sys.stderr,
+            )
+            raise SystemExit(2)
     for name, document, resolve in cases:
         for fmt in ("text", "json"):
             (GOLDEN / f"{name}.{fmt}.out").write_bytes(run(document, resolve, fmt))

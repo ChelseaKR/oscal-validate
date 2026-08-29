@@ -91,23 +91,24 @@ VALUE_KINDS = ("allowed-values", "matches")
 #: computed by ``_skip_reason`` and published in ``docs/CONSTRAINT-COVERAGE.md``;
 #: these are only the one-line summaries the report carries.
 #:
-#: The ``allowed-values`` sentence below is WRONG and is left in place under
-#: protest. 60 of the 200 vendored sets declare ``allow-other``, not "most",
-#: and the Metaschema specification makes the absent attribute mean the set is
-#: closed, so the sentence has the default backwards. It cannot be corrected in
-#: the same change that corrected the per-constraint reasons: this text reaches
-#: the model through ``ai/walkthrough.py``'s prompt block, and the cassette at
-#: ``tests/cassettes/walkthrough-nist-ssp.json`` is keyed on a hash of the exact
-#: prompt, so changing one character here misses the recording and fails
-#: ``tests/test_ai_walkthrough.py``. Re-recording is the procedure CONTRIBUTING
-#: prescribes and it needs a live call on the owner's Bedrock account, which is
-#: an owner action, not a code change. Until then the corrected reason is one
-#: click away in the coverage document this sentence already points at.
+#: The ``allowed-values`` sentence read "most allowed-value sets declare
+#: allow-other, so a value outside them is not necessarily a violation" until
+#: 2026-08-29. It was false in both halves. 60 of the 200 vendored sets declare
+#: ``allow-other`` and 140 do not, so "most" is wrong; and Metaschema makes the
+#: absent attribute mean the set is *closed*, so the leniency it implied has the
+#: default backwards. It now states the reason the per-constraint reasons and
+#: the README's Limits section already gave: what is missing is the
+#: applicable-set resolution, not a judgment about openness. The spec is
+#: explicit that the applicable set is what decides, since ``allow-other="yes"``
+#: opens a set only "as long as no other <allowed-values> constraint in the
+#: applicable set has @allow-other="no" declared explicitly or implicitly".
+#: ``tests/test_metaschema.py`` now holds this sentence against the vendored
+#: counts, so a frequency claim the files contradict cannot come back.
 UNEVALUATED_KINDS = {
     "expect": "the test is a Metapath expression, which this tool does not implement",
     "matches": "the value constraint is applied through Metapath datatype coercion",
-    "allowed-values": "most allowed-value sets declare allow-other, so a value outside "
-    "them is not necessarily a violation",
+    "allowed-values": "which values a value node permits is decided by the applicable "
+    "set of constraints sharing its target, and this tool does not resolve that set",
 }
 
 #: What the Metaschema specification says an absent ``allow-other`` means:
