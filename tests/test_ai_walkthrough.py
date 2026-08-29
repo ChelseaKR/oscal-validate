@@ -20,6 +20,10 @@ CASSETTES = Path(__file__).resolve().parent / "cassettes"
 CASSETTE = CASSETTES / "walkthrough-nist-ssp.json"
 PENDING = CASSETTES / "pending-rerecord.json"
 
+#: Sentences the boundary guard withholds from the committed recording. See the
+#: comment at its assertion; it moves whenever the cassette is re-recorded.
+RECORDED_WITHHELD_SENTENCES = 2
+
 
 def _walkthrough_prompt_key() -> str:
     """The key the walkthrough would look up for the recorded fixture, today."""
@@ -207,11 +211,23 @@ def test_the_cli_replays_a_recorded_live_walkthrough(
     assert payload["provenance"]["model"] in served
     assert w["groups_covered"] == len(w["groups"]) == 5
     assert w["invented_labels"] == [] and w["not_covered"] == []
-    assert w["withheld_sentences"] == 0
     assert sum(g["count"] for g in w["groups"]) == 23
+    # A property of the recorded reply, not of the tool. The 2026-08-21
+    # recording had no sentence withheld; the 2026-08-29 one has two, because
+    # the reply happens to phrase things the boundary guard screens. One is a
+    # sentence about fix order containing "must be addressed", which the guard
+    # treats as a judgment: it errs toward withholding, which is the direction
+    # it is supposed to err in. Named rather than left as a bare literal, so a
+    # later re-record moves a documented number instead of looking like a
+    # regression in the guard.
+    assert w["withheld_sentences"] == RECORDED_WITHHELD_SENTENCES
+
     assert main(["walkthrough", doc, "--no-index"]) == 0
     text = capsys.readouterr().out
     assert "5 of 5 group(s) covered" in text and "index:" not in text
+    # The invariant that does belong to the tool, and holds for any recording:
+    # the count it reports is the number of withholdings the reader is shown.
+    assert text.count(WITHHELD) == w["withheld_sentences"]
 
 
 def test_a_cassette_that_does_not_answer_this_prompt_fails_closed(

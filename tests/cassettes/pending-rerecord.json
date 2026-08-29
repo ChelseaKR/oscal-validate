@@ -14,15 +14,5 @@
     "Removing an entry is part of re-recording, not a separate decision: once the",
     "recording matches the current prompt, the entry must go or the suite fails."
   ],
-  "cassettes": {
-    "walkthrough-nist-ssp.json": {
-      "stale_since": "2026-08-29",
-      "expires": "2026-11-27",
-      "owner": "repository owner (holds the Bedrock account)",
-      "recorded_prompt_version": "2026-08-21.2",
-      "current_prompt_version": "2026-08-29.1",
-      "reason": "Two changes to the walkthrough prompt, in this order. (1) The CONSTRAINT_NOT_EVALUATED message for allowed-values stated something false about NIST semantics on every run that produced one, and correcting it changed the finding text the prompt block used to embed. (2) The prompt block no longer embeds finding.message at all, so that a later copy edit to report prose cannot invalidate this recording again. The recorded reply is a genuine answer to the old prompt and is kept, unaltered, until it is replaced by a real call.",
-      "rerecord": "make rerecord-walkthrough"
-    }
-  }
+  "cassettes": {}
 }

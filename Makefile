@@ -48,24 +48,39 @@ coverage-doc:
 # tests/cassettes/pending-rerecord.json.
 #
 # The recording is keyed by a hash of the exact prompt, so it has to be made at
-# the commit whose prompt it is meant to answer. Recording deletes the stale
-# entry first: a cassette holding an answer to a prompt nobody asks any more is
-# what made the old recording confusing to reason about.
+# the commit whose prompt it is meant to answer.
 #
 #   AWS_REGION=<region> make rerecord-walkthrough
+#
+# RERECORD_MODEL is pinned rather than left to the provider default so that
+# successive recordings stay comparable to the one they replace: the cassette
+# records the model that answered, and a re-record that silently landed on a
+# different model would change the artifact and the reason for the change at
+# the same time. Override it deliberately, not by drifting.
+#
+# The call writes to a temporary cassette and only replaces the committed one
+# once it has succeeded, so a failed or refused call leaves the existing
+# recording intact rather than destroying it on the way out.
 #
 # Afterwards, delete the walkthrough entry from
 # tests/cassettes/pending-rerecord.json. The suite fails while a fresh cassette
 # still carries a stale-declaration, so this is not a step that can be
 # forgotten silently. Then run `make verify` and commit both files together.
+RERECORD_MODEL ?= global.anthropic.claude-sonnet-4-6
+RERECORD_CASSETTE := tests/cassettes/walkthrough-nist-ssp.json
+RERECORD_TMP := tests/cassettes/.walkthrough-nist-ssp.recording.json
+
 rerecord-walkthrough:
 	@test -n "$$AWS_REGION" || { echo "AWS_REGION is not set; see the comment above this target."; exit 2; }
-	rm -f tests/cassettes/walkthrough-nist-ssp.json
+	@rm -f $(RERECORD_TMP)
 	OSCAL_VALIDATE_AI_PROVIDER=bedrock \
-	OSCAL_VALIDATE_AI_CASSETTE=tests/cassettes/walkthrough-nist-ssp.json \
+	OSCAL_VALIDATE_AI_MODEL=$(RERECORD_MODEL) \
+	OSCAL_VALIDATE_AI_CASSETTE=$(RERECORD_TMP) \
 	OSCAL_VALIDATE_AI_RECORD=1 \
 	uv run oscal-validate walkthrough tests/fixtures/nist_ssp_example.json --format json > /dev/null
-	@echo "recorded. Now remove the walkthrough entry from tests/cassettes/pending-rerecord.json."
+	@test -s $(RERECORD_TMP) || { echo "no recording was written; the committed cassette is untouched."; rm -f $(RERECORD_TMP); exit 1; }
+	@mv $(RERECORD_TMP) $(RERECORD_CASSETTE)
+	@echo "recorded with $(RERECORD_MODEL). Now remove the walkthrough entry from tests/cassettes/pending-rerecord.json."
 
 clean:
 	rm -rf .coverage .pytest_cache .mypy_cache .ruff_cache dist build
