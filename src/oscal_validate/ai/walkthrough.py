@@ -70,7 +70,7 @@ TIERS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ),
     (
         "Not settled: UNVERIFIABLE",
-        "neither a pass nor a fail; what would settle each is named in the finding",
+        "neither a pass nor a fail; the validator did not decide these either way",
         ("REFERENCE_UNVERIFIABLE", "CONSTRAINT_NOT_EVALUATED", "PATTERN_NOT_CHECKED"),
     ),
     (
@@ -97,12 +97,22 @@ class Group:
         return f"{self.label}: {self.severity} {self.code} x{len(self.findings)} ({self.tier})"
 
     def prompt_block(self, run: Run) -> str:
+        """The group as structured facts. Never the report's rendered prose.
+
+        Each line carries the finding's own fields -- label, location,
+        property, value -- and the tier text above them is authored here, for
+        this prompt. ``finding.message`` is deliberately absent: it is the
+        report's human-facing rendering, and a prompt that embedded it made
+        every copy edit to a report sentence a change to a recorded model
+        interaction. ``tests/test_ai_prompt_decoupling.py`` fails if a message
+        reaches the prompt again.
+        """
         lines = [f"{self.label}  {self.severity} {self.code}  {len(self.findings)} finding(s)"]
         lines.append(f"    tier: {self.tier} -- {self.why}")
         for finding in self.findings[:EXAMPLES_PER_GROUP]:
             lines.append(
-                f"    {run.label(finding)} at={finding.location} {finding.prop}="
-                f"{finding.value[:60]}: {finding.message[:160]}"
+                f"    {run.label(finding)} at={finding.location} "
+                f"{finding.prop}={finding.value[:60]}"
             )
         if len(self.findings) > EXAMPLES_PER_GROUP:
             lines.append(
