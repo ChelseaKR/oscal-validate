@@ -10,6 +10,26 @@ and this project adheres to
 
 ### Fixed
 
+- **The Bedrock default named a model this tool has never once been able to
+  call.** `DEFAULT_BEDROCK_MODEL` was `global.anthropic.claude-sonnet-5`.
+  `InvokeModel` on a Sonnet 5 Bedrock id returns HTTP 403
+  `AccessDeniedException` on the account that produced every cassette and every
+  eval result in this repository, so `OSCAL_VALIDATE_AI_PROVIDER=bedrock`
+  without an explicit `OSCAL_VALIDATE_AI_MODEL` could not complete a single
+  call. Bedrock's entitlement API reports that same model AUTHORIZED and ACTIVE
+  on the same account at the same time, which is why the default looked fine
+  and why the rule here is that only an invocation is evidence of a model being
+  runnable. It is now `global.anthropic.claude-sonnet-4-6`, which is what
+  `make rerecord-walkthrough` already pins, what the 2026-08-29 cassette was
+  recorded on, and what every published eval in `docs/evals/` was measured on.
+
+  `DEFAULT_MODEL` stays `claude-sonnet-5`. The two are deliberately different:
+  Bedrock grants model access per account and the Claude API does not, so the
+  right default for a third-party deployer with ordinary API access is not the
+  right default here. `tests/test_ai_client.py` pins both literals so that a
+  well-meaning "these should match" tidy-up fails the build with the reason
+  attached rather than quietly re-breaking Bedrock.
+
 - **The report stated something false about NIST's `allow-other` semantics on
   every run that produced an `allowed-values` coverage finding, and no longer
   does.** The per-kind `CONSTRAINT_NOT_EVALUATED` sentence read "most
@@ -93,9 +113,13 @@ and this project adheres to
 
   Recorded with `global.anthropic.claude-sonnet-4-6`, the same model as the
   recording it replaces, so the two artifacts stay comparable. That is a
-  deliberate pin and not an availability constraint: `claude-sonnet-5` is ACTIVE
-  on this account today under both the `global.` and `us.` prefixes, so the
-  repository default would also have resolved. `make rerecord-walkthrough` now
+  deliberate pin. It was also written up here as "not an availability
+  constraint", on the grounds that `claude-sonnet-5` reported ACTIVE on this
+  account under both the `global.` and `us.` prefixes; that was a query result,
+  not an invocation, and it is wrong. `InvokeModel` on a Sonnet 5 Bedrock id
+  returns 403 `AccessDeniedException` for this account, so the repository
+  default would *not* have resolved and the pin was load-bearing. Corrected
+  below. `make rerecord-walkthrough` now
   carries the model as `RERECORD_MODEL` rather than inheriting whatever the
   provider default drifts to, and records to a temporary file that replaces the
   committed cassette only on success, so a failed call can no longer destroy

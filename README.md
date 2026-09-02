@@ -308,7 +308,13 @@ A reply that cannot be parsed shows nothing.
 **Model and provider.** The public `anthropic` SDK, default
 `claude-sonnet-5`, configurable with `OSCAL_VALIDATE_AI_MODEL`;
 `OSCAL_VALIDATE_AI_PROVIDER=bedrock` with `AWS_REGION` uses Amazon Bedrock
-(`pip install 'oscal-validate[bedrock]'`). Credentials come from the
+(`pip install 'oscal-validate[bedrock]'`), where the default is a different
+model, `global.anthropic.claude-sonnet-4-6`. Bedrock grants model access per
+account rather than per SDK, so the two defaults answer different questions:
+the Bedrock one is the model every recorded eval and cassette here was actually
+produced with, and Sonnet 5 returns `AccessDeniedException` on that account
+whatever its entitlement API says. Set `OSCAL_VALIDATE_AI_MODEL` if your own
+account is entitled to something newer. Credentials come from the
 environment and are never written anywhere. `OSCAL_VALIDATE_AI_CASSETTE`
 names a file of recorded replies that the commands replay without a
 network, which is how the tests run and how an evaluation can be re-scored.
