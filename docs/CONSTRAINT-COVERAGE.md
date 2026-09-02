@@ -12,7 +12,7 @@ where it does not, the reason.
 
 ## Summary
 
-102 of 340 published constraints are evaluated.
+113 of 340 published constraints are evaluated.
 
 | Constraint kind | Published | Evaluated |
 |---|---:|---:|
@@ -22,8 +22,8 @@ where it does not, the reason.
 | `index` | 20 | 19 |
 | `index-has-key` | 24 | 24 |
 | `is-unique` | 48 | 48 |
-| `matches` | 25 | 0 |
-| **total** | **340** | **102** |
+| `matches` | 25 | 11 |
+| **total** | **340** | **113** |
 
 ## Evaluated
 
@@ -131,6 +131,17 @@ where it does not, the reason.
 | `oscal-unique-ssp-uses-component-responsible-party` | is-unique | ERROR | `uses-component` | `responsible-party` |
 | `oscal-unique-step-responsible-role` | is-unique | ERROR | `step` | `responsible-role` |
 | `oscal-unique-system-component-responsible-role` | is-unique | ERROR | `system-component` | `responsible-role` |
+| `oscal-back-matter-resource-prop-published-datatype` | matches | ERROR | `resource` | `prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='published']/@value` |
+| `oscal-check-hash-length-SHA2-3-224` | matches | ERROR | `hash` | `.[@algorithm=('SHA-224','SHA3-224')]` |
+| `oscal-check-hash-length-SHA2-3-256` | matches | ERROR | `hash` | `.[@algorithm=('SHA-256','SHA3-256')]` |
+| `oscal-check-hash-length-SHA2-3-384` | matches | ERROR | `hash` | `.[@algorithm=('SHA-384','SHA3-384')]` |
+| `oscal-check-hash-length-SHA2-3-512` | matches | ERROR | `hash` | `.[@algorithm=('SHA-512','SHA3-512')]` |
+| `oscal-component-inherited-uuid-value-datatype` | matches | ERROR | `system-component` | `prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='inherited-uuid']/@value` |
+| `oscal-component-inherited-uuid-value-datatype` | matches | ERROR | `defined-component` | `prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='inherited-uuid']/@value` |
+| `oscal-component-prop-uri-value-datatype` | matches | ERROR | `system-component` | `prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='uri']/@value` |
+| `oscal-component-release-date-value-datatype` | matches | ERROR | `system-component` | `prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='release-date']/@value` |
+| `oscal-component-release-date-value-datatype` | matches | ERROR | `defined-component` | `prop[has-oscal-namespace('http://csrc.nist.gov/ns/oscal') and @name='release-date']/@value` |
+| `oscal-metadata-telephone-number-regex` | matches | WARNING | `telephone-number` | `.` |
 
 ## Evaluated, but reading an index that is never built
 
@@ -359,28 +370,17 @@ Neither passed nor failed. A document that this tool reports no findings for may
 | `oscal-poam-item-uuid` | expect | `poam-item` | its test is a Metapath expression this tool does not implement: @uuid (on poam-item) |
 | `oscal-profile-req-merge-combine` | expect | `combine` | its test is a Metapath expression this tool does not implement: not(@method='merge') (on combine) |
 | `oscal-ssp-by-component-uuid-index` | index | `system-security-plan` | its target dereferences a second document through doc(), which this tool does not implement: control-implementation/implemented-requirement//by-component|doc(system-implementation/leveraged-authorization/link[@rel='system-security-plan']/@href)/system-security-plan/control-implementation/implemented-requirement//by-component |
-| `oscal-back-matter-resource-prop-published-datatype` | matches | `resource` | its target is read, and this tool does not yet apply the datatype date-time-with-timezone |
-| `oscal-check-hash-length-SHA2-3-224` | matches | `hash` | its target is read, and this tool does not yet apply the regex ^[0-9a-fA-F]{56}$ |
-| `oscal-check-hash-length-SHA2-3-256` | matches | `hash` | its target is read, and this tool does not yet apply the regex ^[0-9a-fA-F]{64}$ |
-| `oscal-check-hash-length-SHA2-3-384` | matches | `hash` | its target is read, and this tool does not yet apply the regex ^[0-9a-fA-F]{96}$ |
-| `oscal-check-hash-length-SHA2-3-512` | matches | `hash` | its target is read, and this tool does not yet apply the regex ^[0-9a-fA-F]{128}$ |
-| `oscal-component-inherited-uuid-value-datatype` | matches | `system-component` | its target is read, and this tool does not yet apply the datatype uuid |
-| `oscal-component-inherited-uuid-value-datatype` | matches | `defined-component` | its target is read, and this tool does not yet apply the datatype uuid |
-| `oscal-component-prop-ipv4address-value-datatype` | matches | `system-component` | its target is read, and this tool does not yet apply the datatype ip-v4-address |
-| `oscal-component-prop-ipv6address-value-datatype` | matches | `system-component` | its target is read, and this tool does not yet apply the datatype ip-v6-address |
-| `oscal-component-prop-isa-date-value-datatype` | matches | `system-component` | its target is read, and this tool does not yet apply the datatype date-time |
-| `oscal-component-prop-uri-value-datatype` | matches | `system-component` | its target is read, and this tool does not yet apply the datatype uri |
-| `oscal-component-release-date-value-datatype` | matches | `system-component` | its target is read, and this tool does not yet apply the datatype date |
-| `oscal-component-release-date-value-datatype` | matches | `defined-component` | its target is read, and this tool does not yet apply the datatype date |
+| `oscal-component-prop-ipv4address-value-datatype` | matches | `system-component` | the vendored JSON Schema declares no datatype named ip-v4-address, so there is no published pattern to apply and writing one would be a rule encoded from memory |
+| `oscal-component-prop-ipv6address-value-datatype` | matches | `system-component` | the vendored JSON Schema declares no datatype named ip-v6-address, so there is no published pattern to apply and writing one would be a rule encoded from memory |
+| `oscal-component-prop-isa-date-value-datatype` | matches | `system-component` | the vendored JSON Schema declares no datatype named date-time, so there is no published pattern to apply and writing one would be a rule encoded from memory |
 | `oscal-diagram-datatype-uri` | matches | `diagram` | its target names a value through an expression outside the subset this tool parses: link[@rel='diagram']/@href[not(starts-with(.,'#'))] |
 | `oscal-diagram-datatype-uri-reference` | matches | `diagram` | its target names a value through an expression outside the subset this tool parses: link[@rel='diagram']/@href[starts-with(.,'#')] |
 | `oscal-leveraged-authorization-link-rel-ssp-datatype-uri` | matches | `leveraged-authorization` | its target names a value through an expression outside the subset this tool parses: link[@rel='system-security-plan']/@href[not(starts-with(.,'#'))] |
 | `oscal-leveraged-authorization-link-rel-ssp-datatype-uri-reference` | matches | `leveraged-authorization` | its target names a value through an expression outside the subset this tool parses: link[@rel='system-security-plan']/@href[starts-with(.,'#')] |
 | `oscal-metadata-link-reference-href-datatype-uri` | matches | `link` | its target names a value through an expression outside the subset this tool parses: .[@rel=('reference') and not(starts-with(@href,'#'))]/@href |
-| `oscal-metadata-link-reference-href-datatype-uri-reference` | matches | `link` | its target is read, and this tool does not yet apply the datatype uri-reference |
-| `oscal-metadata-link-resource-fragment-datatype` | matches | `link` | its target is read, and this tool does not yet apply the regex (?:[0-9a-zA-Z-._~/?!$&'()*+,;=:@]|%[0-9A-F][0-9A-F])+ |
-| `oscal-metadata-location-address-country-regex` | matches | `country` | its target is read, and this tool does not yet apply the regex [A-Z]{2} |
-| `oscal-metadata-telephone-number-regex` | matches | `telephone-number` | its target is read, and this tool does not yet apply the regex ^[0-9]{3}[0-9]{1,12}$ |
-| `oscal-risk-priority-datatype` | matches | `risk` | its target is read, and this tool does not yet apply the datatype integer |
+| `oscal-metadata-link-reference-href-datatype-uri-reference` | matches | `link` | the vendored JSON Schema declares uri-reference without a pattern, as 'A URI Reference, either a URI or a relative-reference, formatted according to section 4.1 of RFC3986.', so it carries nothing this check can apply to a value |
+| `oscal-metadata-link-resource-fragment-datatype` | matches | `link` | its regex (?:[0-9a-zA-Z-._~/?!$&'()*+,;=:@]|%[0-9A-F][0-9A-F])+ is not anchored at both ends, and the Metaschema specification does not say which regular-expression dialect a matches constraint uses. The datatypes page names two that disagree here, ECMA-262 as JSON Schema uses it, which searches, and XML Schema's, which anchors, and choosing one would be deciding something no published text decides |
+| `oscal-metadata-location-address-country-regex` | matches | `country` | its regex [A-Z]{2} is not anchored at both ends, and the Metaschema specification does not say which regular-expression dialect a matches constraint uses. The datatypes page names two that disagree here, ECMA-262 as JSON Schema uses it, which searches, and XML Schema's, which anchors, and choosing one would be deciding something no published text decides |
+| `oscal-risk-priority-datatype` | matches | `risk` | the vendored JSON Schema declares integer without a pattern, as 'A whole number value.', so it carries nothing this check can apply to a value |
 | `oscal-system-information-pia-datatype-uri` | matches | `system-information` | its target names a value through an expression outside the subset this tool parses: link[@rel='privacy-impact-assessment']/@href[not(starts-with(.,'#'))] |
 | `oscal-system-information-pia-datatype-uri-reference` | matches | `system-information` | its target names a value through an expression outside the subset this tool parses: link[@rel='privacy-impact-assessment']/@href[starts-with(.,'#')] |

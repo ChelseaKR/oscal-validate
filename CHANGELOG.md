@@ -8,6 +8,41 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- **NIST's `matches` constraints are evaluated, 11 of the 25**, at the `level`
+  NIST declares on each, under the new code `CONSTRAINT_VALUE_MISMATCH`.
+  Coverage goes from 102 to 113 of 340. A `@regex` is applied as published. A
+  `@datatype` is applied using the pattern the vendored JSON Schema already
+  declares for that datatype, which is the same pattern check 2 applies, so no
+  pattern is written in this repository. The correspondence between a
+  metaschema datatype name and a schema definition is computed rather than
+  tabulated: both sides lowercased with hyphens removed, so `uri-reference`
+  meets `URIReferenceDatatype` and `uuid` meets `UUIDDatatype`.
+
+  The other 14 say which of four things stopped them. Seven name a target
+  outside the parsed subset. Three name a datatype the vendored schema does not
+  define at all (`date-time`, `ip-v4-address`, `ip-v6-address`), and writing a
+  pattern for an IP address from knowledge of what one looks like is the rule
+  this tool refuses to encode. Two name a datatype the schema defines without a
+  pattern (`integer`, `uri-reference`), which carries nothing to apply. Two
+  carry a regex that is not anchored at both ends, and the Metaschema
+  specification never says which regular-expression dialect a `matches`
+  constraint uses while the datatypes page names two that disagree there, so
+  the question is left undecided rather than decided quietly.
+
+  Every published document in the corpus conforms to all 11, so the evidence
+  that these checks can fail is eight seeded corruptions in
+  `tests/test_break_the_gate.py`, three of them negative controls that stay
+  clean. The goldens moved by exactly one line in each document, the count of
+  unevaluated `matches` going from 25 to 14, and no document gained or lost a
+  finding.
+
+  `CONSTRAINT_VALUE_MISMATCH` is on the `ROSTER` in
+  `tests/test_finding_code_census.py` with a witness of its own, a six-character
+  SHA-256 in an otherwise clean catalog, so the new code cannot sit in the
+  source unexercised.
+
 ### Fixed
 
 - **The report stated something false about NIST's `allow-other` semantics on

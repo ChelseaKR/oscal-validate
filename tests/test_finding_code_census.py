@@ -45,6 +45,7 @@ ROSTER = frozenset(
         "CONSTRAINT_CARDINALITY",
         "CONSTRAINT_NOT_EVALUATED",
         "CONSTRAINT_NOT_UNIQUE",
+        "CONSTRAINT_VALUE_MISMATCH",
         "DATATYPE_BELOW_MINIMUM",
         "DATATYPE_MISMATCH",
         "IMPORT_AMBIGUOUS",
@@ -236,6 +237,18 @@ def _witness_constraint_not_unique() -> Any:
     return document
 
 
+def _witness_constraint_value_mismatch() -> Any:
+    """``oscal-check-hash-length-SHA2-3-256`` declares ``^[0-9a-fA-F]{64}$``.
+
+    Six hexadecimal characters under ``algorithm="SHA-256"`` is the shortest
+    way to trip a ``matches`` constraint on a document that is otherwise clean.
+    """
+    document = _catalog()
+    resource = document["catalog"]["back-matter"]["resources"][0]
+    resource["rlinks"][0]["hashes"] = [{"algorithm": "SHA-256", "value": "abcdef"}]
+    return document
+
+
 def _witness_reference_unresolved() -> Any:
     document = _catalog()
     document["catalog"]["metadata"]["links"][0]["href"] = "#no-such-identifier"
@@ -267,6 +280,7 @@ WITNESSES: dict[str, tuple[str, Any, bool]] = {
     "UUID_NOT_UNIQUE": ("duplicate-uuid", _witness_uuid_not_unique(), False),
     "CONSTRAINT_NOT_UNIQUE": ("duplicate-control", _witness_constraint_not_unique(), False),
     "CONSTRAINT_CARDINALITY": ("no-rlink", _witness_cardinality_warning(), False),
+    "CONSTRAINT_VALUE_MISMATCH": ("short-hash", _witness_constraint_value_mismatch(), False),
     "REFERENCE_UNRESOLVED": ("dangling", _witness_reference_unresolved(), False),
     "OSCAL_VERSION_DIFFERS": ("older-release", _witness_oscal_version_differs(), False),
     "PATTERN_NOT_CHECKED": ("clean-catalog", _catalog(), False),
