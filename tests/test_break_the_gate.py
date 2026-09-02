@@ -670,3 +670,133 @@ def test_a_component_with_distinct_responsible_roles_is_not_caught(tmp_path: Pat
         and f.location.startswith("/system-security-plan/system-implementation/components/0")
     ]
     assert findings == []
+
+
+# -- matches constraints, seeded one at a time --------------------------------
+#
+# Every published document in the corpus conforms to all eleven of the matches
+# constraints this tool evaluates, so none of them has ever been observed to
+# fire on real data. That is exactly the condition under which a check has to
+# be broken on purpose before it is believed: each case below corrupts one
+# value in a proven-clean document in the way one published constraint exists
+# to catch, and every one of them produced no finding at all before the check
+# existed.
+
+
+def test_a_hash_of_the_wrong_length_for_its_algorithm_is_caught(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """oscal-check-hash-length-SHA2-3-256 declares ^[0-9a-fA-F]{64}$ at ERROR."""
+    resource = clean_catalog["catalog"]["back-matter"]["resources"][0]
+    resource["rlinks"][0]["hashes"] = [{"algorithm": "SHA-256", "value": "abcdef"}]
+    findings = validate_file(write(tmp_path, "c.json", clean_catalog))
+    caught = [f for f in findings if f.code == "CONSTRAINT_VALUE_MISMATCH"]
+    assert caught, "a six-character SHA-256 was not caught"
+    assert caught[0].severity is Severity.ERROR
+    assert caught[0].location == "/catalog/back-matter/resources/0/rlinks/0/hashes/0/value"
+    assert "oscal-check-hash-length-SHA2-3-256" in caught[0].message
+
+
+def test_a_hash_of_the_right_length_for_a_different_algorithm_is_caught(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """The predicate selects by algorithm, so a valid SHA-224 under SHA-256 fails.
+
+    This is the case a length check without the predicate would miss, and it is
+    why the target's predicate has to be read rather than approximated.
+    """
+    resource = clean_catalog["catalog"]["back-matter"]["resources"][0]
+    resource["rlinks"][0]["hashes"] = [{"algorithm": "SHA-256", "value": "a" * 56}]
+    assert "CONSTRAINT_VALUE_MISMATCH" in _errors(write(tmp_path, "c.json", clean_catalog))
+
+
+def test_a_hash_that_matches_its_declared_algorithm_is_not_caught(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """The negative control: the same shape, correct, produces nothing.
+
+    Without this, a check that flagged every hash would pass the two cases
+    above and be indistinguishable from one that works.
+    """
+    resource = clean_catalog["catalog"]["back-matter"]["resources"][0]
+    resource["rlinks"][0]["hashes"] = [{"algorithm": "SHA-256", "value": "a" * 64}]
+    assert "CONSTRAINT_VALUE_MISMATCH" not in _codes(write(tmp_path, "c.json", clean_catalog))
+
+
+def test_a_published_prop_that_is_not_a_timestamp_is_caught(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """oscal-back-matter-resource-prop-published-datatype, date-time-with-timezone."""
+    resource = clean_catalog["catalog"]["back-matter"]["resources"][0]
+    resource["props"] = [{"name": "published", "value": "last Tuesday"}]
+    findings = [
+        f
+        for f in validate_file(write(tmp_path, "c.json", clean_catalog))
+        if f.code == "CONSTRAINT_VALUE_MISMATCH"
+    ]
+    assert findings, "a published prop that is not a timestamp was not caught"
+    assert "date-time-with-timezone" in findings[0].message
+
+
+def test_a_published_prop_in_another_namespace_is_not_caught(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """The negative control for the namespace half of the predicate.
+
+    NIST scopes the constraint to props in its own namespace, so the same name
+    under someone else's namespace is not this constraint's business. A check
+    that ignored has-oscal-namespace would report against it.
+    """
+    resource = clean_catalog["catalog"]["back-matter"]["resources"][0]
+    resource["props"] = [
+        {"name": "published", "value": "last Tuesday", "ns": "https://example.org/ns"}
+    ]
+    assert "CONSTRAINT_VALUE_MISMATCH" not in _codes(write(tmp_path, "c.json", clean_catalog))
+
+
+def test_a_telephone_number_that_is_not_digits_is_caught_at_nists_level(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """oscal-metadata-telephone-number-regex is declared WARNING, not ERROR.
+
+    The severity is NIST's. A check that promoted it would make this document
+    exit nonzero over a phone number, which the published level does not say.
+    """
+    party = clean_catalog["catalog"]["metadata"]["parties"][0]
+    party["telephone-numbers"] = [{"type": "office", "number": "+1 (555) 010-0000"}]
+    findings = [
+        f
+        for f in validate_file(write(tmp_path, "c.json", clean_catalog))
+        if f.code == "CONSTRAINT_VALUE_MISMATCH"
+    ]
+    assert findings, "a non-numeric telephone number was not caught"
+    assert findings[0].severity is Severity.WARNING
+    assert "CONSTRAINT_VALUE_MISMATCH" not in _errors(write(tmp_path, "c.json", clean_catalog))
+
+
+def test_a_telephone_number_of_bare_digits_is_not_caught(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    party = clean_catalog["catalog"]["metadata"]["parties"][0]
+    party["telephone-numbers"] = [{"type": "office", "number": "5550100000"}]
+    assert "CONSTRAINT_VALUE_MISMATCH" not in _codes(write(tmp_path, "c.json", clean_catalog))
+
+
+def test_a_component_release_date_that_is_not_a_date_is_caught(tmp_path: Path) -> None:
+    """oscal-component-release-date-value-datatype, and the model scoping with it.
+
+    The constraint is declared in implementation-common, which governs the SSP
+    and the component definition. A catalog carrying the same shape is not its
+    business, which the second half of this test holds.
+    """
+    document = copy.deepcopy(load_fixture("nist_ssp_example.json"))
+    components = document["system-security-plan"]["system-implementation"]["components"]
+    components[0].setdefault("props", []).append({"name": "release-date", "value": "not-a-date"})
+    findings = [
+        f
+        for f in validate_file(write(tmp_path, "s.json", document))
+        if f.code == "CONSTRAINT_VALUE_MISMATCH"
+    ]
+    assert findings, "a malformed release-date on a component was not caught"
+    assert findings[0].severity is Severity.ERROR
+    assert "oscal-component-release-date-value-datatype" in findings[0].message

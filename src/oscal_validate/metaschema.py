@@ -32,6 +32,8 @@ from importlib import resources
 from typing import Any
 from xml.etree import ElementTree
 
+from .schema import Datatype, load_schema
+
 NS = "{http://csrc.nist.gov/ns/oscal/metaschema/1.0}"
 
 #: The vendored metaschema modules, in the order they are read.
@@ -388,12 +390,38 @@ def parse_value_target(expression: str) -> ValueTarget | None:
       ``path`` is parsed by the existing node grammar and nothing is widened.
     - anything the node grammar already parses: the values of those nodes.
 
-    A top-level union whose alternatives carry their own flag steps is
-    declined, because ``parse_target`` refuses the alternative that starts with
-    ``@``. Declining is the point: an under-selected value target checks fewer
-    values than NIST wrote.
+    A fourth shape is read here rather than by the node grammar: a top-level
+    union whose alternatives each carry their own flag step. Every alternative
+    must name the same flag, and a union ending in different flags is refused,
+    because reading it as one value set would merge two questions NIST asked
+    separately.
+
+    198 of the 200 vendored ``allowed-values`` targets and 18 of the 25
+    ``matches`` targets parse. What is still refused, and stays refused:
+    a union of whole paths rather than of names
+    (``(.|statement|.//by-component)/prop/@name``, 2 targets), a predicate on
+    the flag itself, and negation inside a predicate. Declining is the point:
+    an under-selected value target checks fewer values than NIST wrote.
+    ``tests/test_metaschema.py`` pins both the shapes that parse and the shapes
+    that do not, so a widening that swallowed everything would fail.
     """
     text = expression.strip()
+    alternatives = _split_top(text, "|")
+    if len(alternatives) > 1 and any("@" in part for part in alternatives):
+        # A top-level union whose alternatives each carry their own flag step,
+        # as oscal-ssp-all-responsible-role-values is written. Every
+        # alternative must name the same flag: reading a union that ended in
+        # different flags as one value set would merge two questions NIST asked
+        # separately. The paths are unioned and select_paths deduplicates them
+        # by location, so a node reached twice is one value, not two.
+        parsed = [parse_value_target(part.strip()) for part in alternatives]
+        if any(one is None for one in parsed):
+            return None
+        flags = {one.flag for one in parsed if one is not None}
+        if len(flags) != 1:
+            return None
+        union = tuple(path for one in parsed if one is not None for path in one.paths)
+        return ValueTarget(union, flags.pop())
     match = _FLAG_STEP.fullmatch(text)
     if match:
         return ValueTarget(((),), match.group(1))
@@ -470,9 +498,14 @@ def _parse_segment(segment: str, descendant: bool) -> Step | None:
     if name_part == ".":
         return None if descendant else Step((), False, tuple(predicates))
     if name_part.startswith("(") and name_part.endswith(")"):
-        if not descendant:
-            return None
-        names = tuple(part.strip() for part in name_part[1:-1].split("|"))
+        inner = name_part[1:-1].strip()
+        # ``(.)`` is the context node in parentheses and nothing else, which is
+        # how 37 of the vendored value targets are written:
+        # ``(.)[@type='software']/prop[...]/@name``. It means the same as ``.``
+        # and is only bracketed so a predicate can follow the group.
+        if inner == ".":
+            return None if descendant else Step((), False, tuple(predicates))
+        names = tuple(part.strip() for part in inner.split("|"))
     else:
         names = (name_part,)
     if not all(_NAME.match(name) for name in names):
@@ -622,6 +655,78 @@ def _attributes_of(element: ElementTree.Element, kind: str) -> _ConstraintAttrib
     )
 
 
+@lru_cache(maxsize=1)
+def _datatypes_by_metaschema_name() -> dict[str, Datatype]:
+    """The vendored JSON Schema datatypes, keyed by their metaschema spelling.
+
+    The correspondence is mechanical and is computed, not written down: both
+    sides are lowercased with their hyphens removed, so ``uri-reference`` meets
+    ``URIReferenceDatatype`` and ``uuid`` meets ``UUIDDatatype``. A name that
+    does not meet exactly one definition resolves to nothing, which is how
+    ``ip-v4-address``, ``ip-v6-address`` and ``date-time`` come out: the
+    vendored schema declares no definition for any of them, and writing a
+    pattern for them from knowledge of what an IPv4 address looks like would be
+    a rule encoded from memory.
+    """
+    found: dict[str, list[Datatype]] = {}
+    for name, datatype in load_schema().datatypes.items():
+        key = name.removesuffix("Datatype").replace("-", "").lower()
+        found.setdefault(key, []).append(datatype)
+    return {key: values[0] for key, values in found.items() if len(values) == 1}
+
+
+def metaschema_datatype(name: str) -> Datatype | None:
+    """The vendored datatype a ``matches`` constraint's ``@datatype`` names."""
+    return _datatypes_by_metaschema_name().get(name.replace("-", "").lower())
+
+
+#: A regex both published dialects read the same way. The Metaschema
+#: specification says a value "MUST match the pattern specified by the given
+#: @regex" and never says which dialect that is, while the datatypes page names
+#: two that disagree: JSON Schema's ECMA-262 ``pattern``, which searches, and
+#: XML Schema's, which anchors. Where the published pattern anchors itself at
+#: both ends the two dialects give the same answer on every value, and the
+#: question does not have to be decided. Where it does not, it is not decided
+#: here: the constraint is reported unevaluated, naming the disagreement.
+def _regex_is_dialect_independent(pattern: str) -> bool:
+    return pattern.startswith("^") and pattern.endswith("$")
+
+
+def _matches_blocker(attributes: _ConstraintAttributes) -> str:
+    """Why a ``matches`` constraint whose target is read still cannot be applied."""
+    if attributes.regex and not _regex_is_dialect_independent(attributes.regex):
+        return (
+            f"its regex {attributes.regex} is not anchored at both ends, and the "
+            "Metaschema specification does not say which regular-expression dialect a "
+            "matches constraint uses. The datatypes page names two that disagree here, "
+            "ECMA-262 as JSON Schema uses it, which searches, and XML Schema's, which "
+            "anchors, and choosing one would be deciding something no published text "
+            "decides"
+        )
+    if not attributes.datatype:
+        return ""
+    datatype = metaschema_datatype(attributes.datatype)
+    if datatype is None:
+        return (
+            f"the vendored JSON Schema declares no datatype named {attributes.datatype}, "
+            "so there is no published pattern to apply and writing one would be a rule "
+            "encoded from memory"
+        )
+    if datatype.pattern is None:
+        return (
+            f"the vendored JSON Schema declares {attributes.datatype} without a pattern, "
+            f"as {datatype.description!r}, so it carries nothing this check can apply to "
+            "a value"
+        )
+    if datatype.compiled is None:
+        return (
+            f"the pattern the vendored schema declares for {attributes.datatype} uses "
+            "regular-expression syntax this tool cannot compile, the same limit "
+            "PATTERN_NOT_CHECKED reports"
+        )
+    return ""
+
+
 def _unparsed_target_reason(target: str) -> str:
     if "doc(" in target:
         return (
@@ -671,15 +776,7 @@ def _value_constraint_reason(
             "decides the permitted values"
         )
     if kind == "matches":
-        against = " and ".join(
-            part
-            for part in (
-                f"the regex {attributes.regex}" if attributes.regex else "",
-                f"the datatype {attributes.datatype}" if attributes.datatype else "",
-            )
-            if part
-        )
-        return f"its target is read, and this tool does not yet apply {against}"
+        return _matches_blocker(attributes)
     return (
         f"its test is a Metapath expression this tool does not implement: {attributes.test}"
     ) + (f" (on {context})" if context else "")
@@ -1043,6 +1140,7 @@ __all__ = [
     "ValueTarget",
     "key_values",
     "load_metaschema",
+    "metaschema_datatype",
     "parse_target",
     "parse_value_target",
     "read_module_bytes",

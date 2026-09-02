@@ -58,7 +58,7 @@
     {
       "code": "CONSTRAINT_NOT_EVALUATED",
       "location": "/profile",
-      "message": "NIST publishes 25 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "message": "NIST publishes 14 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
       "property": "matches",
       "rule": {
         "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
@@ -66,7 +66,7 @@
         "url": "README.md (Limits)"
       },
       "severity": "UNVERIFIABLE",
-      "value": "25 constraint(s)"
+      "value": "14 constraint(s)"
     },
     {
       "code": "IMPORT_NOT_SUPPLIED",

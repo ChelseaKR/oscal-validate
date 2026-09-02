@@ -28,6 +28,7 @@ from oscal_validate.metaschema import (
     Step,
     key_values,
     load_metaschema,
+    metaschema_datatype,
     parse_target,
     parse_value_target,
     read_module_bytes,
@@ -47,7 +48,13 @@ PUBLISHED = {
     "is-unique": 48,
     "matches": 25,
 }
-EVALUATED = {"has-cardinality": 11, "index": 19, "index-has-key": 24, "is-unique": 48}
+EVALUATED = {
+    "has-cardinality": 11,
+    "index": 19,
+    "index-has-key": 24,
+    "is-unique": 48,
+    "matches": 11,
+}
 
 
 def test_the_published_constraint_inventory_is_what_we_say_it_is() -> None:
@@ -58,7 +65,7 @@ def test_the_published_constraint_inventory_is_what_we_say_it_is() -> None:
 def test_the_evaluated_subset_is_what_we_say_it_is() -> None:
     metaschema = load_metaschema()
     assert Counter(c.kind for c in metaschema.evaluated()) == Counter(EVALUATED)
-    assert len(metaschema.evaluated()) == 102
+    assert len(metaschema.evaluated()) == 113
     assert len(metaschema.constraints) == 340
 
 
@@ -68,10 +75,19 @@ def test_every_skipped_constraint_says_why() -> None:
 
 
 def test_no_constraint_is_evaluated_without_a_parsed_target() -> None:
+    """Whatever a constraint selects by, it is evaluated only if that parsed.
+
+    A node kind needs a parsed node path; a value kind needs a parsed value
+    target. Neither is ever evaluated on an unparsed one, which is what stops
+    an under-selecting target from becoming a finding.
+    """
     for constraint in load_metaschema().evaluated():
-        assert constraint.kind in EVALUATED_KINDS
-        assert constraint.paths is not None
+        assert constraint.kind in EVALUATED_KINDS or constraint.kind in VALUE_KINDS
         assert constraint.context
+        if constraint.kind in VALUE_KINDS:
+            assert constraint.value_target is not None
+        else:
+            assert constraint.paths is not None
 
 
 def test_the_unevaluated_kinds_are_declared_with_reasons() -> None:
@@ -437,12 +453,13 @@ def test_a_kind_blocked_several_ways_publishes_several_reasons() -> None:
 
 
 def test_the_kind_summary_and_the_constraint_reason_are_separate_things() -> None:
-    """A report prints one summary per kind; the coverage document prints 238 reasons.
+    """A report prints one summary per kind; the coverage document prints one per constraint.
 
-    Keeping them separate is what let the per-constraint reasons be corrected
-    without touching a byte of report output. The kind summary is corrected
-    separately, and is blocked: it reaches the model through the walkthrough
-    prompt, and the cassette is keyed on that prompt.
+    227 of them today, one for each published constraint this tool does not
+    evaluate. Keeping the two separate is what let the per-constraint reasons be
+    corrected without touching a byte of report output, and it let the kind
+    summary be corrected on its own schedule: correcting it moved the goldens
+    and cost a cassette re-record, which happened on 2026-08-29.
     """
     groups: dict[str, set[str]] = {}
     for constraint in load_metaschema().skipped():
@@ -486,14 +503,15 @@ def test_a_value_target_parses_the_shapes_the_vendored_files_use(
 @pytest.mark.parametrize(
     "expression",
     [
-        # A union whose alternatives carry their own flag steps. Reading only
-        # the last alternative would check a fraction of the values NIST wrote.
-        "responsible-role/@role-id|control-implementation/responsible-role/@role-id",
-        # A parenthesised context step carrying predicates: not in the node
-        # grammar, so the value target is refused whole rather than in part.
-        "(.)[@type='software']/prop/@name",
         # A flag with a predicate on the flag itself.
         "link[@rel='diagram']/@href[starts-with(.,'#')]",
+        # Negation, which the predicate grammar has never read.
+        ".[@rel=('reference') and not(starts-with(@href,'#'))]/@href",
+        # A parenthesised union of whole paths, not of names.
+        "(.|statement|.//by-component)/prop/@name",
+        # A union whose alternatives end in different flags. Reading it as one
+        # value set would merge two questions NIST asked separately.
+        "responsible-role/@role-id|link/@rel",
         # Not a flag name.
         "prop/@",
         "prop/@1bad",
@@ -501,6 +519,29 @@ def test_a_value_target_parses_the_shapes_the_vendored_files_use(
 )
 def test_a_value_target_outside_the_enumerated_shapes_is_refused(expression: str) -> None:
     assert parse_value_target(expression) is None
+
+
+@pytest.mark.parametrize(
+    ("expression", "flag", "step_count"),
+    [
+        # (.) is the context node in parentheses, bracketed only so a
+        # predicate can follow the group. 37 vendored targets are written so.
+        ("(.)[@type='software']/prop/@name", "name", 1),
+        # A union of names as one step, not only after //.
+        ("(component | inventory-item)/prop/@value", "value", 1),
+        # A union whose alternatives all end in the same flag.
+        (
+            "responsible-role/@role-id|control-implementation/responsible-role/@role-id",
+            "role-id",
+            2,
+        ),
+    ],
+)
+def test_the_widened_value_target_shapes_parse(expression: str, flag: str, step_count: int) -> None:
+    parsed = parse_value_target(expression)
+    assert parsed is not None
+    assert parsed.flag == flag
+    assert len(parsed.paths) == step_count
 
 
 def test_the_value_targets_that_parse_are_counted_and_pinned() -> None:
@@ -514,8 +555,10 @@ def test_the_value_targets_that_parse_are_counted_and_pinned() -> None:
         kind: sum(1 for c in constraints if c.kind == kind and c.value_target is not None)
         for kind in VALUE_KINDS
     }
-    assert parsed == {"allowed-values": 155, "matches": 18}
-    assert len(load_metaschema().evaluated()) == 102
+    assert parsed == {"allowed-values": 198, "matches": 18}
+    # Parsing is not evaluating: of the 18 matches targets that parse, 11 are
+    # evaluated and 7 are blocked on what they would apply, not on their target.
+    assert len(load_metaschema().evaluated()) == 113
 
 
 def test_a_constraint_declared_on_a_flag_is_recorded_against_that_flag() -> None:
@@ -584,3 +627,65 @@ def test_select_values_reads_a_flag_a_scalar_and_a_declared_value_key() -> None:
     assert select_values(document, "", own_target, metaschema) == []
     with_key = select_values(document, "", own_target, metaschema, value_key="value")
     assert [(f.pointer, f.value) for f in with_key] == [("/hash/value", "abc")]
+
+
+# -- matches: which patterns are applied, and which are declined --------------
+
+
+def test_the_datatype_correspondence_is_computed_and_total() -> None:
+    """A metaschema datatype name meets a vendored definition, or it meets nothing.
+
+    The rule is mechanical, both sides lowercased with hyphens removed, so it
+    cannot drift into a hand-maintained table that says whatever someone
+    remembers. The three names OSCAL 1.2.3 uses that the vendored JSON Schema
+    does not define are asserted as unresolved, because writing a pattern for
+    an IPv4 address from knowledge of what one looks like is the one thing this
+    tool refuses.
+    """
+    assert metaschema_datatype("uuid") is not None
+    assert metaschema_datatype("uri-reference") is not None
+    assert metaschema_datatype("date-time-with-timezone") is not None
+    for absent in ("date-time", "ip-v4-address", "ip-v6-address"):
+        assert metaschema_datatype(absent) is None, absent
+    assert metaschema_datatype("not-a-datatype") is None
+
+
+def test_every_datatype_a_matches_constraint_names_is_resolved_or_declined() -> None:
+    for constraint in load_metaschema().constraints:
+        if constraint.kind != "matches" or not constraint.datatype:
+            continue
+        datatype = metaschema_datatype(constraint.datatype)
+        if datatype is not None and datatype.compiled is not None:
+            continue
+        assert not constraint.evaluated, constraint.identifier
+        if constraint.value_target is None:
+            # Blocked on its target first: what it would have applied does not
+            # matter yet, and saying so would name a second reason for a
+            # constraint that has not got past the first.
+            assert "outside the subset this tool parses" in constraint.skipped
+        else:
+            assert constraint.datatype in constraint.skipped, constraint.identifier
+
+
+def test_a_regex_the_two_published_dialects_read_differently_is_declined() -> None:
+    """The Metaschema specification does not say which regex dialect applies.
+
+    It says a value "MUST match the pattern specified by the given @regex" and
+    stops there, while the datatypes page names two dialects that disagree:
+    ECMA-262 as JSON Schema uses it, which searches, and XML Schema's, which
+    anchors. Where a published pattern anchors itself at both ends the two
+    agree on every value and the question does not arise. Where it does not,
+    the question is not answered here.
+    """
+    declined = {
+        c.identifier
+        for c in load_metaschema().constraints
+        if c.kind == "matches" and c.regex and not c.evaluated and "dialect" in c.skipped
+    }
+    assert declined == {
+        "oscal-metadata-link-resource-fragment-datatype",
+        "oscal-metadata-location-address-country-regex",
+    }
+    for constraint in load_metaschema().evaluated():
+        if constraint.kind == "matches" and constraint.regex:
+            assert constraint.regex.startswith("^") and constraint.regex.endswith("$")

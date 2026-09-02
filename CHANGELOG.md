@@ -8,6 +8,62 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- **Three more target shapes, enumerated from the vendored files.** 198 of the
+  200 `allowed-values` targets are now read, up from 155. The shapes:
+  `(.)` as a parenthesised context node, which is how 37 vendored targets are
+  written and which is bracketed only so a predicate can follow the group; a
+  parenthesised union of names as one step rather than only after `//`; and a
+  top-level union whose alternatives each carry their own flag step, where
+  every alternative must name the same flag, because reading a union ending in
+  different flags as one value set would merge two questions NIST asked
+  separately.
+
+  Two `allowed-values` targets stay refused, both of the form
+  `(.|statement|.//by-component)/...`, which is a parenthesised union of whole
+  paths rather than of names. Seven `matches` targets stay refused for
+  negation and for a predicate on the flag itself. Each is named individually
+  in `docs/CONSTRAINT-COVERAGE.md` rather than by category.
+
+  Nothing new is evaluated: the count stays 113 of 340, no report byte moved,
+  and `tests/golden/` is untouched. What this buys is the applicable-set
+  resolution in a later phase, which can only judge a value when it holds
+  every constraint that reaches it.
+
+- **NIST's `matches` constraints are evaluated, 11 of the 25**, at the `level`
+  NIST declares on each, under the new code `CONSTRAINT_VALUE_MISMATCH`.
+  Coverage goes from 102 to 113 of 340. A `@regex` is applied as published. A
+  `@datatype` is applied using the pattern the vendored JSON Schema already
+  declares for that datatype, which is the same pattern check 2 applies, so no
+  pattern is written in this repository. The correspondence between a
+  metaschema datatype name and a schema definition is computed rather than
+  tabulated: both sides lowercased with hyphens removed, so `uri-reference`
+  meets `URIReferenceDatatype` and `uuid` meets `UUIDDatatype`.
+
+  The other 14 say which of four things stopped them. Seven name a target
+  outside the parsed subset. Three name a datatype the vendored schema does not
+  define at all (`date-time`, `ip-v4-address`, `ip-v6-address`), and writing a
+  pattern for an IP address from knowledge of what one looks like is the rule
+  this tool refuses to encode. Two name a datatype the schema defines without a
+  pattern (`integer`, `uri-reference`), which carries nothing to apply. Two
+  carry a regex that is not anchored at both ends, and the Metaschema
+  specification never says which regular-expression dialect a `matches`
+  constraint uses while the datatypes page names two that disagree there, so
+  the question is left undecided rather than decided quietly.
+
+  Every published document in the corpus conforms to all 11, so the evidence
+  that these checks can fail is eight seeded corruptions in
+  `tests/test_break_the_gate.py`, three of them negative controls that stay
+  clean. The goldens moved by exactly one line in each document, the count of
+  unevaluated `matches` going from 25 to 14, and no document gained or lost a
+  finding.
+
+  `CONSTRAINT_VALUE_MISMATCH` is on the `ROSTER` in
+  `tests/test_finding_code_census.py` with a witness of its own, a six-character
+  SHA-256 in an otherwise clean catalog, so the new code cannot sit in the
+  source unexercised.
+
 ### Fixed
 
 - **The Bedrock default named a model this tool has never once been able to

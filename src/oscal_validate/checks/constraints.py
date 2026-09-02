@@ -26,6 +26,7 @@ someone's file. Those references are UNVERIFIABLE, and they name the index.
 from __future__ import annotations
 
 import itertools
+import re
 from collections import defaultdict
 
 from .. import rules
@@ -37,8 +38,10 @@ from ..metaschema import (
     Metaschema,
     Step,
     key_values,
+    metaschema_datatype,
     select,
     select_paths,
+    select_values,
 )
 from ..session import Session
 
@@ -153,6 +156,9 @@ def check(session: Session) -> list[Finding]:
     walked = session.corpus.primary.walked
     payload: dict[str, object] = {walked.model: walked.root}
     for constraint in session.metaschema.evaluated(walked.model):
+        if constraint.kind == "matches":
+            findings.extend(_matches(constraint, payload, session))
+            continue
         if constraint.paths is None:  # pragma: no cover - evaluated implies parsed
             continue
         for context in _contexts(payload, constraint, session.metaschema):
@@ -265,6 +271,80 @@ def _cross_reference(
                 )
             )
     return findings
+
+
+def _matches(constraint: Constraint, payload: dict[str, object], session: Session) -> list[Finding]:
+    """Apply one ``matches`` constraint's published regex or datatype pattern.
+
+    Both patterns are NIST's. The regex is the one the constraint declares; the
+    datatype's pattern is the one the vendored JSON Schema declares for the
+    datatype the constraint names. Neither is written here, and a constraint
+    naming something the vendored files do not carry is not evaluated at all.
+
+    ``search`` rather than ``fullmatch``, which is what ``checks/datatypes.py``
+    already does with the same patterns. It is also the reading that cannot
+    accuse a conforming document: only patterns anchored at both ends reach
+    this function, so search and full match agree, and where they might not the
+    constraint was declined upstream.
+    """
+    target = constraint.value_target
+    if target is None:  # pragma: no cover - evaluated implies a parsed value target
+        return []
+    patterns = _patterns_for(constraint)
+    value_key = session.metaschema.value_key_for(constraint.context)
+    findings: list[Finding] = []
+    for context in _contexts(payload, constraint, session.metaschema):
+        for located in select_values(
+            context.value, context.pointer, target, session.metaschema, value_key
+        ):
+            text = located.value if isinstance(located.value, str) else str(located.value)
+            for description, compiled in patterns:
+                if compiled.search(text):
+                    continue
+                findings.append(
+                    Finding(
+                        code="CONSTRAINT_VALUE_MISMATCH",
+                        severity=LEVELS.get(constraint.level, Severity.ERROR),
+                        location=located.pointer,
+                        prop=constraint.target,
+                        value=_shorten(text),
+                        message=(
+                            f"NIST's constraint {constraint.identifier} requires the value "
+                            f"selected by {constraint.target!r} on each {constraint.context} "
+                            f"to match {description}, and this value does not."
+                        ),
+                        rule=constraint_rule(
+                            constraint,
+                            "A matches constraint requires each selected value to match the "
+                            "syntax it declares.",
+                        ),
+                    )
+                )
+    return findings
+
+
+def _patterns_for(constraint: Constraint) -> list[tuple[str, re.Pattern[str]]]:
+    """The published patterns one ``matches`` constraint applies, in a fixed order.
+
+    A constraint may declare both a regex and a datatype, and the specification
+    says a value passes "when matching all requirements of @datatype, if
+    defined, and @regex, if defined", so both are applied rather than one
+    standing in for the other.
+    """
+    patterns: list[tuple[str, re.Pattern[str]]] = []
+    if constraint.datatype:
+        datatype = metaschema_datatype(constraint.datatype)
+        if datatype is not None and datatype.compiled is not None:
+            patterns.append(
+                (f"the datatype {constraint.datatype} ({datatype.description})", datatype.compiled)
+            )
+    if constraint.regex:
+        patterns.append((f"the pattern {constraint.regex}", re.compile(constraint.regex)))
+    return patterns
+
+
+def _shorten(value: str, limit: int = 120) -> str:
+    return value if len(value) <= limit else f"{value[:limit]}..."
 
 
 def _cardinality(

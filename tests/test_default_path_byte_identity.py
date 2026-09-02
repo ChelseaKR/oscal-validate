@@ -7,6 +7,15 @@ Every later commit has to reproduce those bytes. This is the proof behind the
 README's claim that the opt-in commands changed nothing about the command
 that was already there.
 
+Re-captured once since, on 2026-08-28, and the reason is recorded here because
+a golden re-captured without one stops being evidence. Eleven ``matches``
+constraints became evaluated, so the one line that counts the unevaluated ones
+went from 25 to 14. That is the whole diff: two lines in each of the twelve
+cases, in both formats, and no document gained or lost a finding. Every
+published document in the corpus conforms to all eleven, which is why the
+evidence that those checks can fail is in tests/test_break_the_gate.py rather
+than here.
+
 The cached NIST documents are not committed (they are public and large, and
 ``.survey-cache/`` is how the survey harness keeps them); their goldens are
 keyed by SHA-256 so the comparison is skipped when the cache is absent and

@@ -2,21 +2,23 @@
 
 Status: active. Written 2026-08-28. Owner: Chelsea Kelly-Reif.
 
-This plan covers roughly two to three years of work on one subject: the 238
+This plan covers roughly two to three years of work on one subject: the
 constraints NIST publishes in the vendored metaschema modules that this tool
-does not evaluate. It is subordinate to `CONTRIBUTING.md` and to the ADRs.
-Nothing in it authorises encoding a rule from memory, guessing at a Metapath
-expression, or letting an unevaluated constraint report as a pass.
+does not evaluate — 238 of them when this file was written, 227 today. It is
+subordinate to `CONTRIBUTING.md` and to the ADRs. Nothing in it authorises
+encoding a rule from memory, guessing at a Metapath expression, or letting an
+unevaluated constraint report as a pass.
 
 `docs/ROADMAP.md` is the enforcement ledger for gates and metrics. This file is
 the feature arc, and it exists because the single largest honest statement in
 this repository is a number in a generated table:
 
-> 102 of 340 published constraints are evaluated.
+> 113 of 340 published constraints are evaluated.
 
-Every one of the other 238 is NIST's, is already vendored, is already
-hash-pinned, and needs no network call and no new source to reach. That is the
-whole opportunity, and it is why this plan has phases rather than ideas.
+That number was 102 when this plan was written; Phase 3 moved it. Every one of
+the other 227 is NIST's, is already vendored, is already hash-pinned, and needs
+no network call and no new source to reach. That is the whole opportunity, and
+it is why this plan has phases rather than ideas.
 
 ## The bar every phase clears
 
@@ -170,6 +172,15 @@ table's reasons narrow from "its target expression is outside the subset" to
 the real remaining blocker for each.
 
 ## Phase 3: `matches`
+
+**Delivered 2026-08-28.** 11 of the 25 are evaluated and coverage is 113 of
+340. The other 14 each name which of four things stopped them: seven a target
+outside the parsed subset, three a datatype the vendored schema does not define,
+two a datatype it defines without a pattern, and two a regex that is not
+anchored at both ends, where the two published dialects disagree and neither the
+Metaschema specification nor this repository decides between them. "Every
+`matches` constraint is either evaluated or carries a reason" is met; "every
+`matches` constraint is evaluated" is not, and is not claimed anywhere.
 
 **Delivers.** `matches` constraints evaluated at NIST's declared level. A
 `@regex` is applied as published. A `@datatype` is applied by resolving the
