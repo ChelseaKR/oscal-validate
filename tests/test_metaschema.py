@@ -96,6 +96,47 @@ def test_the_unevaluated_kinds_are_declared_with_reasons() -> None:
         assert reason
 
 
+#: Words that would make the allowed-values summary a claim about how common
+#: something is. The sentence this replaced was exactly that, and it was false.
+_FREQUENCY_CLAIMS = ("most", "mostly", "few", "many", "usually", "rarely", "generally", "often")
+
+
+def test_the_allowed_values_summary_claims_nothing_the_vendored_files_contradict() -> None:
+    """The sentence a report prints once per kind, held against the files it describes.
+
+    Until 2026-08-29 it read "most allowed-value sets declare allow-other, so a
+    value outside them is not necessarily a violation". Both halves were wrong:
+    a minority declare it, and Metaschema makes the absent attribute mean the
+    set is closed, so the leniency it implied had the default backwards. The
+    counts below are measured here rather than remembered, so a vendored bump
+    that moves them fails this test instead of quietly restating a stale figure.
+    """
+    allowed = [c for c in load_metaschema().skipped() if c.kind == "allowed-values"]
+    declared_open = [c for c in allowed if c.allow_other == "yes"]
+    assert len(allowed) == 200
+    assert len(declared_open) == 60
+    assert len(allowed) - len(declared_open) == 140
+    # A minority, not "most": the claim that was there is contradicted by the files.
+    assert len(declared_open) * 2 < len(allowed)
+
+    summary = UNEVALUATED_KINDS["allowed-values"]
+    lowered = summary.lower()
+    for word in _FREQUENCY_CLAIMS:
+        assert word not in lowered.split(), f"the summary makes a frequency claim: {word!r}"
+    assert "not necessarily a violation" not in lowered
+    # It states the reason the per-constraint reasons and the README already give.
+    assert "applicable" in lowered and "does not resolve" in lowered
+
+
+def test_the_published_default_for_allow_other_is_the_one_metaschema_states() -> None:
+    """Absent ``allow-other`` means closed, and every set that omits it is read that way."""
+    assert ALLOW_OTHER_DEFAULT == "no"
+    allowed = [c for c in load_metaschema().skipped() if c.kind == "allowed-values"]
+    assert allowed
+    assert {c.allow_other for c in allowed} <= {"yes", "no"}
+    assert any(c.allow_other == "no" for c in allowed)
+
+
 @pytest.mark.parametrize(
     ("expression", "expected"),
     [
@@ -412,12 +453,13 @@ def test_a_kind_blocked_several_ways_publishes_several_reasons() -> None:
 
 
 def test_the_kind_summary_and_the_constraint_reason_are_separate_things() -> None:
-    """A report prints one summary per kind; the coverage document prints 238 reasons.
+    """A report prints one summary per kind; the coverage document prints one per constraint.
 
-    Keeping them separate is what let the per-constraint reasons be corrected
-    without touching a byte of report output. The kind summary is corrected
-    separately, and is blocked: it reaches the model through the walkthrough
-    prompt, and the cassette is keyed on that prompt.
+    227 of them today, one for each published constraint this tool does not
+    evaluate. Keeping the two separate is what let the per-constraint reasons be
+    corrected without touching a byte of report output, and it let the kind
+    summary be corrected on its own schedule: correcting it moved the goldens
+    and cost a cassette re-record, which happened on 2026-08-29.
     """
     groups: dict[str, set[str]] = {}
     for constraint in load_metaschema().skipped():

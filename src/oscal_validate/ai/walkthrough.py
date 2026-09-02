@@ -70,7 +70,7 @@ TIERS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ),
     (
         "Not settled: UNVERIFIABLE",
-        "neither a pass nor a fail; what would settle each is named in the finding",
+        "neither a pass nor a fail; the validator did not decide these either way",
         ("REFERENCE_UNVERIFIABLE", "CONSTRAINT_NOT_EVALUATED", "PATTERN_NOT_CHECKED"),
     ),
     (
@@ -97,12 +97,22 @@ class Group:
         return f"{self.label}: {self.severity} {self.code} x{len(self.findings)} ({self.tier})"
 
     def prompt_block(self, run: Run) -> str:
+        """The group as structured facts. Never the report's rendered prose.
+
+        Each line carries the finding's own fields -- label, location,
+        property, value -- and the tier text above them is authored here, for
+        this prompt. ``finding.message`` is deliberately absent: it is the
+        report's human-facing rendering, and a prompt that embedded it made
+        every copy edit to a report sentence a change to a recorded model
+        interaction. ``tests/test_ai_prompt_decoupling.py`` fails if a message
+        reaches the prompt again.
+        """
         lines = [f"{self.label}  {self.severity} {self.code}  {len(self.findings)} finding(s)"]
         lines.append(f"    tier: {self.tier} -- {self.why}")
         for finding in self.findings[:EXAMPLES_PER_GROUP]:
             lines.append(
-                f"    {run.label(finding)} at={finding.location} {finding.prop}="
-                f"{finding.value[:60]}: {finding.message[:160]}"
+                f"    {run.label(finding)} at={finding.location} "
+                f"{finding.prop}={finding.value[:60]}"
             )
         if len(self.findings) > EXAMPLES_PER_GROUP:
             lines.append(
@@ -149,6 +159,13 @@ class Walkthrough:
     not_covered: list[Group] = field(default_factory=list)
     withheld_sentences: int = 0
     skipped: str = ""
+    #: True when the walkthrough could not be produced although there was
+    #: something to walk through: the model call failed, or its reply was
+    #: unusable. A stale cassette lands here. It is not the same as having no
+    #: findings, which is a legitimate nothing-to-do and leaves this False.
+    #: ``cli._walkthrough`` exits non-zero on it, so a walkthrough that did not
+    #: happen can never be read as one that came back clean.
+    unevaluated: bool = False
     served_model: str = ""
 
     @property
@@ -171,6 +188,7 @@ class Walkthrough:
         }
         if self.skipped:
             out["skipped"] = self.skipped
+            out["unevaluated"] = self.unevaluated
             return out
         out.update(
             {
@@ -255,12 +273,14 @@ def walk(run: Run, client: ModelClient) -> Walkthrough:
     try:
         completion = client.complete(prompts.SYSTEM, user)
     except ModelError as exc:
-        return Walkthrough(groups=groups, skipped=f"the model call failed: {exc}")
+        return Walkthrough(groups=groups, skipped=f"the model call failed: {exc}", unevaluated=True)
     try:
         payload = parse_reply(completion.text)
     except ReplyError as exc:
         return Walkthrough(
-            groups=groups, skipped=f"the model's reply was unusable ({exc}); nothing shown"
+            groups=groups,
+            skipped=f"the model's reply was unusable ({exc}); nothing shown",
+            unevaluated=True,
         )
     result = check(payload, run, groups)
     result.served_model = completion.model
@@ -282,7 +302,15 @@ def render_index(groups: list[Group], run: Run) -> str:
 def render_text(result: Walkthrough, run: Run, index: bool = True) -> str:
     lines: list[str] = []
     if result.skipped:
-        lines.append(f"no walkthrough: {result.skipped}")
+        if result.unevaluated:
+            lines.append(f"walkthrough NOT EVALUATED: {result.skipped}")
+            lines.append(
+                "  This is not a clean walkthrough and not an empty one. Nothing was shown "
+                "because nothing usable came back; the findings below are the validator's "
+                "and are unaffected."
+            )
+        else:
+            lines.append(f"no walkthrough: {result.skipped}")
     else:
         lines.append(
             f"walkthrough ({result.covered} of {len(result.groups)} group(s) covered by the "

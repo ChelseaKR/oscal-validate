@@ -208,13 +208,21 @@ def test_every_ai_command_discloses_what_it_sends_before_any_call(
     monkeypatch.setenv("OSCAL_VALIDATE_AI_CASSETTE", str(cassette))
     monkeypatch.delenv("OSCAL_VALIDATE_AI_RECORD", raising=False)
     doc = str(fixture_path("broken_catalog.json"))
-    for argv in (
-        ["explain", doc, "--label", "F8"],
-        ["repair", "--draft", doc, "--label", "F8"],
-        ["walkthrough", doc, "--no-index"],
-        ["ask", "what is a catalog?", "--document", doc],
+    # The cassette is empty, so every one of these fails to reach a model. The
+    # notice is the subject here and must appear either way. The exit codes are
+    # stated per command rather than assumed equal: `walkthrough` reports itself
+    # NOT EVALUATED and exits 2 when it could not be produced, so that a stale
+    # cassette cannot read as a walkthrough that came back with nothing to say
+    # (see tests/test_ai_walkthrough.py). The other three still exit 0 on an
+    # unreachable model; that difference is deliberate here and noted in
+    # docs/ROADMAP.md rather than changed in passing.
+    for argv, expected in (
+        (["explain", doc, "--label", "F8"], 0),
+        (["repair", "--draft", doc, "--label", "F8"], 0),
+        (["walkthrough", doc, "--no-index"], 2),
+        (["ask", "what is a catalog?", "--document", doc], 0),
     ):
-        assert main(argv) == 0
+        assert main(argv) == expected, argv[0]
         err = capsys.readouterr().err
         assert "this command sends" in err, argv[0]
         assert "the default validate command never does" in err, argv[0]

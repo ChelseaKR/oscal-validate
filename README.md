@@ -1,6 +1,7 @@
 # oscal-validate
 
-Deterministic structural validation for [OSCAL](https://pages.nist.gov/OSCAL/)
+Deterministic structural validation for
+[OSCAL (Open Security Controls Assessment Language)](https://pages.nist.gov/OSCAL/)
 documents, meant to run before you hand a package to anyone. Point it at a
 catalog, profile, SSP, component definition, assessment plan, assessment
 results, or POA&M, and it checks the things a publisher can get wrong silently:
@@ -405,8 +406,20 @@ importing it costs nothing. `tests/test_default_path_byte_identity.py` runs
 the default command in a fresh process and asserts it loaded neither the
 package nor the SDK, and compares its exact bytes over the fixtures and
 nine published NIST documents against [`tests/golden/`](tests/golden/),
-captured from commit `6978895`, the last commit before any model-backed
-command existed. The default output has not moved by a byte.
+first captured from commit `6978895`, the last commit before any model-backed
+command existed.
+
+**The model-backed layer has never moved those bytes, and that is what this
+gate is for.** They moved once for an unrelated reason, on 2026-08-29: the
+`CONSTRAINT_NOT_EVALUATED` finding for `allowed-values` carried a sentence that
+said something false about NIST's `allow-other` semantics, and correcting a
+sentence the report prints is a change to the report. The goldens were
+recaptured from the same documents, each verified by SHA-256 against the
+manifest that recorded them, and every other byte of the output is unchanged.
+It is the only recapture since `6978895`; [CHANGELOG.md](CHANGELOG.md) records
+it, and `tests/golden/capture.py` now refuses to write a manifest smaller than
+the committed one, so a recapture on a machine without the cached documents
+cannot quietly shrink what this compares.
 
 The one thing in this repository that opens a socket is
 [`tools/fetch.py`](tools/fetch.py), a development harness that is not installed
@@ -516,7 +529,9 @@ dereferences a second document through `doc()`. The predicate and
 interior-descendant targets that used to block 25 constraints are parsed under
 the bounded grammar of
 [ADR-0004](docs/adr/0004-bounded-predicate-grammar.md), enumerated from the
-vendored files rather than the Metapath specification. A constraint is also
+vendored files rather than the Metapath specification. The order in which the
+rest of that gap is intended to close, and what each step is waiting on, is
+[`docs/EXPANSION-PLAN.md`](docs/EXPANSION-PLAN.md). A constraint is also
 only applied to documents of the models its module governs, since assembly
 names repeat across models and a catalog's `part` is not assessment-common's.
 

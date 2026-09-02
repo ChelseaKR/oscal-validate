@@ -102,11 +102,24 @@ a thing the schema says.
 - The published limitation is now historical, and every place that stated it
   says so with a date and a pointer here. A stale limitation is as misleading
   as a stale number.
-- `SUBTREE_NOT_READ` remains reachable and is not dead code: it still reports
-  an array with no declared item shape, object alternatives that disagree about
-  what a property means, and object alternatives where the value is not an
-  object.
-- `tests/test_schema_and_walk.py` pins both counts, one and three, against the
-  vendored file. A later OSCAL release that writes the shape somewhere else, or
-  that adds a declined shape a document can land on, fails that test rather
-  than quietly widening what this ADR claims.
+- `SUBTREE_NOT_READ` remains reachable and is not dead code, but by one route
+  of the four the walk can take to it, not three. This paragraph originally
+  named three and was corrected on 2026-08-28 after each was counted against
+  the vendored file rather than reasoned about:
+
+  | The walk records an unread subtree when | Sites in the vendored 1.2.3 schema |
+  |---|---|
+  | the resolver declines a union shape | 0 reachable from a model root |
+  | an array declares no item shape | 0 anywhere in the schema |
+  | two alternatives accept one object and disagree about it | 0: six branch pairs can both accept one object and all six agree |
+  | an alternative is offered and the value is not an object | 13 branch sites in `definitions`, reachable from any document |
+
+  A claim about what keeps a code alive is worth no more than the count behind
+  it, and until 2026-08-28 there was no count and no test: nothing in the suite
+  emitted `SUBTREE_NOT_READ` at all. `tests/test_break_the_gate.py` now emits it
+  for real, through the one reachable route.
+- `tests/test_schema_and_walk.py` pins every count above against the vendored
+  file, along with the "one mapping or an array of mappings" count this ADR
+  turns on. A later OSCAL release that writes the shape somewhere else, or that
+  adds a declined shape a document can land on, fails those tests rather than
+  quietly widening what this ADR claims.
