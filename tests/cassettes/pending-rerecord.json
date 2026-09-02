@@ -1,0 +1,18 @@
+{
+  "_README": [
+    "Cassettes whose prompt has changed since they were recorded, so the recording no",
+    "longer answers the question the tool now asks. A cassette listed here is STALE:",
+    "the command it backs reports itself NOT EVALUATED and exits non-zero, and the",
+    "test suite holds it to exactly that rather than letting it pass quietly.",
+    "",
+    "Every entry is dated, owned and expiring, the same shape the portfolio uses for",
+    "waivers. An entry accepts exactly one cassette. tests/test_ai_walkthrough.py",
+    "fails if a cassette is stale and NOT listed here (silence), if a cassette is",
+    "listed here and is in fact fresh (a stale entry outliving its cause), or if the",
+    "date below has passed (a re-record deferred indefinitely).",
+    "",
+    "Removing an entry is part of re-recording, not a separate decision: once the",
+    "recording matches the current prompt, the entry must go or the suite fails."
+  ],
+  "cassettes": {}
+}

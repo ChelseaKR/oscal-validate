@@ -392,18 +392,41 @@ def test_the_model_table_is_the_sum_of_both_samples() -> None:
         assert row in text, f"model row missing or wrong for {model}: expected {row!r}"
 
 
-def test_the_unread_mapping_subtree_is_reported_on_every_mapping_collection() -> None:
-    """Finding 1: the eighth model's content is not read, and says so every time.
+def test_the_2026_08_19_run_recorded_an_unread_subtree_on_every_mapping_collection() -> None:
+    """Finding 1, as the 2026-08-19 run recorded it. This pins the evidence, not the code.
 
-    If a future change makes the walker resolve that subtree, this test fails and
-    the write-up has to be corrected rather than left claiming a limit that is no
-    longer there. A stale limitation is as misleading as a stale number.
+    The docstring here used to say that a future change making the walker
+    resolve that subtree would fail this test. It could not: this reads the
+    committed survey JSON, which is a frozen record of a run on 2026-08-19 and
+    cannot move when the walker does. The change duly landed in #25
+    (ADR-0007), the walker now reads `/mapping-collection/mappings`, and this
+    test stayed green throughout. Renamed and re-described on 2026-08-28 to
+    say what it actually pins; the assertion about today's behaviour is the
+    test below, which runs the validator.
     """
     mappings = [r for r in _records(WIDENED) if r["model"] == "mapping-collection"]
     assert mappings, "the widened run exists to put this model in the corpus"
     for record in mappings:
         assert record["codes"].get("SUBTREE_NOT_READ"), record["url"]
         assert record["example_location"]["SUBTREE_NOT_READ"] == "/mapping-collection/mappings"
+
+
+def test_the_walker_reads_that_subtree_today_so_the_recorded_limit_is_historical() -> None:
+    """The live counterpart, and the one that fails if the walker regresses.
+
+    ADR-0007 says the published limitation is now historical. That is a claim
+    about the code, so it is checked against the code: validating a mapping
+    collection reports no `SUBTREE_NOT_READ` anywhere, and the substance below
+    `mappings` is reached, which the seeded corruptions in
+    `tests/test_break_the_gate.py` prove separately.
+    """
+    from oscal_validate import validate_file
+
+    from .conftest import fixture_path
+
+    findings = validate_file(fixture_path("clean_mapping_collection.json"))
+    unread = [f for f in findings if f.code == "SUBTREE_NOT_READ"]
+    assert unread == [], [f.location for f in unread]
 
 
 # -- the fourth and fifth runs: the engine, then the imports ------------------

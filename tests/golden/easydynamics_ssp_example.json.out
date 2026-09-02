@@ -19,7 +19,7 @@
     {
       "code": "CONSTRAINT_NOT_EVALUATED",
       "location": "/system-security-plan",
-      "message": "NIST publishes 200 allowed-values constraint(s) that this tool did not evaluate: most allowed-value sets declare allow-other, so a value outside them is not necessarily a violation. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
+      "message": "NIST publishes 200 allowed-values constraint(s) that this tool did not evaluate: which values a value node permits is decided by the applicable set of constraints sharing its target, and this tool does not resolve that set. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.",
       "property": "allowed-values",
       "rule": {
         "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",

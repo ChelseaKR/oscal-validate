@@ -31,8 +31,6 @@ and this project adheres to
   resolution in a later phase, which can only judge a value when it holds
   every constraint that reaches it.
 
-### Added
-
 - **NIST's `matches` constraints are evaluated, 11 of the 25**, at the `level`
   NIST declares on each, under the new code `CONSTRAINT_VALUE_MISMATCH`.
   Coverage goes from 102 to 113 of 340. A `@regex` is applied as published. A
@@ -61,7 +59,209 @@ and this project adheres to
   unevaluated `matches` going from 25 to 14, and no document gained or lost a
   finding.
 
+  `CONSTRAINT_VALUE_MISMATCH` is on the `ROSTER` in
+  `tests/test_finding_code_census.py` with a witness of its own, a six-character
+  SHA-256 in an otherwise clean catalog, so the new code cannot sit in the
+  source unexercised.
+
 ### Fixed
+
+- **The report stated something false about NIST's `allow-other` semantics on
+  every run that produced an `allowed-values` coverage finding, and no longer
+  does.** The per-kind `CONSTRAINT_NOT_EVALUATED` sentence read "most
+  allowed-value sets declare allow-other, so a value outside them is not
+  necessarily a violation". Both halves were wrong. 60 of the 200 vendored sets
+  declare `allow-other` and 140 do not, so "most" is contradicted by the files;
+  and Metaschema states `no : (default) Identifies the expected value set as
+  closed. This is the implicit default value if no @allow-other is provided`,
+  so the leniency the sentence implied has the default backwards. It now gives
+  the reason the per-constraint reasons and the README's Limits section already
+  gave: which values a value node permits is decided by the applicable set of
+  constraints sharing a target, and this tool does not resolve that set. The
+  spec is explicit that the applicable set is what decides, since
+  `allow-other="yes"` opens a set only "as long as no other `<allowed-values>`
+  constraint in the applicable set has `@allow-other="no"` declared explicitly
+  or implicitly", re-read at the published URL on 2026-08-29.
+
+  It had been left in place under protest, and the protest is worth recording
+  because it was a real constraint rather than an excuse: the sentence reached
+  the model through the walkthrough's prompt block, the cassette is keyed on a
+  hash of the exact prompt, and correcting one character missed the recording
+  and failed the suite. Correcting a sentence a human reads was therefore
+  blocked on a billed call. That is now fixed at the root, below.
+
+- **`tests/test_metaschema.py` holds the sentence against the files it
+  describes.** The 60/140 split is measured off the vendored metaschema rather
+  than remembered, so a vendored bump that moves it fails a test instead of
+  quietly restating a stale figure, and the summary is rejected if it carries a
+  frequency claim the files contradict. Reintroducing the old sentence turns it
+  red.
+
+- **A walkthrough that could not be produced no longer exits 0.** `walk`
+  carries a structured `unevaluated` flag, set when the model call failed or
+  its reply was unusable and not when there were simply no findings; the
+  command renders `walkthrough NOT EVALUATED`, says in as many words that this
+  is neither a clean walkthrough nor an empty one, and exits 2 in both output
+  formats. A stale cassette lands exactly there. Previously it printed a note
+  and exited 0, which is the shape of a check that cannot fail.
+
+- **`tests/golden/capture.py` refuses to write a manifest smaller than the
+  committed one.** The eight cached NIST documents are absent on most machines,
+  and capturing without them silently dropped their entries: the gate shrank
+  from twelve documents to four and said nothing, leaving eight goldens on disk
+  that nothing would compare against again. Found while recapturing for this
+  change.
+
+### Changed
+
+- **The walkthrough prompt is built from structured facts, not from the
+  report's prose.** `Group.prompt_block` carried `finding.message`, so every
+  copy edit to a report sentence was a change to a recorded model interaction.
+  It now carries the finding's own fields (label, location, property, value)
+  under tier text authored for the prompt.
+  [`tests/test_ai_prompt_decoupling.py`](tests/test_ai_prompt_decoupling.py)
+  holds the separation two ways: no finding's message appears in the built
+  prompt, and rewriting every message in a run leaves the prompt byte-identical,
+  so the cassette key does not move. Measured: with a copy edit applied to the
+  `CONSTRAINT_NOT_EVALUATED` template, the prompt key is unchanged at
+  `002731482aef...` and the cassette-bound tests stay green, while the golden
+  byte-identity tests correctly fail, which is the split that was wanted.
+
+- **The 24 files in `tests/golden/` were recaptured**, offline and with no model
+  call, from the same twelve documents, each verified by SHA-256 against the
+  manifest that recorded them. Exactly one line changed per file and it is the
+  corrected sentence. This is the only recapture since `6978895`; the README no
+  longer claims the bytes have never moved, and says instead what moved them and
+  when, keeping the claim the gate exists for: the model-backed layer has never
+  moved them.
+
+- `PROMPT_VERSION` is `2026-08-29.1`.
+
+### Re-recorded
+
+- **`tests/cassettes/walkthrough-nist-ssp.json` was re-recorded on 2026-08-29**
+  against the prompt this release ships, and its entry in
+  `tests/cassettes/pending-rerecord.json` is removed, which is what the suite
+  requires: a fresh cassette carrying a stale-declaration fails, so the removal
+  cannot be forgotten. `tests/test_ai_walkthrough.py::test_the_cli_replays_a_recorded_live_walkthrough`
+  now runs instead of being skipped. One live call, on Amazon Bedrock:
+  **1,424 input tokens and 1,710 output tokens**, `stop_reason` `end_turn`.
+
+  Recorded with `global.anthropic.claude-sonnet-4-6`, the same model as the
+  recording it replaces, so the two artifacts stay comparable. That is a
+  deliberate pin and not an availability constraint: `claude-sonnet-5` is ACTIVE
+  on this account today under both the `global.` and `us.` prefixes, so the
+  repository default would also have resolved. `make rerecord-walkthrough` now
+  carries the model as `RERECORD_MODEL` rather than inheriting whatever the
+  provider default drifts to, and records to a temporary file that replaces the
+  committed cassette only on success, so a failed call can no longer destroy
+  the recording it was meant to replace.
+
+  **Two differences from the recording it replaces, neither hidden.** The
+  prompt is 374 input tokens smaller (1,798 to 1,424), which is the decoupling
+  above removing the report's prose from it. And the new reply has two
+  sentences withheld by the boundary guard where the old had none: one is a
+  sentence about fix order containing "must be addressed", which the guard
+  screens as a judgment. The guard erring toward withholding is the direction
+  it is built to err in, and the substantive properties are unchanged: 5 of 5
+  groups covered, no invented labels, nothing left uncovered, 23 findings. The
+  count is asserted as a named constant that a later re-record is expected to
+  move, beside a new assertion that the number reported is the number of
+  withholdings the reader is actually shown.
+
+  No recording was re-keyed to replay an answer given to a different prompt.
+
+### Deferred, with the measurement
+
+- **The grounding eval corpus is partly orphaned by the same change**, measured
+  by replay on 2026-08-29: walkthrough documents 12 to 0, grounded explanations
+  34 to 6. `evals/` is not in `make verify` (`testpaths = ["tests"]`), so no
+  gate is green over a stale recording; `repair` and `refusal` are untouched.
+  Whether to spend the re-record is recorded in `docs/ROADMAP.md`.
+
+- **Two couplings of the same kind were left in place deliberately.**
+  `ai/sources.py` still selects NIST passages by keyword-matching
+  `finding.message`, which is what orphans the grounding explanations; changing
+  it was measured to break `explain-broken-catalog.json` and
+  `repair-broken-catalog.json` as well, so it spends re-records rather than
+  saving them and the decision is the owner's. And `explain`, `repair` and `ask`
+  still exit 0 when the model cannot be reached, where `walkthrough` now exits
+  2; that difference is stated in the test that pins it rather than changed in
+  passing.
+
+### Added
+
+- **A census that proves every finding code this tool can emit is exercised by
+  a test**, in [`tests/test_finding_code_census.py`](tests/test_finding_code_census.py).
+  The 19 codes are enumerated from the source by AST rather than by pattern,
+  through conditional expressions and through local names bound to literals,
+  so a code spelled with a digit or passed through a variable cannot hide from
+  it. Two assertions follow: the enumerated set must equal a declared roster,
+  and every code on that roster must be produced by a witness the test runs
+  against a real document. Adding a code without a witness fails the gate.
+- **Gate-break cases for `CONSTRAINT_CARDINALITY` and `SUBTREE_NOT_READ`**, the
+  two codes the census found unexercised. A back-matter resource with neither
+  `rlink` nor `base64` produces the first at NIST's declared WARNING, and a
+  location naming no way to reach it produces it at NIST's ERROR; a party that
+  is not an object produces the second. Each has the clean counterpart, so the
+  checks cannot pass by reporting everything.
+- **A measurement behind what keeps `SUBTREE_NOT_READ` reachable.** Four
+  counts, read off the vendored schema in
+  [`tests/test_schema_and_walk.py`](tests/test_schema_and_walk.py): zero
+  reachable declined union shapes, zero arrays declaring no item shape, zero
+  branch pairs that can accept one object and disagree about it, and thirteen
+  branch sites where a scalar can stand in for an object. A later release that
+  moves any of them fails a test rather than quietly widening the claim.
+- **The Bedrock re-record owner action is now decidable**, in
+  [`docs/ROADMAP.md`](docs/ROADMAP.md). Measured by changing the sentence and
+  replaying every cassette: 24 recordings of 338 are orphaned, in two
+  cassettes of the four, at 47,668 recorded input tokens and 49,752 output
+  tokens. `repair` and `refusal` are untouched. The entry also names the half
+  that costs nothing and was not listed: all 24 files in `tests/golden/` move,
+  regenerable offline, at the price of the README's "not moved by a byte"
+  claim.
+- **[`docs/plans/improvement-plan.md`](docs/plans/improvement-plan.md)**, the
+  audit this entry comes from, including the named gate traps that were checked
+  and found already handled.
+
+- **A plan for the 238 constraints NIST publishes that this tool does not
+  evaluate**, in [`docs/EXPANSION-PLAN.md`](docs/EXPANSION-PLAN.md). Seven
+  phases over roughly two to three years, each stating what it delivers, what
+  it depends on, and what would show it is done. The subject is one number in
+  a generated table: 102 of 340. Every one of the other 238 is already
+  vendored and already hash-pinned, so none of this needs a network call or a
+  new source. The plan records three measurements that shape it: the published
+  reason for skipping all 200 `allowed-values` constraints is wrong (60 of 200
+  declare `allow-other`, not "most", and the vendored specification makes `no`
+  the default), a missing flag step in the target grammar is the single shared
+  blocker for 155 `allowed-values` and 18 `matches` targets, and all 12
+  `expect` targets already parse so only their `@test` is missing. It also
+  carries what only the owner can decide, so undone-by-choice is not mistaken
+  for undone-by-neglect.
+
+### Fixed
+
+- **`ADR-0007` named three reasons `SUBTREE_NOT_READ` is not dead code and two
+  of them cannot occur.** Against the vendored OSCAL 1.2.3 schema no array
+  declares its items without a shape and no two alternatives can accept one
+  object and disagree about it, so one route of the four is reachable, not
+  three. The paragraph now carries the counts and points at the tests that
+  hold them. A claim about what keeps a code alive is worth no more than the
+  count behind it.
+- **A test promised to fail on a change it could not observe.**
+  `test_the_unread_mapping_subtree_is_reported_on_every_mapping_collection`
+  said a future change making the walker resolve `/mapping-collection/mappings`
+  would fail it. That change landed in #25; the test reads a frozen survey JSON
+  and stayed green. It is renamed to say it pins the 2026-08-19 record, and a
+  live counterpart now asserts what the walker does today.
+- **`checks/references.py` cited a test file that does not exist.**
+  `IDENTITY_TITLES` is pinned in `tests/test_schema_and_walk.py`, not in
+  `tests/test_reference_titles.py`.
+- **The workflow pinning gate would have passed over an empty directory.**
+  `test_every_action_is_pinned_to_a_full_commit_sha` asserted only inside a
+  loop over `*.yml`, so a renamed directory or a workflow written as `.yaml`
+  left it green having pinned nothing. It now globs both spellings and a
+  separate test names the workflows that must be found.
 
 - **Four constraints were counted as evaluated and could never fire.** They are
   declared on `system-component` and `defined-component`, and no OSCAL document

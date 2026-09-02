@@ -311,6 +311,100 @@ def test_an_object_no_schema_alternative_accepts_is_caught(
     assert "NO_SCHEMA_ALTERNATIVE" in _errors(write(tmp_path, "c.json", clean_catalog))
 
 
+# -- the subtree that was not read --------------------------------------------
+#
+# ADR-0007 says SUBTREE_NOT_READ "remains reachable and is not dead code", and
+# until these tests nothing in the suite emitted it. Of the four places the
+# walk can record an unread subtree, exactly one is reachable against the
+# vendored OSCAL 1.2.3 schema; the count behind each is pinned in
+# tests/test_schema_and_walk.py.
+
+
+@pytest.mark.parametrize("value", [None, "a string", 42, True, ["a list"]])
+def test_a_branching_assembly_holding_a_non_object_is_reported_not_read(
+    tmp_path: Path, clean_catalog: Any, value: Any
+) -> None:
+    """A party is a choice between alternatives, so a scalar there is unreadable.
+
+    The walk cannot pick an alternative for a value that is not an object, and
+    the rule of this tool is that a subtree it did not read is reported rather
+    than passed over. UNVERIFIABLE, not ERROR: the tool is not saying the value
+    is wrong, it is saying it did not look.
+    """
+    clean_catalog["catalog"]["metadata"]["parties"][0] = value
+    findings = validate_file(write(tmp_path, "c.json", clean_catalog))
+    unread = [f for f in findings if f.code == "SUBTREE_NOT_READ"]
+    assert len(unread) == 1, [f.code for f in findings]
+    assert unread[0].severity is Severity.UNVERIFIABLE
+    assert unread[0].location == "/catalog/metadata/parties/0"
+
+
+def test_a_well_formed_party_is_read_and_reports_nothing_unread(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """The other direction, so the test above cannot pass by reporting everything."""
+    assert "SUBTREE_NOT_READ" not in _codes(write(tmp_path, "c.json", clean_catalog))
+
+
+# -- NIST's cardinality constraints -------------------------------------------
+#
+# All 11 has-cardinality constraints in the vendored modules parse and are
+# evaluated, and until these tests no document in the suite violated one, so
+# CONSTRAINT_CARDINALITY was emitted by the source and by nothing else.
+
+
+def test_a_resource_with_neither_rlink_nor_base64_is_caught(
+    tmp_path: Path, clean_catalog: Any
+) -> None:
+    """oscal-back-matter-resource-base64-rlink-cardinality, at NIST's WARNING.
+
+    The severity is NIST's, declared on the constraint as ``level="WARNING"``,
+    and this test asserts that rather than an ERROR: a constraint reported at a
+    severity this tool chose would be this tool's rule, not NIST's.
+    """
+    del clean_catalog["catalog"]["back-matter"]["resources"][0]["rlinks"]
+    findings = validate_file(write(tmp_path, "c.json", clean_catalog))
+    reported = [f for f in findings if f.code == "CONSTRAINT_CARDINALITY"]
+    assert [f.severity for f in reported] == [Severity.WARNING]
+    assert reported[0].location == "/catalog/back-matter/resources/0"
+    assert "oscal-back-matter-resource-base64-rlink-cardinality" in reported[0].message
+
+
+def test_a_location_naming_no_way_to_reach_it_is_caught(tmp_path: Path, clean_catalog: Any) -> None:
+    """Two constraints at once, and the ERROR one gates the exit code.
+
+    A location carrying none of title, address, email-address or
+    telephone-number violates the ERROR-level constraint; carrying no address
+    also violates the WARNING-level one. Both are NIST's levels.
+    """
+    clean_catalog["catalog"]["metadata"]["locations"] = [
+        {"uuid": "1b1f1cf1-1e3b-4a55-8ad2-9d1b8b0f9a02"}
+    ]
+    findings = validate_file(write(tmp_path, "c.json", clean_catalog))
+    reported = {f.prop: f.severity for f in findings if f.code == "CONSTRAINT_CARDINALITY"}
+    assert reported == {
+        "address": Severity.WARNING,
+        "title|address|email-address|telephone-number": Severity.ERROR,
+    }
+    assert "CONSTRAINT_CARDINALITY" in _errors(write(tmp_path, "c.json", clean_catalog))
+
+
+def test_a_location_that_can_be_reached_stays_clean(tmp_path: Path, clean_catalog: Any) -> None:
+    """The other direction: a satisfied cardinality constraint reports nothing.
+
+    Without this, both tests above would pass against a check that reported
+    every location it saw.
+    """
+    clean_catalog["catalog"]["metadata"]["locations"] = [
+        {
+            "uuid": "1b1f1cf1-1e3b-4a55-8ad2-9d1b8b0f9a02",
+            "title": "Head office",
+            "address": {"addr-lines": ["1 Example Way"], "country": "US"},
+        }
+    ]
+    assert "CONSTRAINT_CARDINALITY" not in _codes(write(tmp_path, "c.json", clean_catalog))
+
+
 #: Every JSON scalar. A whole assembly replaced by any one of them is the same
 #: defect, and the walk reaches all four through one path.
 SCALARS = [None, "a string", 42, True]
