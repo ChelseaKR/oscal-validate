@@ -10,6 +10,27 @@ and this project adheres to
 
 ### Added
 
+- **Three more target shapes, enumerated from the vendored files.** 198 of the
+  200 `allowed-values` targets are now read, up from 155. The shapes:
+  `(.)` as a parenthesised context node, which is how 37 vendored targets are
+  written and which is bracketed only so a predicate can follow the group; a
+  parenthesised union of names as one step rather than only after `//`; and a
+  top-level union whose alternatives each carry their own flag step, where
+  every alternative must name the same flag, because reading a union ending in
+  different flags as one value set would merge two questions NIST asked
+  separately.
+
+  Two `allowed-values` targets stay refused, both of the form
+  `(.|statement|.//by-component)/...`, which is a parenthesised union of whole
+  paths rather than of names. Seven `matches` targets stay refused for
+  negation and for a predicate on the flag itself. Each is named individually
+  in `docs/CONSTRAINT-COVERAGE.md` rather than by category.
+
+  Nothing new is evaluated: the count stays 113 of 340, no report byte moved,
+  and `tests/golden/` is untouched. What this buys is the applicable-set
+  resolution in a later phase, which can only judge a value when it holds
+  every constraint that reaches it.
+
 - **NIST's `matches` constraints are evaluated, 11 of the 25**, at the `level`
   NIST declares on each, under the new code `CONSTRAINT_VALUE_MISMATCH`.
   Coverage goes from 102 to 113 of 340. A `@regex` is applied as published. A

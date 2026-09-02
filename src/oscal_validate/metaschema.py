@@ -390,12 +390,38 @@ def parse_value_target(expression: str) -> ValueTarget | None:
       ``path`` is parsed by the existing node grammar and nothing is widened.
     - anything the node grammar already parses: the values of those nodes.
 
-    A top-level union whose alternatives carry their own flag steps is
-    declined, because ``parse_target`` refuses the alternative that starts with
-    ``@``. Declining is the point: an under-selected value target checks fewer
-    values than NIST wrote.
+    A fourth shape is read here rather than by the node grammar: a top-level
+    union whose alternatives each carry their own flag step. Every alternative
+    must name the same flag, and a union ending in different flags is refused,
+    because reading it as one value set would merge two questions NIST asked
+    separately.
+
+    198 of the 200 vendored ``allowed-values`` targets and 18 of the 25
+    ``matches`` targets parse. What is still refused, and stays refused:
+    a union of whole paths rather than of names
+    (``(.|statement|.//by-component)/prop/@name``, 2 targets), a predicate on
+    the flag itself, and negation inside a predicate. Declining is the point:
+    an under-selected value target checks fewer values than NIST wrote.
+    ``tests/test_metaschema.py`` pins both the shapes that parse and the shapes
+    that do not, so a widening that swallowed everything would fail.
     """
     text = expression.strip()
+    alternatives = _split_top(text, "|")
+    if len(alternatives) > 1 and any("@" in part for part in alternatives):
+        # A top-level union whose alternatives each carry their own flag step,
+        # as oscal-ssp-all-responsible-role-values is written. Every
+        # alternative must name the same flag: reading a union that ended in
+        # different flags as one value set would merge two questions NIST asked
+        # separately. The paths are unioned and select_paths deduplicates them
+        # by location, so a node reached twice is one value, not two.
+        parsed = [parse_value_target(part.strip()) for part in alternatives]
+        if any(one is None for one in parsed):
+            return None
+        flags = {one.flag for one in parsed if one is not None}
+        if len(flags) != 1:
+            return None
+        union = tuple(path for one in parsed if one is not None for path in one.paths)
+        return ValueTarget(union, flags.pop())
     match = _FLAG_STEP.fullmatch(text)
     if match:
         return ValueTarget(((),), match.group(1))
@@ -472,9 +498,14 @@ def _parse_segment(segment: str, descendant: bool) -> Step | None:
     if name_part == ".":
         return None if descendant else Step((), False, tuple(predicates))
     if name_part.startswith("(") and name_part.endswith(")"):
-        if not descendant:
-            return None
-        names = tuple(part.strip() for part in name_part[1:-1].split("|"))
+        inner = name_part[1:-1].strip()
+        # ``(.)`` is the context node in parentheses and nothing else, which is
+        # how 37 of the vendored value targets are written:
+        # ``(.)[@type='software']/prop[...]/@name``. It means the same as ``.``
+        # and is only bracketed so a predicate can follow the group.
+        if inner == ".":
+            return None if descendant else Step((), False, tuple(predicates))
+        names = tuple(part.strip() for part in inner.split("|"))
     else:
         names = (name_part,)
     if not all(_NAME.match(name) for name in names):
