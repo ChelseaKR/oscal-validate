@@ -83,7 +83,12 @@ Python 3.12+, no runtime dependencies.
 
 ```sh
 pip install .
-oscal-validate <file.json>
+
+# Two documents ship with this repository, so the first run needs nothing else
+# downloaded, and shows both sides of the gate:
+oscal-validate tests/fixtures/clean_catalog.json    # 0 ERROR, exit 0
+oscal-validate tests/fixtures/broken_catalog.json   # 3 ERROR, exit 1
+
 oscal-validate <file.json> --format json
 oscal-validate my-ssp.json --resolve baseline-profile.json --resolve catalog.json
 ```
@@ -416,16 +421,20 @@ first captured from commit `6978895`, the last commit before any model-backed
 command existed.
 
 **The model-backed layer has never moved those bytes, and that is what this
-gate is for.** They moved once for an unrelated reason, on 2026-08-29: the
-`CONSTRAINT_NOT_EVALUATED` finding for `allowed-values` carried a sentence that
-said something false about NIST's `allow-other` semantics, and correcting a
-sentence the report prints is a change to the report. The goldens were
-recaptured from the same documents, each verified by SHA-256 against the
-manifest that recorded them, and every other byte of the output is unchanged.
-It is the only recapture since `6978895`; [CHANGELOG.md](CHANGELOG.md) records
-it, and `tests/golden/capture.py` now refuses to write a manifest smaller than
-the committed one, so a recapture on a machine without the cached documents
-cannot quietly shrink what this compares.
+gate is for.** They have moved twice, both for unrelated reasons. On
+2026-08-29: the `CONSTRAINT_NOT_EVALUATED` finding for `allowed-values`
+carried a sentence that said something false about NIST's `allow-other`
+semantics, and correcting a sentence the report prints is a change to the
+report. On 2026-09-01, cutting 0.3.0: the JSON report stamps the tool's own
+version, so twelve lines moved, one per JSON golden, and the twelve text
+goldens did not move at all. Both times the goldens were recaptured from the
+same documents, each verified by SHA-256 against the manifest that recorded
+them, and every other byte of the output is unchanged. Those two are the only
+recaptures since `6978895`; [CHANGELOG.md](CHANGELOG.md) and
+`tests/test_default_path_byte_identity.py` record both, and
+`tests/golden/capture.py` now refuses to write a manifest smaller than the
+committed one, so a recapture on a machine without the cached documents cannot
+quietly shrink what this compares.
 
 The one thing in this repository that opens a socket is
 [`tools/fetch.py`](tools/fetch.py), a development harness that is not installed

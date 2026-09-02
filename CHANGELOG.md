@@ -8,6 +8,26 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-01
+
+### Changed
+
+- **Release 0.3.0.** `pyproject.toml`, `src/oscal_validate/__init__.py`,
+  `CITATION.cff`, and `uv.lock` carry `0.3.0`. The JSON report stamps the tool
+  version, so the twelve JSON goldens in `tests/golden/` were recaptured for
+  that one line. The twelve text goldens did not move, no document gained or
+  lost a finding, and the reason is recorded in
+  `tests/test_default_path_byte_identity.py`, which is where that file requires
+  a recapture's reason to be written down.
+
+- **The README's first runnable command now runs on a document the reader
+  has.** "Install and run" opened with `oscal-validate <file.json>`, a
+  placeholder, so nothing in the quickstart worked from a fresh clone until the
+  reader found an OSCAL document of their own. It now names the two committed
+  fixtures, `tests/fixtures/clean_catalog.json` (0 ERROR, exit 0) and
+  `tests/fixtures/broken_catalog.json` (3 ERROR, exit 1), so the first two
+  commands work with nothing else downloaded and show both sides of the gate.
+
 ### Added
 
 - **Three more target shapes, enumerated from the vendored files.** 198 of the
@@ -150,10 +170,10 @@ and this project adheres to
 - **The 24 files in `tests/golden/` were recaptured**, offline and with no model
   call, from the same twelve documents, each verified by SHA-256 against the
   manifest that recorded them. Exactly one line changed per file and it is the
-  corrected sentence. This is the only recapture since `6978895`; the README no
-  longer claims the bytes have never moved, and says instead what moved them and
-  when, keeping the claim the gate exists for: the model-backed layer has never
-  moved them.
+  corrected sentence. This was the first recapture since `6978895`, and the
+  release cut below is the second; the README no longer claims the bytes have
+  never moved, and says instead what moved them and when, keeping the claim the
+  gate exists for: the model-backed layer has never moved them.
 
 - `PROMPT_VERSION` is `2026-08-29.1`.
 
