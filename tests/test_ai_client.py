@@ -32,8 +32,28 @@ def test_bedrock_needs_a_region_and_takes_its_own_default_model() -> None:
     settings = settings_from_env(
         {"OSCAL_VALIDATE_AI_PROVIDER": "bedrock", "AWS_DEFAULT_REGION": "us-east-1"}
     )
-    assert settings.model == DEFAULT_BEDROCK_MODEL
+    assert settings.model == DEFAULT_BEDROCK_MODEL == "global.anthropic.claude-sonnet-4-6"
     assert settings.region == "us-east-1"
+
+
+def test_the_two_provider_defaults_are_deliberately_different_models() -> None:
+    """A tidy-up that makes the Bedrock default track the API default is a bug.
+
+    ``DEFAULT_MODEL`` is what a third-party deployer with ordinary Claude API
+    access should get, and Sonnet 5 is the right answer there. The Bedrock
+    default is a separate question, because Bedrock grants model access per
+    account: on the account that produced every recorded eval and cassette in
+    this repository, ``InvokeModel`` on a Sonnet 5 Bedrock id returns 403
+    ``AccessDeniedException`` while Bedrock's entitlement API simultaneously
+    reports the model AUTHORIZED. Only the invocation is evidence.
+
+    Two assertions rather than one comparison: pinning both literals means the
+    edit that "unifies" them fails here with the reason attached, and it also
+    fails if someone advances one of them without deciding about the other.
+    """
+    assert DEFAULT_MODEL == "claude-sonnet-5"
+    assert DEFAULT_BEDROCK_MODEL == "global.anthropic.claude-sonnet-4-6"
+    assert not DEFAULT_BEDROCK_MODEL.endswith(DEFAULT_MODEL)
 
 
 def test_the_model_is_configurable_and_the_provider_is_validated() -> None:

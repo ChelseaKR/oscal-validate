@@ -26,8 +26,32 @@ from typing import Protocol
 
 #: The default model on the Claude API. Configurable with OSCAL_VALIDATE_AI_MODEL.
 DEFAULT_MODEL = "claude-sonnet-5"
-#: The same model, as Amazon Bedrock names it.
-DEFAULT_BEDROCK_MODEL = "global.anthropic.claude-sonnet-5"
+
+#: The default model on Amazon Bedrock, and deliberately NOT the same model as
+#: ``DEFAULT_MODEL``. The two providers have different defaults because access
+#: is granted separately on each, and a default nobody can run is worse than an
+#: older one that works: it turns every opt-in command into an
+#: ``AccessDeniedException`` for the only provider this repository has ever
+#: actually called.
+#:
+#: On the AWS account that recorded every cassette and every eval result in this
+#: repository, ``InvokeModel`` on a ``claude-sonnet-5`` Bedrock id returns HTTP
+#: 403 ``AccessDeniedException``. Bedrock's own entitlement API reports that
+#: model AUTHORIZED/ACTIVE on the same account at the same time, so availability
+#: as *queried* and availability as *invoked* disagree, and only the invocation
+#: is evidence. Every live measurement this repository publishes -- the boundary
+#: suite, the repair and grounding evals in ``docs/evals/``, and the walkthrough
+#: cassette re-recorded on 2026-08-29 -- ran on ``claude-sonnet-4-6``, so this
+#: default is now the model the recorded evidence was produced with rather than
+#: one no run here has ever completed.
+#:
+#: ``DEFAULT_MODEL`` stays on ``claude-sonnet-5``: a third-party deployer with
+#: ordinary Claude API access can run it, and the newer model is the right
+#: default for them. The two constants are pinned separately in
+#: ``tests/test_ai_client.py`` precisely so that "these two should obviously
+#: match" fails the build instead of silently re-breaking Bedrock.
+DEFAULT_BEDROCK_MODEL = "global.anthropic.claude-sonnet-4-6"
+
 DEFAULT_MAX_TOKENS = 8000
 
 PROVIDERS = ("anthropic", "bedrock")
