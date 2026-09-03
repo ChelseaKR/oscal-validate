@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "oscal-validate"
-version = "0.2.0"
+version = "0.3.0"
 description = "Deterministic structural validator for OSCAL documents, run against NIST's published schema and constraint layer."
 readme = "README.md"
 requires-python = ">=3.12"

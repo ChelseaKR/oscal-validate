@@ -14,8 +14,8 @@ authors:
   - given-names: Chelsea
     family-names: Kelly-Reif
 license: Apache-2.0
-version: "0.2.0"
-date-released: "2026-08-16"
+version: "0.3.0"
+date-released: "2026-09-02"
 repository-code: "https://github.com/ChelseaKR/oscal-validate"
 url: "https://github.com/ChelseaKR/oscal-validate"
 keywords:
