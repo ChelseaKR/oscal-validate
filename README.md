@@ -363,7 +363,7 @@ UNVERIFIABLE rather than passing quietly:
 - values governed by a pattern this tool cannot compile.
 
 The third of those is the mirror of the rule and was added after it bit. One of
-the 102 constraints this tool evaluates is an `index-has-key` constraint whose
+the 113 constraints this tool evaluates is an `index-has-key` constraint whose
 index is populated by an `index` constraint it skips, so the lookup misses every
 key no matter what the document says. Reporting that as a failure would render a
 rule that was never evaluated as somebody else's defect, which is the same
