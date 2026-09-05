@@ -135,9 +135,16 @@ rather than be filled with invented zeroes.
   cosmetic. The Incident Response row now claims the control rather than
   recording the gap. The convention itself is still unexercised, which is a
   count and not an exemption.
-- Record a per-record fetch timestamp in the survey evidence. The records carry
-  the HTTP outcome and the resolved URL but date the fetch only at file level,
-  which is short of what the data-governance lineage control asks for.
+- ~~Record a per-record fetch timestamp in the survey evidence.~~ Done
+  2026-09-05. `tools/fetch.py` stamps every `FetchResult` with `fetched_at` —
+  UTC, RFC 3339, whole seconds, taken once the response body has arrived — and
+  `tools/survey.py` writes it into the record's `fetch` block and carries it
+  forward under `--provenance` rather than restamping a cached read with the
+  present. `tests/test_survey_fetch.py` holds both: the date is bracketed
+  against the clock, and a cache-only record is asserted to carry no date at
+  all. The five surveys already under `docs/findings/` were run before the
+  field existed and are not backfilled, so their lineage is still dated at
+  file level; the data card says so rather than implying otherwise.
 - Decide whether `--log-format json` is worth implementing, or whether the tier
   C affordance should be declared N/A with a reason. Today it is neither.
 - Decide whether to add a release workflow or to declare releases N/A with a

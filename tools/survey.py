@@ -4,12 +4,12 @@ This is the harness behind ``docs/findings/``. It is deliberately thin: it
 fetches each document through the polite ``Fetcher`` in ``tools/fetch.py``,
 runs the same validator the CLI runs, and writes down the outcome.
 
-What it records is metadata and findings only: the HTTP outcome, the model, the
-byte size, the finding codes and their counts, and one example location per
-code. It never records a document's content. The question is whether published
-OSCAL conforms to the published spec, not what anyone's control baseline says,
-and a findings file full of other people's system descriptions would be both
-unnecessary and rude.
+What it records is metadata and findings only: the HTTP outcome and the UTC
+moment the bytes arrived, the model, the byte size, the finding codes and their
+counts, and one example location per code. It never records a document's
+content. The question is whether published OSCAL conforms to the published
+spec, not what anyone's control baseline says, and a findings file full of
+other people's system descriptions would be both unnecessary and rude.
 
     uv run python tools/survey.py tools/survey-urls.txt out.json --cache .cache
 
@@ -30,11 +30,15 @@ silently dropped a target would misreport its own denominator.
 ``--provenance`` carries the ``fetch`` block a previous run recorded for a URL
 into this run's record for it. A fetch happens once and the cache answers ever
 after, so without it a document retrieved by an earlier run reports only ``read
-from cache``: the HTTP status, the final URL, the redirect chain and what
-``robots.txt`` said all live in whichever run first reached the network, one
-indirection away from the run that used the bytes. The flag takes the committed
-findings JSON that recorded those fetches, so every record can carry its own
-retrieval evidence.
+from cache``: the HTTP status, the final URL, the redirect chain, the moment of
+retrieval and what ``robots.txt`` said all live in whichever run first reached
+the network, one indirection away from the run that used the bytes. The flag
+takes the committed findings JSON that recorded those fetches, so every record
+can carry its own retrieval evidence. What it carries forward is the earlier
+run's ``fetched_at`` and not this run's clock: the bytes were retrieved once,
+and a cached read is not a second retrieval. A record for which no run's fetch
+is known carries no ``fetch`` block, and therefore no date, rather than being
+dated as though the cache had just been filled.
 """
 
 from __future__ import annotations

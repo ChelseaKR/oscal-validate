@@ -7,11 +7,13 @@ server on localhost, so no test ever reaches the internet.
 
 from __future__ import annotations
 
+import json
 import sys
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -21,6 +23,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 from fetch import PRODUCT_TOKEN, BlockedError, Fetcher, FetchError, user_agent  # noqa: E402
+from survey import _acquire, read_provenance  # noqa: E402
 
 
 @dataclass
@@ -161,3 +164,51 @@ def test_a_document_larger_than_the_cap_is_refused() -> None:
 def test_an_http_error_is_loud_rather_than_an_empty_document() -> None:
     with serve({"/robots.txt": ALLOW_ALL}) as site, pytest.raises(FetchError, match="HTTP 404"):
         _fetcher().fetch(f"{site.base}/missing.json")
+
+
+def test_a_fetch_is_dated_at_the_moment_its_bytes_arrived() -> None:
+    """Lineage per record, not per file: the retrieval carries its own UTC date.
+
+    Bracketed by two readings of the clock rather than compared to a fixed
+    string, so this measures that the recorded moment is the moment of the
+    fetch. A constant would pass just as well against a hardcoded date.
+    """
+    with serve({"/robots.txt": ALLOW_ALL, "/a.json": Route(body=b"{}")}) as site:
+        before = datetime.now(tz=UTC).replace(microsecond=0)
+        result = _fetcher().fetch(f"{site.base}/a.json")
+        after = datetime.now(tz=UTC)
+
+    assert result.fetched_at.endswith("Z"), result.fetched_at
+    recorded = datetime.fromisoformat(result.fetched_at)
+    assert recorded.utcoffset() == UTC.utcoffset(None), result.fetched_at
+    assert before <= recorded <= after
+    assert result.to_dict()["fetched_at"] == result.fetched_at
+
+
+def test_the_survey_record_is_dated_by_the_run_that_reached_the_network(tmp_path: Path) -> None:
+    """The date belongs to the retrieval, and a later run does not restamp it.
+
+    A second run reads the cache and records no fetch of its own, so it has no
+    date to give: without provenance the record carries no ``fetch`` block at
+    all, which is the absence stated rather than the cache's own mtime dressed
+    up as a retrieval. ``--provenance`` then hands it the first run's block,
+    ``fetched_at`` included, so the date that reaches the evidence is the one
+    the bytes actually have.
+    """
+    cache = tmp_path / "cache"
+    with serve({"/robots.txt": ALLOW_ALL, "/a.json": Route(body=b"{}")}) as site:
+        url = f"{site.base}/a.json"
+        _, fetched = _acquire(_fetcher(), cache, url, offline=False, provenance={})
+        _, cached = _acquire(_fetcher(), cache, url, offline=False, provenance={})
+
+    assert fetched["outcome"] == "fetched"
+    assert fetched["fetch"]["fetched_at"]
+    assert cached == {"outcome": "read from cache"}
+
+    earlier_run = tmp_path / "earlier-run.json"
+    earlier_run.write_text(
+        json.dumps({"records": [{"url": url, **fetched}], "supporting": []}), encoding="utf-8"
+    )
+    carried = read_provenance([earlier_run])
+    _, again = _acquire(_fetcher(), cache, url, offline=True, provenance=carried)
+    assert again["fetch"] == fetched["fetch"]
