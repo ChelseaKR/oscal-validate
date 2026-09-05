@@ -17,11 +17,17 @@ never by the installed package, and none of it is committed to this repository.
 
 ## Known limitations
 
-- **Lineage is dated at the file level, not the record level.** A record carries
-  the requested URL, the final URL after redirects, the HTTP status, and what
-  `robots.txt` said, but no fetch timestamp; the date lives in the file name.
-  That is short of a per-record source-and-timestamp guarantee and is listed as
-  an open action in [`../ROADMAP.md`](../ROADMAP.md).
+- **The five runs committed here are dated at the file level; runs made from
+  now on are dated per record.** A record's `fetch` block carries the requested
+  URL, the final URL after redirects, the HTTP status, what `robots.txt` said,
+  and — since 2026-09-05 — `fetched_at`, the UTC moment the bytes arrived.
+  Every run in this repository predates that field, and **none has been
+  backfilled**: a date invented after the fact would be worse than the file
+  name, which at least records when the run was written down. For these five
+  files the "Retrieved" row above and the file names remain the lineage. A
+  record whose bytes came from the cache and whose provenance was not carried
+  forward has no `fetch` block, and so no date, rather than being stamped with
+  the moment it was read.
 - **A document that is both a target and a supporting document is fetched once.**
   Its provenance is recorded in the `supporting` block and its target record
   reads `read from cache`. That is accurate rather than missing, but it means
