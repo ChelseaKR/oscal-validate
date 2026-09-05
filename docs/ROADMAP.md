@@ -127,10 +127,14 @@ rather than be filled with invented zeroes.
   calls a loud failure of the weekly conformance run. An entry exists on the
   unmerged branch `fix/applicability-manifest-drift`; until that lands, the
   conformance table above and in the README is the only record of scope.
-- Create the `incident` and `sev1` through `sev4` labels. This is a GitHub
-  settings change and cannot be made from inside the repository. Until it is
-  made, the Incident Response row is honest about the gap rather than claiming
-  the control.
+- ~~Create the `incident` and `sev1` through `sev4` labels.~~ Done 2026-09-05.
+  The five labels exist, and each `sevN` carries a description saying what it
+  means *for this project* rather than a generic severity word: sev1 is a
+  published wrong verdict, sev2 is a gate that cannot fail or a claim the code
+  contradicts, sev3 is degraded output with bounded blast radius, sev4 is
+  cosmetic. The Incident Response row now claims the control rather than
+  recording the gap. The convention itself is still unexercised, which is a
+  count and not an exemption.
 - Record a per-record fetch timestamp in the survey evidence. The records carry
   the HTTP outcome and the resolved URL but date the fetch only at file level,
   which is short of what the data-governance lineage control asks for.
