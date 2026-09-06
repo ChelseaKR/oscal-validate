@@ -41,6 +41,7 @@ from evals.common import (
     ModelError,
     client_from_env,
     load_cases,
+    merge_results,
     not_run,
     provenance,
     write_results,
@@ -192,38 +193,24 @@ def summarize(records: list[dict[str, Any]], judged: bool) -> dict[str, Any]:
 
 
 def merge(paths: list[Path], out: Path) -> dict[str, Any]:
-    """One results file from several shards of the same suite, same provenance.
+    """One results file from several shards of this suite, through the shared merge.
 
-    Shards exist so a long run can go in parallel. Their provenance must
-    agree on everything but the served model (one shard may have run before
-    the provider reported it) or the merge is refused; the summary is
-    recomputed from the union of the cases.
+    This suite had its own copy of the merge before ``evals/common.py`` grew
+    one for repair and grounding, and the copy fell out of step: it compared
+    ``commit`` across shards and refused when they differed, which is the
+    normal case rather than an error, because a shard records HEAD when it
+    finishes and commits land while shards run. So a long sharded boundary run
+    could not be merged at all if anything landed on ``main`` underneath it.
+    One implementation now, and the merged file carries every shard's commit.
+
+    ``judged`` is read off the first shard because ``merge_results`` refuses
+    any merge whose shards disagree on a provenance field, and ``judge_model``
+    is one of them: if the merge happens at all, every shard agreed.
     """
-    shards = [json.loads(p.read_text(encoding="utf-8")) for p in paths]
-    keys = [
-        k for k in shards[0]["provenance"] if k not in {"served_model", "replayed_from_cassette"}
-    ]
-    for shard in shards[1:]:
-        for key in keys:
-            if shard["provenance"].get(key) != shards[0]["provenance"].get(key):
-                raise SystemExit(f"shards disagree on provenance field {key!r}; not merged")
-    records = [r for shard in shards for r in shard["cases"]]
-    ids = [r["id"] for r in records]
-    if len(ids) != len(set(ids)):
-        raise SystemExit("shards overlap on case ids; not merged")
-    records.sort(key=lambda r: r["id"])
-    prov = dict(shards[0]["provenance"])
-    prov["served_model"] = next(
-        (s["provenance"]["served_model"] for s in shards if s["provenance"]["served_model"]), ""
+    judged = bool(json.loads(paths[0].read_text(encoding="utf-8"))["provenance"].get("judge_model"))
+    return merge_results(
+        paths, out, lambda records: summarize(records, judged), lambda record: record["id"]
     )
-    prov["merged_from"] = [p.name for p in paths]
-    payload = {
-        "provenance": prov,
-        "summary": summarize(records, bool(prov.get("judge_model"))),
-        "cases": records,
-    }
-    write_results(out, payload)
-    return payload
 
 
 def main(argv: list[str]) -> int:
