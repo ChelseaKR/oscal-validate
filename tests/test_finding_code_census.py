@@ -65,6 +65,18 @@ ROSTER = frozenset(
 )
 
 
+#: Functions that build a ``Finding`` whose code came from somewhere else.
+#:
+#: The census asks which codes this package can *originate*.
+#: ``compare.findings_from_report`` rebuilds findings out of a saved report
+#: written by an earlier run, so its ``code=`` is whatever that file said and
+#: is not a code this source can introduce. Its body cannot be read as string
+#: constants and should not be: an entry here would be a hole in the census if
+#: it were not exactly one named function, so
+#: ``test_the_census_exemption_is_the_one_function_it_names`` holds it to that.
+RECONSTRUCTION = frozenset({"findings_from_report"})
+
+
 class _CodeCensus(ast.NodeVisitor):
     """Collect the string values a ``code=`` keyword can take in one module.
 
@@ -72,13 +84,25 @@ class _CodeCensus(ast.NodeVisitor):
     which is enough for the one call site that passes a variable. An expression
     this walk cannot reduce to string constants is recorded in ``unresolved``
     rather than dropped, because a census that silently skips what it cannot
-    read is the failure this file exists to prevent.
+    read is the failure this file exists to prevent. The one exception is
+    :data:`RECONSTRUCTION`, and it is named rather than inferred.
     """
 
     def __init__(self) -> None:
         self.codes: set[str] = set()
         self.unresolved: list[str] = []
         self.literals: dict[str, set[str]] = {}
+        self.exempt: list[str] = []
+        self._depth = 0
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        if node.name in RECONSTRUCTION:
+            self.exempt.append(node.name)
+            self._depth += 1
+            self.generic_visit(node)
+            self._depth -= 1
+        else:
+            self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> None:
         if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
@@ -89,7 +113,7 @@ class _CodeCensus(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call) -> None:
         for keyword in node.keywords:
-            if keyword.arg == "code":
+            if keyword.arg == "code" and not self._depth:
                 self._resolve(keyword.value, node.lineno)
         self.generic_visit(node)
 
@@ -114,6 +138,25 @@ def _census() -> tuple[set[str], list[str]]:
         codes |= visitor.codes
         unresolved += [f"{path.relative_to(PACKAGE)} {detail}" for detail in visitor.unresolved]
     return codes, unresolved
+
+
+def _exempted() -> set[str]:
+    found: set[str] = set()
+    for path in sorted(PACKAGE.rglob("*.py")):
+        visitor = _CodeCensus()
+        visitor.visit(ast.parse(path.read_text(encoding="utf-8"), filename=str(path)))
+        found.update(visitor.exempt)
+    return found
+
+
+def test_the_census_exemption_is_the_one_function_it_names() -> None:
+    """An exemption nobody can see is a hole; this makes it visible and small.
+
+    Every name in ``RECONSTRUCTION`` must exist in the package, so a function
+    that was renamed or deleted cannot leave a silent skip behind, and no name
+    may be exempt that the list does not carry.
+    """
+    assert _exempted() == set(RECONSTRUCTION)
 
 
 def test_the_census_reads_every_source_file() -> None:
