@@ -30,8 +30,10 @@ document it was not given: every one of those is reported **UNVERIFIABLE**, and
 UNVERIFIABLE is never rendered as a pass. A clean report always lists what was
 not checked, alongside what was.
 
-**Status:** Beta. Tagged `v0.1.0` and `v0.2.0`; nothing is published to PyPI,
-so installation is from source. This is a demonstration and reference
+**Status:** Beta. Tagged `v0.1.0` and `v0.2.0`, of which `v0.2.0` also carries
+a GitHub release; `0.3.0` is prepared in the source and dated in the changelog
+but is not tagged. Nothing is published to PyPI, so installation is from
+source. This is a demonstration and reference
 implementation. It is not affiliated with, endorsed by, or reviewed by NIST,
 FedRAMP, or StateRAMP.
 
@@ -672,7 +674,7 @@ checked, and it is not a claim that any registry agrees with it yet.
 | Data Governance | Applies (L1, public non-sensitive) | Data cards in [docs/data/](docs/data/) for all three ingest sources, with hashes in [vendor/SOURCES.md](src/oscal_validate/vendor/SOURCES.md) enforced by `tests/test_vendor_integrity.py` and in [ai/corpus/MANIFEST.json](src/oscal_validate/ai/corpus/MANIFEST.json) enforced by `tests/test_ai_sources.py`. Survey records are dated per retrieval: `tools/fetch.py` stamps every fetch with `fetched_at` (UTC, RFC 3339), `tools/survey.py` carries it forward under `--provenance` instead of restamping a cached read, and `tests/test_survey_fetch.py` holds both. The five surveys committed under `docs/findings/` predate the field and are not backfilled; their lineage stays dated at file level, which [docs/data/published-oscal-corpus.md](docs/data/published-oscal-corpus.md) records. |
 | Documentation | Applies | This README, [CHANGELOG.md](CHANGELOG.md), ADRs in [docs/adr/](docs/adr/), [CITATION.cff](CITATION.cff), [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/CONSTRAINT-COVERAGE.md](docs/CONSTRAINT-COVERAGE.md). |
 | Quality & Metrics | Applies | [docs/ROADMAP.md](docs/ROADMAP.md) names every gate as AUTO, REVIEW, or a reasoned exception. |
-| Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current. No release has been made yet, and no release workflow exists; that is an open gap recorded in [docs/ROADMAP.md](docs/ROADMAP.md), not a declaration that releases are out of scope. |
+| Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current, and `tests/test_release_metadata.py` holds `pyproject.toml`, `oscal_validate.__version__` and `CITATION.cff` to one version with a changelog section behind it. `v0.1.0` and `v0.2.0` are tagged and `v0.2.0` is published as a GitHub release. Two gaps, both recorded in [docs/ROADMAP.md](docs/ROADMAP.md) rather than declared out of scope: `0.3.0` is carried by the source and dated 2026-09-02 in `CHANGELOG.md` and `CITATION.cff` but has no tag, so the citation file names a release date for a release that was never cut; and there is no release workflow, so the steps that made the two existing releases are not written down. |
 
 ## License
 
