@@ -15,8 +15,10 @@ Only ERROR findings make the CLI exit nonzero.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
+
+from .suggest import Suggestion
 
 
 class Severity(StrEnum):
@@ -49,6 +51,11 @@ class Finding:
     value: str
     message: str
     rule: Rule
+    #: Identifiers close to :attr:`value` that *are* declared, offered only
+    #: when ``--suggest`` is on and only for a settled finding (issue #64).
+    #: Empty by default, and absent from both renderings when empty, so the
+    #: bytes of a run without the flag are the bytes this tool always emitted.
+    suggestions: tuple[Suggestion, ...] = field(default=())
 
     def sort_key(self) -> tuple[str, str, str, str, str, str]:
         return (
@@ -61,7 +68,7 @@ class Finding:
         )
 
     def to_dict(self) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "code": self.code,
             "severity": self.severity.value,
             "location": self.location,
@@ -74,6 +81,9 @@ class Finding:
                 "retrieved": self.rule.retrieved,
             },
         }
+        if self.suggestions:
+            payload["suggestions"] = [s.to_dict() for s in self.suggestions]
+        return payload
 
     def render_text(self) -> str:
         return (
@@ -82,6 +92,7 @@ class Finding:
             f"    {self.message}\n"
             f"    rule: {self.rule.citation}\n"
             f"    source: {self.rule.url} (retrieved {self.rule.retrieved})"
+            + "".join("\n" + s.render_text() for s in self.suggestions)
         )
 
 

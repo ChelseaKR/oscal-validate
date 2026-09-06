@@ -13,12 +13,15 @@ from .schema import load_schema
 from .session import Session
 
 
-def build_session(document: Path, resolve: list[Path] | None = None) -> Session:
+def build_session(
+    document: Path, resolve: list[Path] | None = None, *, suggest: bool = False
+) -> Session:
     schema = load_schema()
     return Session(
         corpus=build_corpus(document, list(resolve or []), schema),
         schema=schema,
         metaschema=load_metaschema(),
+        suggest=suggest,
     )
 
 
@@ -27,8 +30,10 @@ def validate(session: Session) -> list[Finding]:
     return finalize(_deduplicate((check, check(session)) for check in ALL_CHECKS))
 
 
-def validate_file(document: Path, resolve: list[Path] | None = None) -> list[Finding]:
-    return validate(build_session(document, resolve))
+def validate_file(
+    document: Path, resolve: list[Path] | None = None, *, suggest: bool = False
+) -> list[Finding]:
+    return validate(build_session(document, resolve, suggest=suggest))
 
 
 #: Two checks reach the same identifier references and both are right about

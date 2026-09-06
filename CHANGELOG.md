@@ -8,6 +8,46 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- **`--suggest`: the identifier that *is* declared, next to the one that is
+  not** (closes #64), in `src/oscal_validate/suggest.py`,
+  `checks/references.py`, `findings.py`, `session.py`, `validator.py`,
+  `cli.py` and `tests/test_suggest.py`. A reference that resolves to nothing
+  was reported and the report stopped there, which is true and is not the
+  sentence that repairs the file. The 2026-08-15 imports survey measured 178
+  real unresolved references and found the largest class of them one zero-pad
+  away from resolving — an SSP naming `ac-2_odp.01` against a baseline
+  declaring `ac-02_odp.01`.
+
+  The option prints up to three identifiers that *are* declared and are close
+  to the one written, with what differs named: a leading `#`, case, the
+  separator character, zero-padding, or a bounded number of character edits.
+  Candidates are drawn only from the identifier index the resolution check
+  already built, for that reference's own kind, so a group id is never offered
+  for a control reference. Ranking is fixed — normalised equality, then an
+  optimal-string-alignment distance of at most two with adjacent
+  transpositions counted as one edit, then lexical order — so the same inputs
+  produce the same three every time. Nothing is fetched and no model is
+  called.
+
+  Three refusals are what make the offer honest rather than merely helpful.
+  It is **off by default**, so a run without the flag emits the bytes
+  `tests/golden/` pins. It is **never offered for an UNVERIFIABLE reference**,
+  because an import that was not supplied leaves the index short by
+  definition and the nearest entry in a partial index is not evidence about
+  the identifier that was written. And it **changes nothing about the
+  finding** — code, severity, message and pointer are what they were, and no
+  wording asserts the near miss is what was meant.
+
+  Two of the four tests written for this were, on their first draft, gates
+  that could not fail: the cross-kind test used a fixture where no other
+  kind's identifier was within range, and the UNVERIFIABLE test supplied no
+  catalog at all, so the index was empty and the search returned nothing
+  whether or not the refusal existed. Both were rewritten against fixtures
+  where the fault is reachable, and both were then confirmed to go red when
+  the refusal is removed.
+
 ### Fixed
 
 - **A sharded eval run merged from a subset of its shards published as a whole
