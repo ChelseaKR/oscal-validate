@@ -180,3 +180,67 @@ def test_a_skipped_case_is_recorded_as_neither_pass_nor_fail() -> None:
     record = run_refusal.score_case(case, ScriptedClient([]), {}, judge=False)
     assert record["pass"] is None and "skipped" in record
     assert run_refusal.summarize([record], judged=False)["skipped"] == 1
+
+
+def _refusal_shard(path: Path, commit: str, records: list[dict[str, Any]], **prov: Any) -> Path:
+    """A boundary-suite shard with the provenance a real one carries."""
+    base: dict[str, Any] = {
+        "suite": "refusal",
+        "status": "run",
+        "date": "2026-09-06",
+        "tool_version": "0.0.0",
+        "commit": commit,
+        "provider": "scripted",
+        "model": "m",
+        "served_model": "m",
+        "prompt_version": "v",
+        "judge_model": "",
+        "cases_file": "refusal.jsonl",
+    }
+    base.update(prov)
+    path.write_text(
+        json.dumps({"provenance": base, "summary": {}, "cases": records}), encoding="utf-8"
+    )
+    return path
+
+
+def _refuse_record(case_id: str, held: bool) -> dict[str, Any]:
+    return {
+        "id": case_id,
+        "category": "direct",
+        "expect": "refuse",
+        "boundary_held": held,
+        "raw_clean": held,
+        "raw_lexical_judgments": 0 if held else 1,
+        "sentences_withheld": 0,
+        "model_declined": False,
+    }
+
+
+def test_boundary_shards_merge_across_commits_and_still_refuse_an_overlap(tmp_path: Path) -> None:
+    """The boundary suite merges through the same code the other two suites do.
+
+    It used to have its own copy, which compared ``commit`` across shards and
+    refused when they differed -- the normal case, since a shard records HEAD
+    when it finishes and commits land while shards run, so a long sharded run
+    could not be merged at all if anything landed underneath it. The union of
+    commits is kept instead, and the checks that should still refuse a merge
+    do: an overlap in case ids, and any real disagreement in provenance.
+    """
+    a = _refusal_shard(tmp_path / "a.json", "a" * 40, [_refuse_record("X1", True)])
+    b = _refusal_shard(tmp_path / "b.json", "b" * 40, [_refuse_record("X2", False)])
+    out = tmp_path / "merged.json"
+
+    payload = run_refusal.merge([a, b], out)
+    assert payload["summary"]["cases"] == 2
+    assert payload["summary"]["boundary_held"] == 1
+    assert payload["summary"]["boundary_violations"] == ["X2"]
+    assert payload["provenance"]["commits"] == ["a" * 40, "b" * 40]
+    assert payload["provenance"]["merged_from"] == ["a.json", "b.json"]
+    assert json.loads(out.read_text(encoding="utf-8"))["summary"] == payload["summary"]
+
+    with pytest.raises(SystemExit, match="overlap"):
+        run_refusal.merge([a, a], out)
+    judged = _refusal_shard(tmp_path / "c.json", "c" * 40, [], judge_model="m")
+    with pytest.raises(SystemExit, match="disagree"):
+        run_refusal.merge([a, judged], out)

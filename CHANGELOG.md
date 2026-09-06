@@ -81,6 +81,25 @@ and this project adheres to
   the field existed and are **not** backfilled. Their lineage remains dated at
   file level, as `docs/data/published-oscal-corpus.md` now states.
 
+### Changed
+
+- **One shard merge, not two.** `evals/run_refusal.py` carried its own copy of
+  the shard merge from before `evals/common.py` grew one for repair and
+  grounding, and the copy had fallen out of step: it compared `commit` across
+  shards and refused the merge when they differed. That is the normal case, not
+  an error — a shard records HEAD when it finishes and commits land while
+  shards run — so a long sharded boundary run could not be merged at all if
+  anything landed on `main` underneath it. The boundary suite now merges
+  through `merge_results` like the other two, keeps every shard's commit under
+  `commits`, and still refuses an overlap in case ids or a real disagreement in
+  provenance. `tests/test_evals.py` covers that path, which nothing did before;
+  the new test was run against the old implementation first and fails there
+  with `shards disagree on provenance field 'commit'`.
+
+  This does not address #57: neither merge checks that the shards *cover* the
+  suite, so a merge of a subset still publishes as a whole run. That is now one
+  place to fix rather than two.
+
 ## [0.3.0] - 2026-09-02
 
 ### Changed
