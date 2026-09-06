@@ -19,6 +19,11 @@ narrative never mentioned (appended by the tool) are counted, with the
 guard's withheld sentences.
 
 All counts are the verifier's and the guard's, which do not involve a model.
+
+The two passes are sampled independently, so coverage is counted over both
+of them per document rather than over documents: ``--per-doc 0`` reaches
+every walkthrough and no explanation, and a run that did that has not run
+the grounding half of the suite. See ``cases_missing`` in ``common.py``.
 """
 
 from __future__ import annotations
@@ -35,12 +40,13 @@ from evals.common import (
     ModelClient,
     ModelError,
     client_from_env,
+    coverage,
     merge_results,
     not_run,
     provenance,
     write_results,
 )
-from evals.documents import Document, load_documents
+from evals.documents import Document, document_ids, load_documents
 from oscal_validate.ai import explain, walkthrough
 from oscal_validate.ai.run import Run, prepare
 from oscal_validate.findings import Finding
@@ -61,9 +67,48 @@ def pick_findings(run: Run, limit: int) -> list[Finding]:
     return chosen
 
 
+PASSES = ("explain", "walk")
+
+
+def unit(record: dict[str, Any]) -> str:
+    """The suite unit a case record covers: one document, one of two passes.
+
+    Not one document. The two passes are sampled independently -- ``--per-doc``
+    caps the explanations and the walkthrough is one per document -- so a run
+    with ``--per-doc 0`` reaches every document's walkthrough and none of its
+    explanations. Counting coverage per document would call that whole.
+    """
+    return f"{record['document']}|{'explain' if 'label' in record else 'walk'}"
+
+
+def units() -> list[str]:
+    """Every document in the committed manifest crossed with both passes.
+
+    From the manifest, not from ``--docs`` or from what the cache holds:
+    those are ways to run part of the suite, not redefinitions of it.
+    """
+    return [f"{identifier}|{pass_}" for identifier in document_ids() for pass_ in PASSES]
+
+
 def score_grounding(document: Document, client: ModelClient, per_doc: int) -> list[dict[str, Any]]:
     run = prepare(document.path, list(document.resolve))
     records: list[dict[str, Any]] = []
+    if not run.findings:
+        # A document the validator found nothing in has no explanation to
+        # ground, which is a reached case with nothing to measure rather than
+        # a case the run failed to reach. It is recorded as skipped, the way
+        # the repair suite records an injector with no place to go, so that
+        # this pass counts as covered for exactly the documents it visited.
+        records.append(
+            {
+                "document": document.identifier,
+                "model": document.model,
+                "label": "",
+                "skipped": "the validator produced no findings to explain",
+            }
+        )
+        print(f"explain {document.identifier:32} no findings to explain", flush=True)
+        return records
     for finding in pick_findings(run, per_doc):
         result = explain.explain_one(run, finding, client)
         record: dict[str, Any] = {
@@ -202,8 +247,18 @@ def main(argv: list[str]) -> int:
         grounding.extend(score_grounding(document, client, args.per_doc))
         walks.append(score_walkthrough(document, client))
     served = next((r.get("served_model") for r in grounding + walks if r.get("served_model")), None)
+    # --docs, --per-doc and a cold cache all make a partial run easy and
+    # legitimate; what is not legitimate is a partial run reading like a
+    # whole one. --per-doc is recorded as well as gated on, because it is a
+    # sampling depth: four explanations per document and one are both honest
+    # runs, and they are not the same measurement.
+    extra = {
+        "documents_skipped": skipped_docs,
+        "per_doc": args.per_doc,
+        **coverage(units(), (unit(r) for r in grounding + walks)),
+    }
     payload = {
-        "provenance": provenance("grounding", client, served, {"documents_skipped": skipped_docs}),
+        "provenance": provenance("grounding", client, served, extra),
         "summary": summarize(grounding, walks),
         "cases": grounding + walks,
     }

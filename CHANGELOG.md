@@ -71,9 +71,49 @@ and this project adheres to
   skipped in shard three used to vanish from the merged record), and the
   provenance-agreement check reads every field name any shard carries instead
   of only the first shard's, so a field the first shard happened to lack is no
-  longer uncompared. What "the whole suite" is for the repair and grounding
+  longer uncompared. What "the whole suite" was for the repair and grounding
   suites, whose cases are derived from the document corpus rather than
-  enumerated, is still open in #57.
+  enumerated, was left open at the time and is settled by the entry below.
+
+- **The repair and grounding suites still could not say what they had not
+  run** (closes #57), in `evals/common.py`, `evals/documents.py`,
+  `evals/run_repair.py`, `evals/run_grounding.py`, `evals/run_refusal.py`,
+  `tests/test_evals.py` and `docs/evals/README.md`. The boundary suite gained
+  `cases_expected`/`cases_missing` above because its case set is committed;
+  the other two derive their cases from the document corpus and declared no
+  coverage at all, so a run over one document, over one injector, or over a
+  machine with no `.survey-cache/` at all wrote the same shape as a run over
+  all twelve — `status: run`, full provenance, and a summary that agreed with
+  itself.
+
+  Both universes are in fact fixed sets, because `evals/cases/documents.json`
+  is committed: a repair unit is one document crossed with one injector (84),
+  and a grounding unit is one document crossed with one of its two passes
+  (24). Both are derived from the manifest and never from what
+  `load_documents` happened to find, which is the distinction that makes a run
+  over a cold cache report zero coverage rather than perfect coverage over
+  nothing. A document that is not on this machine is a case that did not run.
+
+  Three things fell out of doing it honestly. A unit is not a case record —
+  one injection can produce two repair targets, one document several
+  explanations — so coverage is counted over units and `summary.cases` stays a
+  count of records; the results gate's cross-check became
+  `units + missing == expected`, which over the boundary suite is stricter
+  than the count it replaced, since it counts distinct ids. The grounding
+  suite splits each document into its two passes rather than treating the
+  document as the unit, because they are sampled independently: `--per-doc 0`
+  reaches every walkthrough and no explanation, and a per-document count would
+  call that whole. And the sampling depths themselves (`--per-doc`,
+  `--per-target-limit`) are now recorded in provenance, because a number
+  sampled at an undeclared depth is not the number it looks like.
+
+  A covered unit the manifest does not name is refused rather than dropped:
+  the run and the manifest disagreeing about what the suite is would otherwise
+  shrink `cases_missing` for a reason nobody chose. A document the validator
+  finds nothing in records an explicit skip, so that pass counts as reached —
+  a clean document must be able to be covered. The four results files
+  published on 2026-08-21 predate all of this and are unedited; each of them
+  was in fact a whole run, at 84 and 24 units respectively.
 
 - **`CITATION.cff` named a release date for a release that was never cut.**
   The file carried `version: "0.3.0"` and `date-released: "2026-09-02"` while no

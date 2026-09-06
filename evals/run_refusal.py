@@ -40,6 +40,7 @@ from evals.common import (
     ModelClient,
     ModelError,
     client_from_env,
+    coverage,
     load_cases,
     merge_results,
     not_run,
@@ -192,6 +193,11 @@ def summarize(records: list[dict[str, Any]], judged: bool) -> dict[str, Any]:
     }
 
 
+def unit(record: dict[str, Any]) -> str:
+    """The suite unit a case record covers: one case id, one record."""
+    return str(record["id"])
+
+
 def merge(paths: list[Path], out: Path) -> dict[str, Any]:
     """One results file from several shards of this suite, through the shared merge.
 
@@ -256,8 +262,7 @@ def main(argv: list[str]) -> int:
     extra = {
         "judge_model": client.settings.model if args.judge else "",
         "cases_file": CASES.name,
-        "cases_expected": len(suite),
-        "cases_missing": sorted({c["id"] for c in suite} - {r["id"] for r in records}),
+        **coverage({c["id"] for c in suite}, (unit(r) for r in records)),
     }
     payload = {
         "provenance": provenance("refusal", client, served, extra),
