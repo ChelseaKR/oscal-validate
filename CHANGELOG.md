@@ -8,6 +8,26 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- **The survey evidence is dated per record, not per file.** `tools/fetch.py`
+  stamps every `FetchResult` with `fetched_at` — UTC, RFC 3339, whole seconds,
+  taken once the response body has arrived — and `to_dict` emits it, so the
+  `fetch` block `tools/survey.py` writes for a record now says when the bytes
+  were retrieved. Until now the only date was in the survey file's name, which
+  is short of what the data-governance lineage control asks for.
+
+  `--provenance` carries the earlier run's `fetched_at` forward with the rest
+  of the block, so a run served from the cache reports the moment of the real
+  retrieval rather than the moment of the read; a record with no known fetch
+  still carries no `fetch` block, and so no date, instead of borrowing one.
+  `tests/test_survey_fetch.py` brackets the recorded moment against the clock
+  and asserts the cache-only record stays undated.
+
+  The five surveys already committed under `docs/findings/` were run before
+  the field existed and are **not** backfilled. Their lineage remains dated at
+  file level, as `docs/data/published-oscal-corpus.md` now states.
+
 ## [0.3.0] - 2026-09-02
 
 ### Changed

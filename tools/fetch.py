@@ -19,6 +19,9 @@ The posture, in full:
   at every hop, so a redirect cannot carry the fetch onto a host that said no.
 - **Rate limited per host**, with a minimum interval a site's own
   ``Crawl-delay`` can lengthen but never shorten.
+- **Every retrieval is dated.** A :class:`FetchResult` records the UTC moment
+  its bytes arrived, so a survey's evidence is dated per record rather than
+  only by the name of the file it was written to.
 - **Failures are loud.** Every stop raises :class:`FetchError`.
 """
 
@@ -28,6 +31,7 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from urllib.parse import urljoin, urlparse, urlunparse
 from urllib.robotparser import RobotFileParser
 
@@ -55,6 +59,20 @@ def user_agent(contact: str | None = None) -> str:
     return f"{PRODUCT_TOKEN}/{VERSION} ({detail})"
 
 
+def retrieved_at() -> str:
+    """The moment of retrieval: UTC, RFC 3339, whole seconds.
+
+    Always UTC and always the ``Z`` form, because the evidence this ends up in
+    is read by people in other timezones than whoever ran the survey, and a
+    local offset would make two runs' dates look different when they are not.
+
+    Whole seconds rather than microseconds: this is taken once the response
+    body has finished arriving, so it dates the retrieval and not the request,
+    and sub-second digits would claim a precision it does not have.
+    """
+    return datetime.now(tz=UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
 class FetchError(RuntimeError):
     """The document could not be fetched, for any reason, including robots.txt."""
 
@@ -72,6 +90,7 @@ class FetchResult:
     bytes_read: int
     redirects: tuple[str, ...]
     robots: str
+    fetched_at: str
     body: bytes
 
     def to_dict(self) -> dict[str, object]:
@@ -83,6 +102,7 @@ class FetchResult:
             "bytes": self.bytes_read,
             "redirects": list(self.redirects),
             "robots": self.robots,
+            "fetched_at": self.fetched_at,
         }
 
 
@@ -235,6 +255,7 @@ class Fetcher:
                 bytes_read=len(body),
                 redirects=tuple(redirects),
                 robots=robots,
+                fetched_at=retrieved_at(),
                 body=body,
             )
         raise FetchError(
