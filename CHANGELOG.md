@@ -8,7 +8,33 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- **The coverage number the responsible-tech audit is sized by was two
+  expansions stale.** `docs/RESPONSIBLE-TECH-AUDITS.md` stated the harm case as
+  "a reader takes 'no ERROR findings' as 'this package conforms to OSCAL' when
+  the tool evaluates 78 of NIST's 340 published constraints" — the count has
+  been 102 and is now 113. The sentence understated by 35 constraints the one
+  number that sizes the risk the whole audit is about.
+
 ### Added
+
+- **The counts the living prose publishes are now derived, not restated.**
+  `docs/CONSTRAINT-COVERAGE.md` is generated and guarded, so the table cannot
+  drift; the sentences around it could, and had. `tests/test_published_counts.py`
+  reads every coverage number back out of `README.md` and
+  `docs/RESPONSIBLE-TECH-AUDITS.md` and holds it against the same parse the
+  validator runs: the total, the evaluated and unevaluated counts, the per-kind
+  published totals, the `allow-other` split, and the `matches` breakdown.
+
+  Three ways it fails, each exercised against a seeded edit before it was
+  committed: a number that no longer matches the vendored files; a claim
+  reworded into a shape the file does not check, caught because every
+  occurrence of a headline count must sit inside a checked sentence; and a
+  claim deleted outright, caught because each shape must still be found. The
+  ADRs, `docs/findings/`, and the dated entries in `docs/ROADMAP.md` and
+  `docs/EXPANSION-PLAN.md` are deliberately out of scope: 78 and 102 are the
+  correct numbers in a record of the day they were true.
 
 - **The survey evidence is dated per record, not per file.** `tools/fetch.py`
   stamps every `FetchResult` with `fetched_at` — UTC, RFC 3339, whole seconds,
