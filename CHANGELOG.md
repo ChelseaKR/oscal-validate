@@ -48,6 +48,50 @@ and this project adheres to
   where the fault is reachable, and both were then confirmed to go red when
   the refusal is removed.
 
+- **`oscal-validate diff`: what changed between two runs** (closes #61), in
+  `src/oscal_validate/compare.py` and `diff.py` (both new), `cli.py`,
+  `ai/repair.py`, `tests/test_diff.py`, `tests/test_finding_code_census.py`
+  and the README. Each side is an OSCAL document, validated on the spot with
+  its own resolve set, or a saved `--format json` report. `--format json`;
+  exit 0 either way, with `--fail-on-new` to gate on an ERROR that is present
+  after and absent before.
+
+  The comparison already existed, inside a model-backed command: `repair
+  --draft` re-validates its patched copy and reports "resolves F6; 6 untouched;
+  1 also resolved; 0 introduced". `oscal_validate.compare` is now that one
+  implementation, called by both, so the verb and the draft cannot disagree
+  about which findings are the same finding. It reaches no model and no socket,
+  and a fresh-process check asserts running `diff` loads neither
+  `oscal_validate.ai` nor any SDK.
+
+  **A removed finding is not called a resolved one, anywhere in this verb.**
+  Two finding lists cannot tell a repair from a run that read a different
+  document, used a different resolve set, or could not get far enough to report
+  anything — an empty second side is exactly what a truncated or failed run
+  produces. `repair --draft` may say "resolved" because it made the edit itself
+  and knows what changed; a diff over two files does not, and says *removed*
+  with what that is worth printed beneath the summary.
+
+  Displacement is reported rather than buried: an array that gains an element
+  shifts every pointer under it, and reporting that as a wall of removals and
+  additions hides whatever really changed. A finding matching on code,
+  property, value and rule at a different location is *moved* — but only where
+  exactly one was removed and exactly one added under that key. Where several
+  were, which went where is a guess, so the pairing is declined and the key is
+  named. Move pairing is off for `repair --draft`, because its published
+  efficacy numbers count "also resolved" and "introduced" and a third category
+  would change what those numbers mean as a side effect of sharing code.
+
+  A saved report records the tool version and **nothing** about which vendored
+  OSCAL snapshot produced it, so two reports can be compared with no way to
+  know whether the same schema was behind them. The header says so, rather than
+  printing the release for a validated side and silence for the other and
+  letting that read as agreement. A tool-version mismatch is stated too, and
+  neither stops the diff.
+
+  A malformed report raises instead of yielding the findings it could read: a
+  partial read of evidence is the thing this comparison exists not to publish.
+
 ### Fixed
 
 - **A sharded eval run merged from a subset of its shards published as a whole
@@ -227,6 +271,14 @@ and this project adheres to
   This does not address #57: neither merge checks that the shards *cover* the
   suite, so a merge of a subset still publishes as a whole run. That is now one
   place to fix rather than two.
+
+- **The finding-code census now names its one exemption instead of failing on
+  it.** `compare.findings_from_report` rebuilds findings out of a saved report,
+  so its `code=` is whatever that file said and is not a code this package can
+  originate. The census asks which codes the source can originate, so that one
+  function is exempt by name — and `RECONSTRUCTION` is held to exactly the
+  functions that exist and are actually skipped, so a renamed function cannot
+  leave a silent hole and the list cannot quietly grow.
 
 ## [0.3.0] - 2026-09-02
 

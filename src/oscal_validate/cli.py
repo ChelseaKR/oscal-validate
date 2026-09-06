@@ -10,6 +10,9 @@ default parser sees the arguments, and the package that implements them is
 imported only then; ``tests/test_default_path_byte_identity.py`` checks in a
 fresh process that a validation run never loads it.
 
+``diff`` is dispatched the same way but is not one of them: it compares two
+runs and is as deterministic and as offline as the default path.
+
 ``--resolve`` takes more local files or directories. It is how an imported
 catalog or profile gets into the effective data model, and it is the difference
 between "this control reference resolves to nothing" and "this control
@@ -38,6 +41,12 @@ from .validator import build_session, validate
 #: the default output, never see them; the package is imported only then.
 AI_COMMANDS = ("explain", "repair", "walkthrough", "ask")
 
+#: Subcommands that are as deterministic and as offline as the default path.
+#: Dispatched the same way and for the same reason -- the default parser takes
+#: a file as its first positional, so a verb name would be read as a filename
+#: -- but they load no optional dependency and reach no model.
+DETERMINISTIC_COMMANDS = ("diff",)
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -52,6 +61,8 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Severities: ERROR gates the exit code. UNVERIFIABLE never does; it marks "
             "what the supplied documents cannot settle, and is never a pass. "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[0]} --help` compares two runs, with "
+            "no model and no network, like this command. "
             f"Opt-in model-backed subcommands ({', '.join(AI_COMMANDS)}) are documented by "
             "`oscal-validate explain --help`; they call a model, this command never does."
         ),
@@ -94,6 +105,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         ai_cli = importlib.import_module("oscal_validate.ai.cli")
         result: int = ai_cli.main(arguments)
         return result
+    if arguments and arguments[0] in DETERMINISTIC_COMMANDS:
+        module = importlib.import_module(f"oscal_validate.{arguments[0]}")
+        verdict: int = module.main(arguments)
+        return verdict
     args = build_parser().parse_args(arguments)
     try:
         session = build_session(

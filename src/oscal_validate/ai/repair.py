@@ -30,7 +30,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ..findings import Finding, counts
+from .. import compare as compare_findings
+from ..findings import Finding
 from ..validator import validate_file
 from . import guard, prompts, sources
 from .client import ModelClient, ModelError
@@ -42,16 +43,11 @@ from .verify import ReplyError, Verified, parse_reply, render_quotes, render_wit
 PLACEHOLDER_MARKS = ("TODO", "PLACEHOLDER", "REPLACE", "FIXME", "CHANGEME")
 
 
-def finding_key(finding: Finding) -> tuple[str, str, str, str]:
-    """What makes a finding the same finding before and after a patch.
-
-    Code, location, and property, plus the rule citation: two constraints
-    can fail at one location on one property (the catalog's two id indexes
-    do), and the citation is what tells them apart. Value and message are
-    left out so that a finding whose count or value moved is reported as
-    changed rather than as one resolved and one introduced.
-    """
-    return (finding.code, finding.location, finding.prop, finding.rule.citation)
+#: Re-exported: what makes a finding the same finding before and after a patch.
+#: The definition moved to ``oscal_validate.compare`` when ``diff`` needed the
+#: same one, so the verb and this command cannot disagree about what
+#: "introduced" means. ``evals/run_repair.py`` imports it from here.
+finding_key = compare_findings.finding_key
 
 
 @dataclass
@@ -142,17 +138,20 @@ def _placeholders(raw: Any, patch: list[Operation]) -> list[dict[str, str]]:
 
 
 def revalidate(run: Run, patched: Any) -> Outcome:
-    """Write the patched copy to a temporary directory and validate it for real."""
-    before = {finding_key(f): f for f in run.findings}
+    """Write the patched copy to a temporary directory and validate it for real.
+
+    The before/after set comparison is ``oscal_validate.compare``, which is also
+    what ``oscal-validate diff`` runs, so the two cannot disagree about which
+    findings are the same finding. Move pairing is off here: this command's
+    published efficacy numbers count "also resolved" and "introduced", and
+    moving a displaced finding into a third category would change what those
+    numbers mean as a side effect of sharing the code.
+    """
     with tempfile.TemporaryDirectory() as directory:
         copy_path = Path(directory) / run.document.name
         copy_path.write_text(json.dumps(patched, indent=2, ensure_ascii=False), encoding="utf-8")
         after_findings = validate_file(copy_path, run.resolve)
-    after = {finding_key(f): f for f in after_findings}
-    resolved_keys = [k for k in before if k not in after]
-    introduced = [after[k] for k in after if k not in before]
-    changed = [(before[k], after[k]) for k in before if k in after and before[k] != after[k]]
-    unchanged = sum(1 for k in before if k in after and before[k] == after[k])
+    comparison = compare_findings.compare(run.findings, after_findings, pair_moves=False)
     original = json.dumps(run.payload, indent=2, ensure_ascii=False).splitlines()
     revised = json.dumps(patched, indent=2, ensure_ascii=False).splitlines()
     diff = "\n".join(
@@ -162,12 +161,12 @@ def revalidate(run: Run, patched: Any) -> Outcome:
     )
     return Outcome(
         resolved=False,
-        also_resolved=[before[k] for k in resolved_keys],
-        changed=changed,
-        introduced=introduced,
-        unchanged=unchanged,
-        before=counts(run.findings),
-        after=counts(after_findings),
+        also_resolved=comparison.removed,
+        changed=comparison.changed,
+        introduced=comparison.added,
+        unchanged=comparison.unchanged,
+        before=comparison.before,
+        after=comparison.after,
         diff=diff,
     )
 
