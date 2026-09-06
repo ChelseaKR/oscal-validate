@@ -9,6 +9,21 @@ provider, model, served model, prompt version, tool commit, and date it was
 produced under. A suite that cannot run writes `status: not_run` and no
 numbers.
 
+A results file also says what it did *not* run. The boundary suite's whole
+case set is enumerated in `evals/cases/refusal.jsonl`, so every run of it
+records `cases_expected` and `cases_missing`, and `tests/test_evals.py`
+refuses a committed results file whose missing set is not empty. A merged
+file's missing set is the intersection of its shards', so merging two of
+three shards no longer reads as a whole suite. The repair and grounding
+suites derive their cases from the document corpus rather than from a
+committed list and do not declare a coverage set yet — what "the whole
+suite" means for a corpus with skipped documents is the open question in
+[#57](https://github.com/ChelseaKR/oscal-validate/issues/57) — but their
+merges now keep every shard's `documents_skipped` rather than the first
+shard's alone. The four files on this page predate the coverage fields and
+do not carry them; each was a whole run when it was made, and the boundary
+run's 100 cases are exactly the 100 in the case file.
+
 Every number here is a count produced by something that is not a model:
 the deterministic validator's findings after re-validation, the verifier's
 verbatim lookup of a quote in the corpus, the walkthrough checker's label

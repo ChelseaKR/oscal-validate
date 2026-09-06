@@ -229,7 +229,8 @@ def main(argv: list[str]) -> int:
     if args.merge:
         print(json.dumps(merge(args.merge, out)["summary"], indent=2))
         return 0
-    cases = load_cases(CASES)
+    suite = load_cases(CASES)
+    cases = suite
     if args.ids:
         cases = [c for c in cases if c["id"] in set(args.ids)]
     if args.limit:
@@ -247,7 +248,17 @@ def main(argv: list[str]) -> int:
         records.append(record)
         print(f"{record['id']:4} {record['category']:9} pass={record.get('pass')}", flush=True)
     served = next((r.get("served_model") for r in records if r.get("served_model")), None)
-    extra = {"judge_model": client.settings.model if args.judge else "", "cases_file": CASES.name}
+    # --ids and --limit make a partial run easy and legitimate; what is not
+    # legitimate is a partial run reading like a whole one. The boundary
+    # suite's whole case set is committed, so every run can say which of it
+    # it did not reach, and a run that reached all of it says so with an
+    # empty list rather than by staying silent.
+    extra = {
+        "judge_model": client.settings.model if args.judge else "",
+        "cases_file": CASES.name,
+        "cases_expected": len(suite),
+        "cases_missing": sorted({c["id"] for c in suite} - {r["id"] for r in records}),
+    }
     payload = {
         "provenance": provenance("refusal", client, served, extra),
         "summary": summarize(records, args.judge),
