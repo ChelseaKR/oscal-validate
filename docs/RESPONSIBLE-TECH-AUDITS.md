@@ -174,7 +174,9 @@ edit that silently breaks something else.
   judgment; that is the chosen direction of error.
 - *Honest refusals.* A document the validator cannot parse is refused before
   any model call; a finding whose rule is tool policy is never attributed to
-  NIST; a document declaring another OSCAL version carries the issue #8 note;
+  NIST; a document declaring another OSCAL version carries the ADR-0008 note, and
+  one that also carries an ERROR gets `VERSION_SKEW_SUSPECTED` saying which of
+  its ERRORs were not checked against the release it declares;
   an unparseable reply shows nothing.
 - *Opt-in, labeled, separate.* The commands are reached only by name, import
   the SDK lazily, need an optional extra, and print in their first line that

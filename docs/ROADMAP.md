@@ -126,15 +126,17 @@ rather than be filled with invented zeroes.
   inside a mapping, every one of which produced 0 ERROR before, and the seven
   published mapping collections report no `SUBTREE_NOT_READ` and 31 ERROR
   findings where they reported none. REVIEW closed.
-- Decide how a document that declares an older `oscal-version` should be
-  reported. Everything is validated against the vendored 1.2.3 schema and
-  `OSCAL_VERSION_DIFFERS` warns about the gap, which was sufficient while every
-  ERROR in the corpus was version-independent. The 2026-08-19 run produced the
-  first ERRORs that turn on the difference: three mapping collections declare a
-  release that has no mapping model at all, and one component definition declares
-  a pre-1.0 release candidate whose schema NIST does not publish standalone.
-  Checking each finding against its document's declared version is currently a
-  manual step in the write-up. REVIEW, owner: maintainer.
+- ~~Decide how a document that declares an older `oscal-version` should be
+  reported.~~ Decided 2026-09-06 (ADR-0008). Everything is still validated
+  against the vendored 1.2.3 schema; what changed is that a document declaring
+  a different release *and* carrying an ERROR now says so in its own report, as
+  a `VERSION_SKEW_SUSPECTED` INFO naming how many ERRORs there are, under which
+  codes, and that whether each is also an error under the declared release was
+  not determined. The check that used to be a paragraph of prose per finding in
+  a write-up is now emitted by the tool on every run. Vendoring a second schema
+  to *settle* the question is deliberately left open: it would change what this
+  project claims to be, and ADR-0008 records why that is the owner's call.
+  REVIEW closed.
 - Register this repository in the portfolio's `applicability.yml`. It is public
   and it is absent from the manifest on `main`, which the manifest's own header
   calls a loud failure of the weekly conformance run. An entry exists on the

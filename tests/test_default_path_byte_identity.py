@@ -24,6 +24,18 @@ text format does not print the version, and no document gained or lost a
 finding. A recapture whose diff is anything more than the version stamp is not
 this one, and should not be committed as if it were.
 
+On 2026-09-06, ADR-0008: a document that both declares a non-vendored OSCAL
+release and carries an ERROR gains one ``VERSION_SKEW_SUSPECTED`` INFO finding.
+Two of the twelve cases are in that class -- ``nist_component_definition``
+(declares 1.1.2, one ERROR) and ``nist_sp800_53_catalog`` (declares 1.2.2, one
+ERROR) -- and the other ten are untouched, including every committed fixture,
+each of which declares the vendored release or validates without an ERROR. The
+whole diff is one finding and one summary line per format in those two cases:
+the INFO count rises by one, no ERROR is added or removed, and both exit codes
+are what they were, since only ERROR findings make the CLI exit nonzero. A
+recapture that moves an ERROR count, an exit code, or any of the other ten
+cases is not this one.
+
 The cached NIST documents are not committed (they are public and large, and
 ``.survey-cache/`` is how the survey harness keeps them); their goldens are
 keyed by SHA-256 so the comparison is skipped when the cache is absent and

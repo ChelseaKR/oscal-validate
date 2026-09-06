@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from .checks import ALL_CHECKS, Check, constraints, references
+from .checks import ALL_CHECKS, Check, constraints, references, versions
 from .corpus import build_corpus
 from .findings import Finding, finalize
 from .metaschema import load_metaschema
@@ -26,8 +26,17 @@ def build_session(
 
 
 def validate(session: Session) -> list[Finding]:
-    """Run every check. Findings come back in a deterministic order."""
-    return finalize(_deduplicate((check, check(session)) for check in ALL_CHECKS))
+    """Run every check. Findings come back in a deterministic order.
+
+    ``versions.skew_flags`` runs after the rest and over their output, which is
+    why it is not in ``ALL_CHECKS``: it is a statement about the other findings
+    rather than about the document. It names how many of them were produced
+    against a release this document does not declare, so a reader is not left
+    to work that out for themselves or, as happened, to have it worked out by
+    hand in a write-up they may never see.
+    """
+    findings = finalize(_deduplicate((check, check(session)) for check in ALL_CHECKS))
+    return finalize(findings + versions.skew_flags(session, findings))
 
 
 def validate_file(

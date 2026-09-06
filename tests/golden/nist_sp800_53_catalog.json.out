@@ -93,11 +93,24 @@
       },
       "severity": "WARNING",
       "value": "1.2.2"
+    },
+    {
+      "code": "VERSION_SKEW_SUSPECTED",
+      "location": "/catalog/metadata/oscal-version",
+      "message": "This report carries 1 ERROR finding(s), every one of them produced against the vendored OSCAL 1.2.3 schema and constraint layer: REFERENCE_UNRESOLVED (1). The document declares OSCAL 1.2.2, and no schema for 1.2.2 is vendored here, so whether each of those findings is also an error under 1.2.2 was not determined by this run. Reading NIST's published schema for 1.2.2 is what settles it. Until that is done, the count above is a count of ERRORs against 1.2.3 and not against 1.2.2.",
+      "property": "oscal-version",
+      "rule": {
+        "citation": "oscal-validate policy: exactly one OSCAL schema is vendored here, the 1.2.3 release, and every finding is produced against it. Where a document declares a different release, an ERROR against the vendored schema may be a defect in the document or may be a difference between the two releases, and this tool has no second schema to tell the two apart. It reports that the question was not settled rather than leaving the ERROR to be read as though it had been checked against the release the document names. Nothing about the ERROR changes: it remains true of OSCAL 1.2.3, which is what it cites.",
+        "retrieved": "-",
+        "url": "README.md (Limits)"
+      },
+      "severity": "INFO",
+      "value": "1.2.2"
     }
   ],
   "summary": {
     "ERROR": 1,
-    "INFO": 0,
+    "INFO": 1,
     "UNVERIFIABLE": 5,
     "WARNING": 1
   },

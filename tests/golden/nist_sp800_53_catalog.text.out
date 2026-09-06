@@ -42,6 +42,12 @@ WARNING      OSCAL_VERSION_DIFFERS  at=/catalog/metadata/oscal-version
     rule: The schema declares metadata/oscal-version in the vendored oscal_complete_schema.json for OSCAL 1.2.3 as "The OSCAL model version the document was authored against and will conform to as valid." This tool judges every document against the vendored OSCAL 1.2.3 schema, whatever release the document names.
     source: https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_complete_schema.json (retrieved 2026-08-14)
 
-7 finding(s): 1 ERROR, 1 WARNING, 0 INFO, 5 UNVERIFIABLE
+INFO         VERSION_SKEW_SUSPECTED  at=/catalog/metadata/oscal-version
+    oscal-version = 1.2.2
+    This report carries 1 ERROR finding(s), every one of them produced against the vendored OSCAL 1.2.3 schema and constraint layer: REFERENCE_UNRESOLVED (1). The document declares OSCAL 1.2.2, and no schema for 1.2.2 is vendored here, so whether each of those findings is also an error under 1.2.2 was not determined by this run. Reading NIST's published schema for 1.2.2 is what settles it. Until that is done, the count above is a count of ERRORs against 1.2.3 and not against 1.2.2.
+    rule: oscal-validate policy: exactly one OSCAL schema is vendored here, the 1.2.3 release, and every finding is produced against it. Where a document declares a different release, an ERROR against the vendored schema may be a defect in the document or may be a difference between the two releases, and this tool has no second schema to tell the two apart. It reports that the question was not settled rather than leaving the ERROR to be read as though it had been checked against the release the document names. Nothing about the ERROR changes: it remains true of OSCAL 1.2.3, which is what it cites.
+    source: README.md (Limits) (retrieved -)
+
+8 finding(s): 1 ERROR, 1 WARNING, 1 INFO, 5 UNVERIFIABLE
 
 [exit 1]
