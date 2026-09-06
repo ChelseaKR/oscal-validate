@@ -17,6 +17,22 @@ and this project adheres to
   been 102 and is now 113. The sentence understated by 35 constraints the one
   number that sizes the risk the whole audit is about.
 
+- **The repository's own release status was two releases out of date.** The
+  README's Release & Versioning row said "No release has been made yet, and no
+  release workflow exists" while `v0.1.0` and `v0.2.0` were tagged and `v0.2.0`
+  was published as a GitHub release, and `docs/ROADMAP.md` still asked whether
+  to "cut a first tagged release", saying "Nothing is published anywhere
+  today". The README's own Status line, four hundred lines earlier, named both
+  tags. Both now say what is actually true, and the open decisions are narrowed
+  to the two that really are open: the untagged `0.3.0`, and PyPI.
+
+- **`0.3.0` is dated but not tagged, and now says so.** `pyproject.toml`,
+  `src/oscal_validate/__init__.py` and `CITATION.cff` all carry `0.3.0` and
+  `CHANGELOG.md` dates it 2026-09-02, but there is no `v0.3.0` tag: the
+  citation file names a release date for a release that was never cut. Cutting
+  it is the owner's call, so this records the gap in the README and the roadmap
+  rather than quietly resolving it in either direction.
+
 ### Added
 
 - **The counts the living prose publishes are now derived, not restated.**
@@ -35,6 +51,17 @@ and this project adheres to
   ADRs, `docs/findings/`, and the dated entries in `docs/ROADMAP.md` and
   `docs/EXPANSION-PLAN.md` are deliberately out of scope: 78 and 102 are the
   correct numbers in a record of the day they were true.
+
+- **`tests/test_release_metadata.py` pins the version everywhere it is
+  stated.** `tests/test_cli.py` has held `__version__` to `pyproject.toml`
+  since 0.2.0 shipped reporting 0.1.0; `CITATION.cff` states the version too
+  and was pinned to nothing, so a citation could name a version that was never
+  built. The changelog is now held as well: a version the package reports and
+  the changelog has never heard of is a release with no record of what changed
+  in it. Both failures were exercised against a seeded edit. Whether a version
+  was *tagged* is deliberately not asserted — the suite runs offline and a
+  clone carries no guarantee of the repository's tags, so such a test would
+  measure the checkout rather than the release.
 
 - **The survey evidence is dated per record, not per file.** `tools/fetch.py`
   stamps every `FetchResult` with `fetched_at` — UTC, RFC 3339, whole seconds,

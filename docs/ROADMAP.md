@@ -84,8 +84,16 @@ rather than be filled with invented zeroes.
   repository.
 - Enable GitHub private vulnerability reporting in repository settings so the
   channel `SECURITY.md` prefers is actually on.
-- Decide whether to cut a first tagged release and whether to publish to PyPI.
-  Nothing is published anywhere today.
+- ~~Decide whether to cut a first tagged release.~~ Decided and done: `v0.1.0`
+  and `v0.2.0` are tagged and `v0.2.0` is published as a GitHub release. Two
+  narrower things are left. `0.3.0` is carried by `pyproject.toml`,
+  `src/oscal_validate/__init__.py` and `CITATION.cff`, and `CHANGELOG.md` dates
+  it 2026-09-02, but no `v0.3.0` tag exists: the citation file names a release
+  date for a release that was never cut, which is a date standing in for an
+  event rather than recording one. Either tag it or move the date. And
+  publishing to PyPI is still undecided; it would need a trusted publisher
+  registered against the project name by its owner before any workflow could
+  do it, which is why that half cannot be settled from inside the repository.
 - ~~Decide whether to widen the Metapath subset.~~ Decided and done 2026-08-19
   (ADR-0004): a bounded predicate and path grammar, enumerated from the
   vendored files, reaches 24 of the 25 — coverage is 102 of 340 and the
@@ -148,7 +156,10 @@ rather than be filled with invented zeroes.
 - Decide whether `--log-format json` is worth implementing, or whether the tier
   C affordance should be declared N/A with a reason. Today it is neither.
 - Decide whether to add a release workflow or to declare releases N/A with a
-  reason. "No release has been made yet" is a status, not a declaration.
+  reason. Two releases have been cut by hand, so the open question is no longer
+  whether releases happen: it is whether the steps that make one are written
+  down and repeatable. Today they are neither, and the untagged `0.3.0` above
+  is what that costs.
 - Decide whether to re-record the grounding eval corpus. **The false sentence
   is gone as of 2026-08-29, and `tests/cassettes/walkthrough-nist-ssp.json` was
   re-recorded the same day; this entry is now only about the eval corpus.** The
