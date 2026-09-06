@@ -94,6 +94,9 @@ oscal-validate tests/fixtures/broken_catalog.json   # 3 ERROR, exit 1
 oscal-validate <file.json> --format json
 oscal-validate my-ssp.json --resolve baseline-profile.json --resolve catalog.json
 oscal-validate my-ssp.json --resolve catalog.json --suggest
+
+# What changed between two runs. No model, no network, exit 0 either way.
+oscal-validate diff before.json after.json
 ```
 
 `--resolve` takes further OSCAL documents, or a directory of them. It is how an
@@ -101,6 +104,53 @@ imported catalog or profile gets into the picture, and it is the difference
 between a definite answer and an honest "cannot tell" (see
 [The effective data model](#the-effective-data-model)). Nothing is ever
 fetched.
+
+### `diff`: what changed between two runs
+
+```console
+$ oscal-validate diff tests/fixtures/clean_catalog.json tests/fixtures/broken_catalog.json
+added: present after, absent before (3)
+  ERROR        REQUIRED_PROPERTY_MISSING  at=/catalog/metadata
+      last-modified = (absent)
+      rule: ...
+removed: present before, absent after (0)
+  (none)
+...
+5 unchanged. A removed finding is a finding this run did not report; it is not
+evidence that it was fixed.
+```
+
+Each side is an OSCAL document, validated on the spot with its own
+`--resolve-before` / `--resolve-after` set, or a saved `--format json` report.
+`--format json` for machine use. The exit code is 0 whether or not anything
+changed, because a diff is data rather than a verdict; `--fail-on-new` exits 1
+when an ERROR is present after and absent before.
+
+Two identical findings are the same finding when their code, location,
+property and rule citation match. A finding whose value or message moved under
+that identity is *changed*. A finding that differs only in location — an array
+gained an element and every pointer under it shifted — is *moved*, but **only
+where exactly one was removed and exactly one added** under the same code,
+property, value and rule. Where several were, which went where is a guess, so
+the pairing is declined and said to be declined.
+
+Two things it deliberately does not say:
+
+- **A removed finding is not a resolved one.** Two finding lists cannot tell a
+  repair from a run that read a different document, used a different resolve
+  set, or could not get far enough to report anything. `repair --draft` may say
+  "resolved" because it made the edit itself and knows what changed; a diff
+  over two files does not, so it says *removed* and says what that is worth.
+- **A saved report does not record which vendored snapshot produced it.** It
+  records the tool version and nothing else about the run, so two reports can
+  be compared with no way to know whether the same schema and constraint layer
+  was behind them. That is printed as unknown in the header rather than passed
+  over, and a tool-version mismatch is printed too. Neither stops the diff:
+  they make it something the reader has to interpret, which they can only do if
+  they are told.
+
+The comparison is `oscal_validate.compare`, which is also what `repair --draft`
+runs, so the verb and the draft cannot disagree about what "introduced" means.
 
 ### `--suggest`: the identifier that *is* declared
 
