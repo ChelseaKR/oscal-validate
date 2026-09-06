@@ -18,7 +18,7 @@ from typing import Any
 import pytest
 
 from oscal_validate import compare as compare_module
-from oscal_validate.cli import main
+from oscal_validate.cli import DETERMINISTIC_COMMANDS, main
 from oscal_validate.compare import ReportError, compare, findings_from_report
 from oscal_validate.findings import Finding, Rule, Severity
 from oscal_validate.validator import validate_file
@@ -379,3 +379,27 @@ def test_the_fixtures_this_file_relies_on_are_present() -> None:
     assert FIXTURES.is_dir()
     for path in (CLEAN, BROKEN):
         assert path.is_file(), path
+
+
+def test_every_deterministic_command_is_actually_dispatched() -> None:
+    """The tuple and the dispatch branches cannot drift apart.
+
+    Each verb is imported by a literal module path rather than by interpolating
+    the argument, so the tuple is not what routes the call and a name could be
+    listed here while falling through to the default parser -- which takes a
+    file as its first positional and would report the verb as a missing file.
+    ``--help`` exits 0 from the verb's own parser and 2 from the default one.
+    """
+    assert DETERMINISTIC_COMMANDS, "an empty tuple would make this pass vacuously"
+    for verb in DETERMINISTIC_COMMANDS:
+        with pytest.raises(SystemExit) as exit_info:
+            main([verb, "--help"])
+        assert exit_info.value.code == 0, verb
+
+
+def test_a_word_that_is_not_a_verb_is_still_read_as_a_filename(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Dispatch must not swallow a path that happens to sit in first position."""
+    assert main(["diffusion-report.json"]) == 2
+    assert "diffusion-report.json" in capsys.readouterr().err

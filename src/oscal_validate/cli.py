@@ -45,6 +45,14 @@ AI_COMMANDS = ("explain", "repair", "walkthrough", "ask")
 #: Dispatched the same way and for the same reason -- the default parser takes
 #: a file as its first positional, so a verb name would be read as a filename
 #: -- but they load no optional dependency and reach no model.
+#:
+#: Each is imported below by a **literal** module path, the way the AI
+#: subcommands are. Interpolating the argument into ``import_module`` works and
+#: would let this tuple be the only place a verb is written down, but it also
+#: means the first word of a command line names a module -- semgrep's
+#: ``non-literal-import`` says so, and it is right that this is not a property
+#: worth having to save a line. ``test_every_deterministic_command_is_actually
+#: _dispatched`` holds the tuple and the branches together instead.
 DETERMINISTIC_COMMANDS = ("diff",)
 
 
@@ -105,9 +113,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         ai_cli = importlib.import_module("oscal_validate.ai.cli")
         result: int = ai_cli.main(arguments)
         return result
-    if arguments and arguments[0] in DETERMINISTIC_COMMANDS:
-        module = importlib.import_module(f"oscal_validate.{arguments[0]}")
-        verdict: int = module.main(arguments)
+    if arguments and arguments[0] == "diff":
+        diff_cli = importlib.import_module("oscal_validate.diff")
+        verdict: int = diff_cli.main(arguments)
         return verdict
     args = build_parser().parse_args(arguments)
     try:

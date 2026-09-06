@@ -92,6 +92,15 @@ and this project adheres to
   A malformed report raises instead of yielding the findings it could read: a
   partial read of evidence is the thing this comparison exists not to publish.
 
+  The verb is dispatched by name before the default parser sees the arguments,
+  as the model-backed subcommands are, and by a **literal** module path.
+  Interpolating the argument into `importlib.import_module` works and would put
+  the verb list in one place, but it also makes the first word of a command
+  line name a module; semgrep's `non-literal-import` said so on the first push
+  and was right. A test holds the verb tuple and the dispatch branches together
+  so they cannot drift apart, and another checks that a path merely beginning
+  with a verb's name is still read as a filename.
+
 ### Fixed
 
 - **A sharded eval run merged from a subset of its shards published as a whole
