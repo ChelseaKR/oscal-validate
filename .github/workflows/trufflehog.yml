@@ -1,9 +1,10 @@
-# Full-history verified-secret scan. gitleaks runs diff-scoped in pre-commit
-# (see .pre-commit-config.yaml); this is a periodic sweep of the entire commit
-# history with a different engine and its own detector set, catching anything
-# a diff-scoped scan by construction cannot (a secret introduced and later
-# removed in the same PR still shows up in history). Also runs on push and
-# pull_request so every change is swept, not just the weekly schedule.
+# Full-history secret scan, over every result tier TruffleHog reports.
+# gitleaks runs diff-scoped in pre-commit (see .pre-commit-config.yaml); this
+# is a periodic sweep of the entire commit history with a different engine and
+# its own detector set, catching anything a diff-scoped scan by construction
+# cannot (a secret introduced and later removed in the same PR still shows up
+# in history). Also runs on push and pull_request so every change is swept,
+# not just the weekly schedule.
 name: trufflehog
 
 on:
@@ -23,7 +24,7 @@ concurrency:
 
 jobs:
   scan:
-    name: full-history secret scan (verified only)
+    name: full-history secret scan (all result tiers)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,10 +32,18 @@ jobs:
         with:
           fetch-depth: 0 # full clone; this is a whole-history scan, not a diff
           persist-credentials: false
-      - name: TruffleHog (verified secrets only)
+      - name: TruffleHog (full history, all result tiers)
         uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b # v3.97.1
         with:
           path: ./
+          # Pinned, and it must equal the version comment on the pinned ref
+          # above. The action's `version:` input defaults to "latest" and it
+          # runs `ghcr.io/trufflesecurity/trufflehog:${VERSION}`, so the SHA
+          # pin above pins only the wrapper, not the binary that scans. Without
+          # this input the sweep silently tracked whatever upstream published
+          # last, and every Dependabot bump of the ref was a no-op because
+          # Dependabot never edits a `with:` input.
+          version: "3.97.1"
           # The action's baked-in command already passes --fail; repeating it
           # is a CLI error ("flag 'fail' cannot be repeated").
           #
@@ -49,4 +58,26 @@ jobs:
           # repository. Scoped to the one detector on purpose: excluding tests/
           # by path would blind the scan to real secrets in fixtures, which is
           # where they most often hide.
-          extra_args: --only-verified --exclude-detectors=Lob
+          # The tier list is load-bearing. `--only-verified` reports a finding
+          # only when TruffleHog asked the provider and the provider said the
+          # credential is live. A credential that leaked and was then REVOKED --
+          # the normal end state of a real incident, and the exact case a
+          # scheduled full-history sweep exists to catch -- answers "no", which
+          # TruffleHog files under `unverified`. So the setting this job ran
+          # with until 2026-09-06 could not fail on the thing it exists for.
+          #
+          # Measured 2026-09-06 on a throwaway clone with a real-shaped AWS key
+          # planted in one commit and deleted in the next (confirmed present in
+          # history and absent at HEAD first, or the test measures a diff scan):
+          #
+          #   --only-verified                        exit 0,   0 reported
+          #   --results=verified                     exit 0,   0 reported
+          #   --results=verified,unknown             exit 0,   0 reported
+          #   --results=verified,unknown,unverified  exit 183, unverified_secrets: 1
+          #
+          # This repository's whole history was re-scanned under the widened
+          # tier on 2026-09-06 with trufflehog 3.97.1 and reported nothing, so
+          # widening costs no false positives here. If a placeholder fixture
+          # ever does fire, exclude that DETECTOR by name -- as Lob is excluded
+          # below -- and never narrow the tier back.
+          extra_args: --results=verified,unknown,unverified --exclude-detectors=Lob
