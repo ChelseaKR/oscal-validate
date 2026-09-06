@@ -27,6 +27,7 @@ from .. import rules
 from ..document import Scalar
 from ..findings import Finding, Severity
 from ..session import Session
+from ..suggest import Suggestion, near_misses
 
 #: Schema titles that mark a value as *declaring* an identifier. Read from the
 #: vendored schema's own titles; pinned by tests/test_schema_and_walk.py.
@@ -102,9 +103,22 @@ def check(session: Session) -> list[Finding]:
         if kind is not None:
             available = {v for title in kind.targets for v in declared.get(title, set())}
             if scalar.value not in available:
-                findings.append(_unresolved(scalar, kind.what, complete, session))
+                findings.append(
+                    _unresolved(
+                        scalar,
+                        kind.what,
+                        complete,
+                        session,
+                        # Only the identifiers this reference kind may name.
+                        # A control id is never offered for a parameter, so a
+                        # near miss cannot cross the boundary the check itself
+                        # enforces.
+                        _suggestions(session, complete, scalar.value, available),
+                    )
+                )
         elif scalar.name == "href" and scalar.value.startswith("#"):
-            if scalar.value[1:] not in everything:
+            fragment = scalar.value[1:]
+            if fragment not in everything:
                 findings.append(
                     _unresolved(
                         scalar,
@@ -112,13 +126,49 @@ def check(session: Session) -> list[Finding]:
                         "data model",
                         complete,
                         session,
+                        # A bare fragment names any identifier in the model, so
+                        # the pool is the whole index here -- and the offer is
+                        # re-decorated with the '#' so it is a drop-in
+                        # replacement for what was written, not a string the
+                        # reader has to reassemble.
+                        _suggestions(session, complete, fragment, everything, prefix="#"),
                     )
                 )
 
     return findings
 
 
-def _unresolved(scalar: Scalar, what: str, complete: bool, session: Session) -> Finding:
+def _suggestions(
+    session: Session,
+    complete: bool,
+    written: str,
+    declared: set[str],
+    *,
+    prefix: str = "",
+) -> tuple[Suggestion, ...]:
+    """Near misses, or nothing at all -- never a guess dressed as a lookup.
+
+    Two gates, and both are refusals rather than filters. ``--suggest`` is off
+    unless the caller asked, because the default path's bytes are a contract.
+    And an incomplete effective data model gets nothing even when the flag is
+    on: the finding in that case says this tool could not perform the lookup,
+    and the closest entry in an index known to be missing documents is not
+    evidence about the identifier that was written. Offering one there would
+    publish a partial index's nearest neighbour as though it were the model's,
+    which is the same defect as reporting a truncated dataset as complete.
+    """
+    if not session.suggest or not complete:
+        return ()
+    return near_misses(written, declared, prefix=prefix)
+
+
+def _unresolved(
+    scalar: Scalar,
+    what: str,
+    complete: bool,
+    session: Session,
+    suggestions: tuple[Suggestion, ...] = (),
+) -> Finding:
     return Finding(
         code="REFERENCE_UNRESOLVED" if complete else "REFERENCE_UNVERIFIABLE",
         severity=Severity.ERROR if complete else Severity.UNVERIFIABLE,
@@ -136,6 +186,7 @@ def _unresolved(scalar: Scalar, what: str, complete: bool, session: Session) -> 
             )
         ),
         rule=rules.EFFECTIVE_DATA_MODEL if complete else rules.CROSS_INSTANCE_SCOPE,
+        suggestions=suggestions,
     )
 
 

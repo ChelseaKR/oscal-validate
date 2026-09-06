@@ -73,6 +73,17 @@ def build_parser() -> argparse.ArgumentParser:
         default="text",
         help="output format (default: text)",
     )
+    parser.add_argument(
+        "--suggest",
+        action="store_true",
+        help=(
+            "beneath a reference that resolves to nothing, name up to three identifiers "
+            "that ARE declared and are within a bounded edit distance of the one written. "
+            "Computed offline from the documents supplied; never offered for an "
+            "UNVERIFIABLE reference, and never asserted to be what was meant. Off by "
+            "default: without it this command's bytes are unchanged."
+        ),
+    )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
 
@@ -85,7 +96,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return result
     args = build_parser().parse_args(arguments)
     try:
-        session = build_session(Path(args.file), [Path(p) for p in args.resolve])
+        session = build_session(
+            Path(args.file), [Path(p) for p in args.resolve], suggest=args.suggest
+        )
         findings = validate(session)
     except (DocumentError, SchemaError) as exc:
         print(f"oscal-validate: {exc}", file=sys.stderr)

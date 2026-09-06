@@ -21,6 +21,10 @@ class Session:
     corpus: Corpus
     schema: SchemaIndex
     metaschema: Metaschema
+    #: Whether a settled unresolved reference may carry near-miss identifiers
+    #: drawn from this run's own index (issue #64). Off by default: the
+    #: default path's bytes are a contract, and `tests/golden/` holds them.
+    suggest: bool = False
 
     @property
     def complete(self) -> bool:

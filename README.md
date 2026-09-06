@@ -93,6 +93,7 @@ oscal-validate tests/fixtures/broken_catalog.json   # 3 ERROR, exit 1
 
 oscal-validate <file.json> --format json
 oscal-validate my-ssp.json --resolve baseline-profile.json --resolve catalog.json
+oscal-validate my-ssp.json --resolve catalog.json --suggest
 ```
 
 `--resolve` takes further OSCAL documents, or a directory of them. It is how an
@@ -100,6 +101,47 @@ imported catalog or profile gets into the picture, and it is the difference
 between a definite answer and an honest "cannot tell" (see
 [The effective data model](#the-effective-data-model)). Nothing is ever
 fetched.
+
+### `--suggest`: the identifier that *is* declared
+
+A reference that resolves to nothing is a true statement and not the sentence
+that fixes the file. The 2026-08-15 imports survey measured 178 real unresolved
+references, and the largest class of them was one zero-pad away from resolving:
+an SSP naming `ac-2_odp.01` against a baseline that declares `ac-02_odp.01`.
+
+`--suggest` names up to three identifiers that *are* declared and are close to
+the one written, and says how they differ:
+
+```console
+$ oscal-validate my-ssp.json --resolve baseline.json --suggest
+ERROR        REFERENCE_UNRESOLVED  at=/system-security-plan/.../set-parameters/3/param-id
+    param-id = ac-2_odp.01
+    This names a parameter, and no such identifier is declared in the documents
+    supplied. ...
+    rule: ...
+    source: ...
+    also declared: ac-02_odp.01  (differs by zero-padding)
+```
+
+Four things it deliberately is not:
+
+- **Not on by default.** Without the flag this command emits exactly the bytes
+  it always did; `tests/golden/` pins them.
+- **Not a claim about intent.** It says an identifier is declared and how it
+  differs. It never says it is the one you meant, and the finding's code,
+  severity and message do not change.
+- **Not a search of the whole document.** Candidates come only from the
+  identifiers that reference kind may name — a group id is never offered for a
+  control reference — and only from the documents you supplied. Nothing is
+  fetched and no model is called.
+- **Not offered for an UNVERIFIABLE reference.** When an import was not
+  supplied, the index is short by definition, and the nearest entry in a
+  partial index is not evidence about anything.
+
+Ranking is fixed and documented: identifiers differing only by a leading `#`,
+case, the separator character, or zero-padding come first; then anything within
+an edit distance of two, adjacent transpositions counted as one edit; ties
+broken lexically.
 
 ## What it checks
 
