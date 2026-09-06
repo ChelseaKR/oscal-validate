@@ -39,7 +39,7 @@ error, which a human investigates, but a clean report that a reader takes as
 evidence of compliance. Three specific ways that could happen:
 
 (a) A reader takes "no ERROR findings" as "this package conforms to OSCAL" when
-the tool evaluates 78 of NIST's 340 published constraints. (b) A reader takes
+the tool evaluates 113 of NIST's 340 published constraints. (b) A reader takes
 structural conformance as evidence that a control is implemented. (c) A
 reference that could not be checked, because the imported document was not
 supplied, is read as one that was checked and passed.
