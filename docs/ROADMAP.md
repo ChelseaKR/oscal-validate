@@ -86,11 +86,16 @@ rather than be filled with invented zeroes.
   channel `SECURITY.md` prefers is actually on.
 - ~~Decide whether to cut a first tagged release.~~ Decided and done: `v0.1.0`
   and `v0.2.0` are tagged and `v0.2.0` is published as a GitHub release. Two
-  narrower things are left. `0.3.0` is carried by `pyproject.toml`,
-  `src/oscal_validate/__init__.py` and `CITATION.cff`, and `CHANGELOG.md` dates
-  it 2026-09-02, but no `v0.3.0` tag exists: the citation file names a release
-  date for a release that was never cut, which is a date standing in for an
-  event rather than recording one. Either tag it or move the date. And
+  narrower things are left. `0.3.0` is carried by `pyproject.toml` and
+  `src/oscal_validate/__init__.py`, and `CHANGELOG.md` dates it 2026-09-02, but
+  no `v0.3.0` tag exists. `CITATION.cff` used to carry that version and that
+  date too, which made it name a release date for a release that was never cut
+  — a date standing in for an event rather than recording one. The date has
+  moved: the citation file now cites `0.2.0` on `2026-08-16`, the newest
+  release that exists and the date its tag carries, and
+  `tests/test_release_metadata.py` holds it there against the repository's
+  tags. **Whether to tag `0.3.0` is still open and is the maintainer's call**;
+  nothing in the repository now claims it was released. And
   publishing to PyPI is still undecided; it would need a trusted publisher
   registered against the project name by its owner before any workflow could
   do it, which is why that half cannot be settled from inside the repository.

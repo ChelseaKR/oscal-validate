@@ -10,6 +10,29 @@ and this project adheres to
 
 ### Fixed
 
+- **`CITATION.cff` named a release date for a release that was never cut.**
+  The file carried `version: "0.3.0"` and `date-released: "2026-09-02"` while no
+  `v0.3.0` tag existed and nothing was built or published on that date, so the
+  record a reader cites this tool by pointed at nothing. The cause was the pin
+  that was supposed to prevent drift: `tests/test_release_metadata.py` held
+  `CITATION.cff` to `pyproject.toml`, so bumping the manifest to the version
+  under development moved the citation with it and a date had to be invented to
+  go beside it.
+
+  The citation file now names the newest release that exists — `0.2.0`, dated
+  `2026-08-16`, the date its own tag carries — and the test measures it against
+  the repository's tags instead of against another file. Two further checks come
+  with it: the README's `**Status:**` paragraph must name the declared version
+  and every tag that exists, and must say plainly when the declared version is
+  not among them; and the job running `make verify` must fetch tags
+  (`fetch-depth: 0`, `fetch-tags: true`), because `actions/checkout` is one
+  commit deep by default and an empty tag list read from a shallow checkout is
+  absence rendered as a value — it would make every release claim here
+  unfalsifiable. Where the tags genuinely cannot be read, the checks skip with
+  the reason rather than passing. No tag was created: whether `0.3.0` is
+  released is the maintainer's decision, and nothing in the repository now
+  claims it already was.
+
 - **The coverage number the responsible-tech audit is sized by was two
   expansions stale.** `docs/RESPONSIBLE-TECH-AUDITS.md` stated the harm case as
   "a reader takes 'no ERROR findings' as 'this package conforms to OSCAL' when
