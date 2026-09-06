@@ -27,6 +27,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # tests/test_release_metadata.py reads the repository's tags to check
+          # what CITATION.cff and the README claim was released. The default
+          # checkout is one commit deep and carries no tags, and an empty tag
+          # list read from that is absence rendered as a value: it would make
+          # every release claim unfalsifiable here. Fetch them.
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

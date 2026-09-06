@@ -14,8 +14,16 @@ authors:
   - given-names: Chelsea
     family-names: Kelly-Reif
 license: Apache-2.0
-version: "0.3.0"
-date-released: "2026-09-02"
+# The newest release that exists, dated with that release's own tag date, and
+# not a copy of `pyproject.toml`'s version. The manifest declares the version
+# under development; this file states what a reader can actually fetch and
+# cite. Copying the manifest here is what put version 0.3.0 and a
+# date-released of 2026-09-02 in this file for a release that was never cut:
+# no `v0.3.0` tag exists and nothing was published on that date. Both fields
+# move when a tag is pushed, and `tests/test_release_metadata.py` holds them to
+# the tags in the repository.
+version: "0.2.0"
+date-released: "2026-08-16"
 repository-code: "https://github.com/ChelseaKR/oscal-validate"
 url: "https://github.com/ChelseaKR/oscal-validate"
 keywords:
