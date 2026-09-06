@@ -6,7 +6,11 @@ reported serving, the prompt version, the tool version and git commit, and
 the date. ``tests/test_evals.py`` refuses a results file missing any of
 those. A suite that could not be run writes ``status: not_run`` with the
 reason and no numbers at all, which is the only honest shape for a number
-that does not exist.
+that does not exist. A suite that ran only *part* of its cases has to say
+so too, and says it in ``cases_missing``: the case ids it did not run,
+recorded wherever the whole set is enumerated. ``evals/cases/refusal.jsonl``
+enumerates one; the repair and grounding suites derive their cases from the
+document corpus and do not declare one yet (issue #57).
 """
 
 from __future__ import annotations
@@ -114,6 +118,59 @@ def write_results(path: Path, payload: dict[str, Any]) -> None:
     )
 
 
+def _agree(shards: list[dict[str, Any]], ignore: set[str]) -> None:
+    """Refuse a merge whose shards disagree on anything outside ``ignore``.
+
+    The field names are taken from every shard, not from the first one: the
+    check used to read ``shards[0]``'s keys, so a field the first shard
+    happened to lack went uncompared no matter what the others said about it.
+    """
+    first = shards[0]["provenance"]
+    fields = {field for shard in shards for field in shard["provenance"]}
+    for shard in shards[1:]:
+        for field in sorted(fields):
+            if field not in ignore and shard["provenance"].get(field) != first.get(field):
+                raise SystemExit(f"shards disagree on provenance field {field!r}; not merged")
+
+
+def _merged_coverage(shards: list[dict[str, Any]]) -> list[str] | None:
+    """The case ids no shard ran, or ``None`` where the suite enumerates none.
+
+    A shard whose suite has a committed case set records ``cases_missing``:
+    the whole set less its own ids. The merged file's is therefore their
+    intersection. Shards must all declare it or none of them do; merging a
+    shard that says what it missed with one that says nothing would put the
+    same silence back into the merged file under a field name that looks
+    like an answer.
+    """
+    declared = ["cases_missing" in shard["provenance"] for shard in shards]
+    if not any(declared):
+        return None
+    if not all(declared):
+        raise SystemExit("some shards declare their case coverage and some do not; not merged")
+    missing = set(shards[0]["provenance"]["cases_missing"])
+    for shard in shards[1:]:
+        missing &= set(shard["provenance"]["cases_missing"])
+    return sorted(missing)
+
+
+def _merged_skips(shards: list[dict[str, Any]]) -> list[Any] | None:
+    """Every shard's skipped documents, not the first shard's alone.
+
+    ``documents_skipped`` legitimately differs between shards -- a document
+    absent from one machine's cache is skipped there and nowhere else -- so
+    it is not compared. It was also copied from the first shard, which
+    published that shard's skip list as the whole run's and dropped the rest.
+    """
+    if not any("documents_skipped" in shard["provenance"] for shard in shards):
+        return None
+    seen: dict[str, Any] = {}
+    for shard in shards:
+        for entry in shard["provenance"].get("documents_skipped", []):
+            seen[json.dumps(entry, sort_keys=True)] = entry
+    return [seen[k] for k in sorted(seen)]
+
+
 def merge_results(
     paths: list[Path],
     out: Path,
@@ -123,29 +180,40 @@ def merge_results(
     """One results file from several shards of one suite, one provenance.
 
     Shards exist so a long run can go in parallel. Their provenance must
-    agree on everything but the served model and the commit (a shard records
-    HEAD when it finishes, and commits land while shards run); the commits
-    are all kept. The summary is recomputed from the union of the cases,
-    which must not overlap by ``key``.
+    agree on everything but the served model, the commit (a shard records
+    HEAD when it finishes, and commits land while shards run), the skipped
+    documents and the coverage; the commits are all kept. The summary is
+    recomputed from the union of the cases, which must not overlap by
+    ``key``.
+
+    The merged file is the evidence, and a reader has no shard to compare it
+    against, so what it must not quietly lose is what the shards did *not*
+    do: the cases none of them ran and the documents any of them skipped.
+    Both are carried forward rather than taken from the first shard. This
+    does not settle what the whole suite *is* for a suite whose cases are
+    derived rather than enumerated; see issue #57.
     """
     shards = [json.loads(p.read_text(encoding="utf-8")) for p in paths]
-    ignore = {"served_model", "replayed_from_cassette", "commit", "documents_skipped"}
-    first = shards[0]["provenance"]
-    for shard in shards[1:]:
-        for field in first:
-            if field not in ignore and shard["provenance"].get(field) != first.get(field):
-                raise SystemExit(f"shards disagree on provenance field {field!r}; not merged")
+    _agree(
+        shards,
+        {"served_model", "replayed_from_cassette", "commit", "documents_skipped", "cases_missing"},
+    )
+    missing, skipped = _merged_coverage(shards), _merged_skips(shards)
     records = [r for shard in shards for r in shard["cases"]]
     keys = [key(r) for r in records]
     if len(keys) != len(set(keys)):
         raise SystemExit("shards overlap; not merged")
     records.sort(key=key)
-    prov = dict(first)
+    prov = dict(shards[0]["provenance"])
     prov["served_model"] = next(
         (s["provenance"]["served_model"] for s in shards if s["provenance"]["served_model"]), ""
     )
     prov["commits"] = sorted({s["provenance"]["commit"] for s in shards})
     prov["merged_from"] = [p.name for p in paths]
+    if missing is not None:
+        prov["cases_missing"] = missing
+    if skipped is not None:
+        prov["documents_skipped"] = skipped
     payload = {"provenance": prov, "summary": summarize(records), "cases": records}
     write_results(out, payload)
     return payload

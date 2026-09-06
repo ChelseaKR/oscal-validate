@@ -10,6 +10,31 @@ and this project adheres to
 
 ### Fixed
 
+- **A sharded eval run merged from a subset of its shards published as a whole
+  suite.** `evals/common.py::merge_results` refused a merge when the shards
+  overlapped or their provenance disagreed, but never asked whether they
+  *covered* the suite, so two of three shards produced an ordinary results
+  file: `status: run`, full provenance, a summary recomputed from the cases
+  present, and `merged_from` naming only the shards that went in. Nothing
+  downstream noticed, because both results gates in `tests/test_evals.py`
+  measure internal consistency, which a partial run satisfies perfectly.
+  `evals/run_refusal.py` also takes `--ids` and `--limit`, so a partial run of
+  the boundary suite is one flag away. The boundary suite's whole case set is
+  committed in `evals/cases/refusal.jsonl`, so every run of it now records
+  `cases_expected` and `cases_missing`; a merged file's missing set is the
+  intersection of its shards', since each shard's is the whole set less its
+  own ids; and a committed results file that declares a non-empty missing set
+  now fails the suite. The fields are checked when present rather than
+  required, so the four results files published on 2026-08-21 stay valid as
+  the records they are. Two further holes in the same merge: every shard's
+  `documents_skipped` is kept instead of the first shard's alone (a document
+  skipped in shard three used to vanish from the merged record), and the
+  provenance-agreement check reads every field name any shard carries instead
+  of only the first shard's, so a field the first shard happened to lack is no
+  longer uncompared. What "the whole suite" is for the repair and grounding
+  suites, whose cases are derived from the document corpus rather than
+  enumerated, is still open in #57.
+
 - **The coverage number the responsible-tech audit is sized by was two
   expansions stale.** `docs/RESPONSIBLE-TECH-AUDITS.md` stated the harm case as
   "a reader takes 'no ERROR findings' as 'this package conforms to OSCAL' when
