@@ -7,10 +7,16 @@ the date. ``tests/test_evals.py`` refuses a results file missing any of
 those. A suite that could not be run writes ``status: not_run`` with the
 reason and no numbers at all, which is the only honest shape for a number
 that does not exist. A suite that ran only *part* of its cases has to say
-so too, and says it in ``cases_missing``: the case ids it did not run,
-recorded wherever the whole set is enumerated. ``evals/cases/refusal.jsonl``
-enumerates one; the repair and grounding suites derive their cases from the
-document corpus and do not declare one yet (issue #57).
+so too, and says it in ``cases_missing``: the units it did not run, against
+``cases_expected``, the size of the whole set. Every suite declares both.
+``evals/cases/refusal.jsonl`` enumerates the boundary suite's units directly;
+the repair and grounding suites derive theirs from ``cases/documents.json``,
+which is committed, so their universe is a fixed set too -- the repair
+suite's is every document crossed with every injector, the grounding
+suite's is every document crossed with its two passes. What a machine
+happens to hold in ``.survey-cache/`` never enters into it: a document that
+is not there is a case that did not run, recorded in ``cases_missing`` and
+in ``documents_skipped``, not a case that does not exist.
 """
 
 from __future__ import annotations
@@ -20,7 +26,7 @@ import json
 import os
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
 
@@ -90,6 +96,33 @@ def provenance(
     }
     base.update(extra or {})
     return base
+
+
+def coverage(expected: Iterable[str], covered: Iterable[str]) -> dict[str, Any]:
+    """The two provenance fields that say how much of a suite a run reached.
+
+    ``cases_expected`` is the size of the suite's whole unit set and
+    ``cases_missing`` names the units no case in this file covers, so a run
+    of three units and a run of a hundred stop writing the same shape. A
+    unit is not a case record: the repair suite can produce two records for
+    one document-and-injector, and the grounding suite produces several
+    explanations and one walkthrough per document, so coverage is counted
+    over units and the summary's ``cases`` stays a count of records.
+
+    A covered unit outside the enumerated set is refused rather than
+    ignored. It means the runner and the manifest disagree about what the
+    suite is, and quietly dropping it would let ``cases_missing`` shrink for
+    a reason nobody chose -- which is the shape of defect this field exists
+    to stop.
+    """
+    universe, ran = set(expected), set(covered)
+    unknown = ran - universe
+    if unknown:
+        raise SystemExit(
+            "case unit(s) outside the suite's enumerated set, so the run and the "
+            f"manifest disagree about what the suite is: {sorted(unknown)[:5]}"
+        )
+    return {"cases_expected": len(universe), "cases_missing": sorted(universe - ran)}
 
 
 def not_run(suite: str, reason: str) -> dict[str, Any]:
@@ -189,9 +222,10 @@ def merge_results(
     The merged file is the evidence, and a reader has no shard to compare it
     against, so what it must not quietly lose is what the shards did *not*
     do: the cases none of them ran and the documents any of them skipped.
-    Both are carried forward rather than taken from the first shard. This
-    does not settle what the whole suite *is* for a suite whose cases are
-    derived rather than enumerated; see issue #57.
+    Both are carried forward rather than taken from the first shard, and
+    every suite declares its own universe, so merging a subset of the shards
+    leaves the units none of them ran named in ``cases_missing`` instead of
+    publishing as a whole suite.
     """
     shards = [json.loads(p.read_text(encoding="utf-8")) for p in paths]
     _agree(
@@ -237,6 +271,7 @@ __all__ = [
     "ModelError",
     "client_from_env",
     "commit",
+    "coverage",
     "load_cases",
     "merge_results",
     "not_run",

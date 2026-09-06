@@ -6,6 +6,12 @@ survey harness's store, not committed) or, for one of them, in
 ``tests/fixtures/``. A document whose bytes do not match its hash is
 refused; one that is absent is recorded as skipped. Nothing is fetched.
 
+``load_documents`` answers what *this machine* can run. ``document_ids``
+answers what the suite *is*, which is the manifest and nothing else: the
+suites that derive their cases from the corpus need the second to say what
+a run did not reach, because a document that is not in the cache is a case
+that did not run rather than a case that does not exist.
+
 Defects are injected by name, deterministically, one at a time, into an
 in-memory copy: the same corruptions ``tests/test_break_the_gate.py`` uses
 to prove the validator catches them. Each injector returns the corrupted
@@ -43,6 +49,18 @@ class Document:
     @property
     def payload(self) -> Any:
         return json.loads(self.path.read_text(encoding="utf-8"))
+
+
+def document_ids() -> list[str]:
+    """Every document the committed manifest names, present here or not.
+
+    The universe of the repair and grounding suites is derived from this,
+    never from what ``load_documents`` happened to find: a cold cache would
+    otherwise shrink the suite to whatever it could reach and a run over
+    nothing at all would report itself whole.
+    """
+    manifest = json.loads(DOCUMENTS.read_text(encoding="utf-8"))
+    return sorted(entry["id"] for entry in manifest["documents"])
 
 
 def _checked(path: Path, sha256: str) -> Path | None:

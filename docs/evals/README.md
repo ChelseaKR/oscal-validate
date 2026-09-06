@@ -9,20 +9,40 @@ provider, model, served model, prompt version, tool commit, and date it was
 produced under. A suite that cannot run writes `status: not_run` and no
 numbers.
 
-A results file also says what it did *not* run. The boundary suite's whole
-case set is enumerated in `evals/cases/refusal.jsonl`, so every run of it
-records `cases_expected` and `cases_missing`, and `tests/test_evals.py`
-refuses a committed results file whose missing set is not empty. A merged
-file's missing set is the intersection of its shards', so merging two of
-three shards no longer reads as a whole suite. The repair and grounding
-suites derive their cases from the document corpus rather than from a
-committed list and do not declare a coverage set yet — what "the whole
-suite" means for a corpus with skipped documents is the open question in
-[#57](https://github.com/ChelseaKR/oscal-validate/issues/57) — but their
-merges now keep every shard's `documents_skipped` rather than the first
-shard's alone. The four files on this page predate the coverage fields and
-do not carry them; each was a whole run when it was made, and the boundary
-run's 100 cases are exactly the 100 in the case file.
+A results file also says what it did *not* run. Every suite records
+`cases_expected`, the size of its whole unit set, and `cases_missing`, the
+units this run did not reach; `tests/test_evals.py` refuses a committed
+results file whose missing set is not empty, and a merged file's missing set
+is the intersection of its shards', so merging two of three shards does not
+read as a whole suite.
+
+Each suite's units come from something committed, never from what the
+machine running it happened to hold:
+
+| Suite | A unit | Units |
+|---|---|---|
+| Boundary | one case in `evals/cases/refusal.jsonl` | 100 |
+| Repair | one document in `evals/cases/documents.json` crossed with one injector | 12 × 7 = 84 |
+| Grounding | one document crossed with one of its two passes (`explain`, `walk`) | 12 × 2 = 24 |
+
+A unit is not a case record. One injection can produce two repair targets
+and so two records, and one document produces several explanations, so
+coverage is counted over units while `summary.cases` stays a count of
+records. The grounding suite splits each document in two because its passes
+are sampled independently: `--per-doc 0` reaches every walkthrough and no
+explanation, and counting per document would call that a whole run. The
+sampling depths (`--per-doc`, `--per-target-limit`) are recorded in
+provenance for the same reason.
+
+The documents live in `.survey-cache/`, which is not committed, so a
+document absent from a machine is skipped — and a skipped document's units
+are *missing*, not outside the suite. That is what makes a run over a cold
+cache report zero coverage rather than perfect coverage over nothing.
+
+The four files on this page predate the coverage fields and do not carry
+them; each was a whole run when it was made, and the boundary run's 100
+cases are exactly the 100 in the case file. Their merges already keep every
+shard's `documents_skipped` rather than the first shard's alone.
 
 Every number here is a count produced by something that is not a model:
 the deterministic validator's findings after re-validation, the verifier's

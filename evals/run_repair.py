@@ -32,12 +32,13 @@ from evals.common import (
     ModelClient,
     ModelError,
     client_from_env,
+    coverage,
     merge_results,
     not_run,
     provenance,
     write_results,
 )
-from evals.documents import INJECTORS, Document, load_documents, materialized
+from evals.documents import INJECTORS, Document, document_ids, load_documents, materialized
 from oscal_validate.ai import repair
 from oscal_validate.ai.run import prepare
 from oscal_validate.findings import Severity
@@ -122,6 +123,26 @@ def score_document(
     return records
 
 
+def unit(record: dict[str, Any]) -> str:
+    """The suite unit a case record covers: one document and one injector.
+
+    Not one record. ``--per-target-limit`` lets a single injection produce
+    more than one target and so more than one record, which is why coverage
+    is counted over these and the summary's ``cases`` is not.
+    """
+    return f"{record['document']}|{record['injector']}"
+
+
+def units() -> list[str]:
+    """Every document in the committed manifest crossed with every injector.
+
+    Derived from the manifest rather than from ``--docs``/``--injectors`` or
+    from what the cache holds, because all three of those are ways to run
+    part of the suite and none of them changes what the suite is.
+    """
+    return [f"{identifier}|{name}" for identifier in document_ids() for name in INJECTORS]
+
+
 def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
     scored = [r for r in records if "skipped" not in r]
     by_injector: dict[str, dict[str, int]] = {}
@@ -180,13 +201,19 @@ def main(argv: list[str]) -> int:
     for document in documents:
         records.extend(score_document(document, args.injectors, client, args.per_target_limit))
     served = next((r.get("served_model") for r in records if r.get("served_model")), None)
+    # --docs, --injectors and a cold cache all make a partial run easy and
+    # legitimate; what is not legitimate is a partial run reading like a
+    # whole one. --per-target-limit caps how many targets each injection
+    # contributes, so it is recorded too: it is a sampling depth, and a
+    # number sampled at an undeclared depth is not the number it looks like.
+    extra = {
+        "documents_skipped": skipped_docs,
+        "injectors": args.injectors,
+        "per_target_limit": args.per_target_limit,
+        **coverage(units(), (unit(r) for r in records)),
+    }
     payload = {
-        "provenance": provenance(
-            "repair",
-            client,
-            served,
-            {"documents_skipped": skipped_docs, "injectors": args.injectors},
-        ),
+        "provenance": provenance("repair", client, served, extra),
         "summary": summarize(records),
         "cases": records,
     }
