@@ -327,7 +327,7 @@ jobs:
 ```
 
 `path` takes one document, a directory (searched recursively for `*.json`), or
-a glob such as `oscal/**/*.json`. Two further inputs, both optional:
+a glob such as `oscal/**/*.json`. Three further inputs, all optional:
 
 - `resolve`: space-separated documents or directories to resolve imports and
   references against, passed through as repeated `--resolve`. Same rules as
@@ -338,6 +338,9 @@ a glob such as `oscal/**/*.json`. Two further inputs, both optional:
   counts in the CLI's own `--format json` summary. UNVERIFIABLE is gated at no
   setting, because it marks what the supplied documents cannot settle and is
   never a pass.
+- `sarif-file`: a path to write SARIF 2.1.0 to, for
+  `github/codeql-action/upload-sarif`. Empty by default, which writes nothing.
+  See [below](#code-scanning).
 
 ```yaml
       - uses: ChelseaKR/oscal-validate@v0.2.0
@@ -354,13 +357,13 @@ The counts are published as outputs: `error-count`, `warning-count`,
 unverifiable count: a run of a large package with imports withheld can be
 green and still have settled very little, and the number is how you see that.
 
-The action annotates the pull request directly and does not write SARIF. To
-put the findings into the repository's code-scanning alerts as well, run the
-CLI's `--format sarif` from the checked-out source and upload the file; the
-`|| [ $? -eq 1 ]` keeps an exit code of 1 (ERROR findings, which the upload
-should carry) from stopping the job before the upload, while an unreadable
-document (exit 2) still fails it. Every UNVERIFIABLE finding arrives as an
-alert at level `note`, on purpose; filter by rule, never by hiding them.
+### Code scanning
+
+Annotations vanish with the workflow run. To keep the findings, set
+`sarif-file` and hand the file to `github/codeql-action/upload-sarif`; the
+findings then appear in the Security tab and inline on the pull request. Every
+UNVERIFIABLE finding arrives as an alert at level `note`, on purpose; filter by
+rule, never by hiding them.
 
 ```yaml
 permissions:
@@ -372,19 +375,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/checkout@v7
+      - uses: ChelseaKR/oscal-validate@v0.2.0 # `sarif-file` is newer than v0.2.0; pin a commit that carries it
+        id: oscal
         with:
-          repository: ChelseaKR/oscal-validate
-          ref: main # SARIF output is newer than v0.2.0; pin a commit that carries it
-          path: .oscal-validate
-      - run: |
-          PYTHONPATH=.oscal-validate/src python3 -m oscal_validate oscal/ssp.json \
-            --resolve baselines/ --format sarif > oscal-validate.sarif || [ $? -eq 1 ]
-      - uses: github/codeql-action/upload-sarif@v3
+          path: oscal/
+          resolve: baselines/
+          sarif-file: oscal-validate.sarif
+      - if: ${{ !cancelled() && steps.oscal.outcome != 'skipped' }}
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: oscal-validate.sarif
           category: oscal-validate
 ```
+
+The `if:` is what carries a *failing* run's findings to the Security tab:
+without it the upload is skipped exactly when there is something to upload.
+
+Every document goes into one SARIF run, not one run each, because GitHub
+accepts at most twenty runs per file and a delivery is routinely more than
+twenty documents. The file is written only when every document produced a
+complete SARIF run, and the run fails without writing it otherwise. That is
+deliberate and worth knowing: `upload-sarif` treats an upload as the complete
+picture and resolves any alert it does not contain, so a file that had quietly
+lost one document's findings would close those alerts as fixed. A missing file
+fails the upload step loudly instead.
+
+`tool.driver.properties.vendoredSnapshot` in the log records the OSCAL release
+and the SHA-256 of every vendored file the run read, computed from the files
+themselves. An alert outlives the checkout that produced it, and the version
+of the tool alone does not say which bytes decided the verdict.
+
+The CLI can still be run directly for the same output on one document —
+`oscal-validate <file> --format sarif` — which is what to do outside Actions.
 
 The exit codes are the CLI's, unchanged: 0 when nothing meets the threshold, 1
 when something does, 2 when a document could not be read. A `path` that

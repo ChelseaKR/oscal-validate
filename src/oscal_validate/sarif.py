@@ -55,22 +55,42 @@ with its retrieval date under ``properties.sources`` regardless.
 needs one to display anything) and the pointer as a ``logicalLocation``. No
 line or column is reported, because the validator does not track one, and a
 region would be an invented number.
+
+**Which bytes decided it.** ``tool.driver.properties`` carries the OSCAL
+release and the SHA-256 of every vendored file the run read, computed from
+the files themselves (:mod:`oscal_validate.snapshot`). A code-scanning alert
+outlives the checkout that produced it, and "oscal-validate 0.2.0 said so" is
+not enough to reproduce a verdict; the snapshot the verdict was made against
+is the other half.
+
+**Merging.** :func:`merge_logs` combines the logs of several documents into
+one, because GitHub accepts at most twenty runs in an uploaded SARIF file and
+a delivery is routinely more than twenty documents. It is here, and not in
+``tools/action_runner.py``, for one reason: merging rules means re-deciding
+``helpUri`` for a code now cited from two documents, and that decision is a
+rendering decision. It is made once, in :func:`_rule_descriptor`, for both
+callers.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
 from .findings import Finding, Severity, counts
+from .snapshot import identity
 
 #: Where the tool is described. SARIF's ``informationUri`` for the driver.
 INFORMATION_URI = "https://github.com/ChelseaKR/oscal-validate"
 
 #: The schema this file claims conformance with; a viewer can check it.
 SCHEMA_URI = "https://json.schemastore.org/sarif-2.1.0.json"
+
+#: The SARIF version every log declares, and the only one this module reads.
+SARIF_VERSION = "2.1.0"
 
 #: Severity to SARIF ``(kind, level)``. See the module docstring.
 KINDS: dict[Severity, tuple[str, str]] = {
@@ -197,25 +217,44 @@ def _result(finding: Finding, rule_index: int, document: Path, model: str) -> di
     }
 
 
+def _rule_descriptor(code: str, cited: set[tuple[str, str]]) -> dict[str, Any]:
+    """One ``reportingDescriptor`` for a code cited from ``(url, retrieved)`` pairs.
+
+    The single place ``helpUri`` is decided, so that a code cited from two
+    sources loses its single help URI identically whether the two citations
+    came from one document or from two documents merged together.
+    """
+    ordered = sorted(cited)
+    rule: dict[str, Any] = {"id": code, "name": code}
+    description = DESCRIPTIONS.get(code)
+    if description is not None:
+        rule["shortDescription"] = {"text": description}
+    urls = {url for url, _ in ordered}
+    if len(urls) == 1 and next(iter(urls)).startswith(("http://", "https://")):
+        rule["helpUri"] = next(iter(urls))
+    rule["properties"] = {
+        "sources": [{"url": url, "retrieved": retrieved} for url, retrieved in ordered]
+    }
+    return rule
+
+
 def _rules(findings: list[Finding]) -> list[dict[str, Any]]:
     sources: dict[str, set[tuple[str, str]]] = {}
     for finding in findings:
         sources.setdefault(finding.code, set()).add((finding.rule.url, finding.rule.retrieved))
-    rules: list[dict[str, Any]] = []
-    for code in sorted(sources):
-        cited = sorted(sources[code])
-        rule: dict[str, Any] = {"id": code, "name": code}
-        description = DESCRIPTIONS.get(code)
-        if description is not None:
-            rule["shortDescription"] = {"text": description}
-        urls = {url for url, _ in cited}
-        if len(urls) == 1 and next(iter(urls)).startswith(("http://", "https://")):
-            rule["helpUri"] = next(iter(urls))
-        rule["properties"] = {
-            "sources": [{"url": url, "retrieved": retrieved} for url, retrieved in cited]
-        }
-        rules.append(rule)
-    return rules
+    return [_rule_descriptor(code, sources[code]) for code in sorted(sources)]
+
+
+def driver(version: str, rules: list[dict[str, Any]]) -> dict[str, Any]:
+    """The ``tool.driver`` every log carries, snapshot identity included."""
+    return {
+        "name": "oscal-validate",
+        "version": version,
+        "semanticVersion": version,
+        "informationUri": INFORMATION_URI,
+        "properties": {"vendoredSnapshot": identity()},
+        "rules": rules,
+    }
 
 
 def render_findings_sarif(findings: list[Finding], version: str, model: str, document: Path) -> str:
@@ -224,24 +263,86 @@ def render_findings_sarif(findings: list[Finding], version: str, model: str, doc
     index = {rule["id"]: position for position, rule in enumerate(rules)}
     log = {
         "$schema": SCHEMA_URI,
-        "version": "2.1.0",
+        "version": SARIF_VERSION,
         "runs": [
             {
-                "tool": {
-                    "driver": {
-                        "name": "oscal-validate",
-                        "version": version,
-                        "semanticVersion": version,
-                        "informationUri": INFORMATION_URI,
-                        "rules": rules,
-                    }
-                },
+                "tool": {"driver": driver(version, rules)},
                 "results": [_result(f, index[f.code], document, model) for f in findings],
                 "properties": {
-                    "document": {"model": model},
+                    "document": {"model": model, "path": _artifact_uri(document)},
                     "summary": counts(findings),
                 },
             }
         ],
     }
     return json.dumps(log, indent=2, sort_keys=True, ensure_ascii=False)
+
+
+def _one_run(log: Any, which: int) -> dict[str, Any]:
+    """The single run of a log this module produced, or a stated refusal."""
+    if not isinstance(log, dict) or log.get("version") != SARIF_VERSION:
+        raise ValueError(f"log {which} does not declare SARIF {SARIF_VERSION}")
+    runs = log.get("runs")
+    if not isinstance(runs, list) or len(runs) != 1 or not isinstance(runs[0], dict):
+        raise ValueError(f"log {which} does not carry exactly one run")
+    run: dict[str, Any] = runs[0]
+    return run
+
+
+def merge_logs(logs: Sequence[Any]) -> str:
+    """Several single-document logs as one log with one run.
+
+    GitHub accepts at most twenty runs in an uploaded SARIF file, so one run
+    per document stops working at the twenty-first -- and a delivery of
+    twenty-one OSCAL documents is an ordinary delivery, not an edge case.
+
+    Nothing is dropped, deduplicated or re-levelled: the results are
+    concatenated in the order the documents were given, each result's
+    ``ruleIndex`` is re-pointed at the merged rules array, and the run's
+    ``summary`` is the sum of the summaries. Every driver must be identical,
+    including its snapshot digests, because a log merged across two different
+    vendored snapshots would attribute one snapshot's verdicts to the other.
+    """
+    if not logs:
+        raise ValueError("no logs to merge")
+    runs = [_one_run(log, which) for which, log in enumerate(logs)]
+
+    drivers = [run["tool"]["driver"] for run in runs]
+    versions = {json.dumps(d, sort_keys=True) for d in ({**d, "rules": []} for d in drivers)}
+    if len(versions) != 1:
+        raise ValueError("the logs were not produced by one tool and one vendored snapshot")
+
+    sources: dict[str, set[tuple[str, str]]] = {}
+    for run_driver in drivers:
+        for rule in run_driver["rules"]:
+            cited = sources.setdefault(rule["id"], set())
+            for source in rule["properties"]["sources"]:
+                cited.add((source["url"], source["retrieved"]))
+    rules = [_rule_descriptor(code, sources[code]) for code in sorted(sources)]
+    index = {rule["id"]: position for position, rule in enumerate(rules)}
+
+    results: list[dict[str, Any]] = []
+    summary = counts([])
+    documents = []
+    for which, run in enumerate(runs):
+        for result in run["results"]:
+            results.append({**result, "ruleIndex": index[result["ruleId"]]})
+        totals = run["properties"]["summary"]
+        if set(totals) != set(summary):
+            raise ValueError(f"log {which} does not count the severities this tool reports")
+        for severity, count in totals.items():
+            summary[severity] += count
+        documents.append(run["properties"]["document"])
+
+    merged = {
+        "$schema": SCHEMA_URI,
+        "version": SARIF_VERSION,
+        "runs": [
+            {
+                "tool": {"driver": {**drivers[0], "rules": rules}},
+                "results": results,
+                "properties": {"documents": documents, "summary": summary},
+            }
+        ],
+    }
+    return json.dumps(merged, indent=2, sort_keys=True, ensure_ascii=False)

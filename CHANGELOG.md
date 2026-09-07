@@ -41,6 +41,41 @@ and this project adheres to
 
 ### Added
 
+- **The GitHub Action can write SARIF, and every log now says which vendored
+  snapshot decided it** (completes issue #62, whose SARIF renderer landed in
+  #80 without these two parts).
+
+  `tool.driver.properties.vendoredSnapshot` carries the OSCAL release and the
+  SHA-256 of every file under `vendor/oscal/`, computed at run time from the
+  bytes the run actually read rather than transcribed from `SOURCES.md`. A
+  code-scanning alert outlives the checkout that produced it, and
+  "oscal-validate 0.2.0 said so" does not identify the snapshot the verdict
+  was made against. `tests/test_sarif.py` asserts the identity covers every
+  file in `vendor/` -- a fingerprint that silently omits a metaschema module
+  looks complete while a changed module passes under it -- and that altering a
+  vendored file's bytes moves its digest, which a transcribed hash would not.
+
+  `action.yml` gains `sarif-file`, and `tools/action_runner.py` merges the
+  documents into **one** SARIF run rather than one run each, because GitHub
+  accepts at most twenty runs per uploaded file and a delivery of twenty-one
+  OSCAL documents is an ordinary delivery. The merge is
+  `oscal_validate.sarif.merge_logs`, not a second implementation in the
+  runner: merging rules re-decides a code's `helpUri` when two documents cite
+  it from different sources, and that is a rendering decision.
+
+  The file is written only when every document produced a SARIF run whose
+  result count equals its own JSON summary; otherwise the run exits 2 and
+  writes nothing. `upload-sarif` treats an upload as the complete picture and
+  resolves any alert missing from it, so a SARIF file that had lost a
+  document's findings would not merely under-report -- it would close real
+  alerts as fixed. A partial file is the failure mode worth refusing, and it
+  is the same absence-published-as-a-measurement the report-shape check in
+  #80 was added for.
+
+  Also pinned: `action.yml` and the runner must read the same `OSCAL_*`
+  environment. A renamed input does not fail -- it arrives as an empty string
+  and the feature it controls silently does nothing.
+
 - **A release and publish path, which this repository did not have** (issue
   #43's mechanism, not its decision), in `.github/workflows/release.yml`,
   `.github/allowed_signers` and `tests/test_release_workflow.py` (all new),
