@@ -43,6 +43,20 @@ def test_validation_opens_no_socket(capsys: pytest.CaptureFixture[str]) -> None:
 
 
 @pytest.mark.usefixtures("no_network")
+def test_the_rule_verb_opens_no_socket(capsys: pytest.CaptureFixture[str]) -> None:
+    """``rule`` quotes NIST's pages and never fetches one.
+
+    Everything it prints is already on disk, hash-pinned, with the date it was
+    retrieved recorded beside it. A verb that reached for a URL when a section
+    were missing would be the opposite of what it exists to prove.
+    """
+    assert main(["rule", "oscal-catalog-controls"]) == 0
+    out = capsys.readouterr().out
+    assert "sha256: " in out
+    assert "https://pages.nist.gov/" in out
+
+
+@pytest.mark.usefixtures("no_network")
 def test_an_unresolved_import_is_never_a_fetch(capsys: pytest.CaptureFixture[str]) -> None:
     # The profile names a catalog it was not given. A tool that fetched would
     # fetch here; this one reports UNVERIFIABLE instead.

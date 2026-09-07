@@ -199,6 +199,81 @@ Two things it deliberately does not say:
 The comparison is `oscal_validate.compare`, which is also what `repair --draft`
 runs, so the verb and the draft cannot disagree about what "introduced" means.
 
+### `rule`: the citation trail, with no model and no network
+
+A finding names a rule. `rule` is how you read that rule without taking anyone's
+word for it, and without an SDK, an API key, or a document:
+
+```console
+$ oscal-validate rule oscal-catalog-controls
+constraint: oscal-catalog-controls
+
+kind: index
+level: ERROR
+declared on: catalog
+target: //control
+applies to: catalog
+key fields: @id
+index: catalog-controls
+evaluated: yes
+
+declaration: vendor:oscal_catalog_metaschema_RESOLVED.xml
+    source: https://github.com/usnistgov/OSCAL/releases/tag/v1.2.3 (retrieved 2026-08-14)
+    sha256: 775f8326e3dac336be17c4f7eefa89661053230fb1e8538364186c927ee062b1
+
+    <index id="oscal-catalog-controls"
+                     name="catalog-controls"
+                     target="//control">
+                <key-field target="@id"/>
+             </index>
+
+specification: metaschema-constraints, section Constraints/Constraint Types/index Constraints
+    source: https://pages.nist.gov/metaschema/specification/syntax/constraints/ (retrieved 2026-08-21)
+    sha256: c51a84834e17d51a5abbc1f2cab0db0653305de54522314d2c65aa7e2a3abc6b
+
+    The <index> constraint is a type of Metaschema constraint that defines an index
+    of document instance nodes addressable by key.
+    ...
+```
+
+It takes either a NIST constraint identifier or one of this tool's finding
+codes. For a finding code it prints every rule that can produce it, quoting the
+fixed ones verbatim and saying plainly which are composed per finding:
+
+```console
+$ oscal-validate rule CONSTRAINT_NOT_EVALUATED
+finding code: CONSTRAINT_NOT_EVALUATED
+reports: one report per constraint kind this tool did not evaluate, ...
+...
+constraint kinds this tool does not evaluate:
+
+  allowed-values: 200 published, not evaluated
+     because which values a value node permits is decided by the applicable set of
+     constraints sharing its target, and this tool does not resolve that set
+...
+```
+
+`--format json` for machine use; an identifier that is neither a constraint nor
+a finding code is exit 2 with nothing printed, because a partial answer about
+provenance is worse than none.
+
+Four things about it:
+
+- **It is the evidence `explain` gathers, before `explain` calls anything.**
+  Both read one source layer, `oscal_validate.sources`, so the offline answer
+  and the model-backed one cannot cite different bytes.
+- **Nothing is paraphrased.** Every passage is verbatim from a hash-pinned file,
+  printed beside the SHA-256 of the bytes this run read and the date they were
+  retrieved. The hash is computed from the file, not copied from a manifest.
+- **For a constraint this tool does not evaluate, it prints that constraint's
+  own reason** — not its kind's summary — which is the answer to "why did this
+  not fire", in one command instead of a search through
+  [docs/CONSTRAINT-COVERAGE.md](docs/CONSTRAINT-COVERAGE.md).
+- **It reaches no model and opens no socket**, so the GitHub Action and anyone
+  who will not send a document to a model can use it. The suite runs it with
+  `socket` removed and, in a fresh interpreter, asserts that no module of the
+  AI layer or any SDK was loaded.
+
 ### `--suggest`: the identifier that *is* declared
 
 A reference that resolves to nothing is a true statement and not the sentence
