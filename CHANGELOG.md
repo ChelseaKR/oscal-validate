@@ -10,6 +10,39 @@ and this project adheres to
 
 ### Fixed
 
+- **The Action treated a severity it did not know as a count of zero, and
+  annotated it as a notice.** `docs/API.md` permits `Severity` to gain a member
+  within a major version and says a consumer "must not treat an unknown
+  severity as a pass". `tools/action_runner.py` did exactly that, in two places
+  at once:
+
+  - `validate_one` folds only the four names in `SEVERITIES` into `totals`, so
+    findings of a fifth would have been counted by **no** `fail-on` threshold
+    and the run would have exited 0 with them in the report;
+  - `report_findings` mapped it through `LEVELS.get(severity, "notice")` — the
+    mildest level GitHub has — so a severity possibly graver than ERROR would
+    have rendered as an informational annotation.
+
+  Both were reachable without any change this script would otherwise have
+  noticed, because adding a severity is a minor bump and the runner accepts
+  later minors of the same major on purpose (`test_a_later_minor_of_the_same_
+  major_is_still_read`, added deliberately so additive changes are not
+  breaking ones).
+
+  This is the same defect as the `summary.get(severity, 0)` fold that was
+  removed on 2026-09-06, said the other way round: a count that is not there is
+  not a count of none, and **a count this action does not know how to gate on is
+  not a count of zero either.** `describe_unreadable` now refuses a report
+  carrying an unrecognised severity — in a finding or as a summary key — and the
+  run exits 2 rather than gating on a subset of what was reported. The
+  annotator's fallback level moved from `notice` to `error`; it is unreachable
+  now that the report is refused first, and the direction still matters, because
+  a grave finding rendered as a notice is an unread finding wearing the
+  appearance of a reviewed one.
+
+  Not live: the tool has emitted exactly four severities in every release. The
+  hole was in what would happen the first time it did not.
+
 - **Four places told a reader to run an install command that cannot work.** The
   README's AI section said `pip install 'oscal-validate[ai]'`, the Bedrock
   paragraph said `pip install 'oscal-validate[bedrock]'`, ADR-0005 repeated the

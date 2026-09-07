@@ -20,6 +20,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from .conftest import load_fixture
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -470,3 +472,91 @@ def test_the_action_inputs_and_the_runner_read_the_same_environment(tmp_path: Pa
         re.findall(r"^\s+(OSCAL_[A-Z_]+):", (ROOT / "action.yml").read_text("utf-8"), re.M)
     )
     assert read == passed, "action.yml and the runner disagree about the environment"
+
+
+# -- an unknown severity is not a count of zero --------------------------------
+#
+# `docs/API.md` allows `Severity` to gain a member within a major version, and
+# says a consumer "must not treat an unknown severity as a pass". This script
+# did exactly that, in two places at once: `validate_one` folds only the four
+# names in `SEVERITIES` into `totals`, so a fifth reached no `fail-on`
+# threshold and the run exited 0; and `report_findings` mapped it through
+# `LEVELS.get(severity, "notice")`, the mildest level GitHub has. Adding a
+# severity is a minor bump, and the runner already accepts later minors of the
+# same major on purpose, so both were reachable without any change here.
+
+
+def _runner_module() -> Any:
+    """The runner imported as a module, the way two tests above already do it."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    try:
+        import action_runner
+    finally:
+        sys.path.pop(0)
+    return action_runner
+
+
+def _report_with_severity(name: str) -> dict[str, Any]:
+    report = _whole_report()
+    report["findings"] = [
+        {
+            "code": "SOMETHING_NEW",
+            "severity": name,
+            "location": "/catalog/uuid",
+            "property": "uuid",
+            "value": "x",
+            "message": "a finding this action has no branch for",
+            "rule": {"citation": "c", "url": "u", "retrieved": "2026-09-07"},
+        }
+    ]
+    return report
+
+
+def test_a_finding_carrying_an_unknown_severity_fails_the_run(tmp_path: Path) -> None:
+    """The whole point: exit 2, not exit 0 with the finding rendered as a notice."""
+    code, stdout = _run_against_stub(tmp_path, _report_with_severity("CRITICAL"))
+    assert code == 2, stdout
+    assert "CRITICAL" in stdout
+
+
+def test_a_summary_counting_a_severity_this_action_cannot_gate_on_fails_the_run(
+    tmp_path: Path,
+) -> None:
+    """A count under a name `totals` never folds is a population no threshold reaches."""
+    report = _whole_report()
+    report["summary"]["CRITICAL"] = 3
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code == 2, stdout
+    assert "CRITICAL" in stdout
+
+
+@pytest.mark.parametrize("name", ["ERROR", "WARNING", "INFO", "UNVERIFIABLE"])
+def test_a_finding_of_every_known_severity_is_still_read(name: str, tmp_path: Path) -> None:
+    """The control on the two above: refusing an unknown name must not refuse a known one."""
+    assert name in _runner_module().SEVERITIES, "this list and the runner's have drifted"
+    report = _report_with_severity(name)
+    report["summary"][name] = 1
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code in (0, 1), f"{name}: {stdout}"
+
+
+def test_a_severity_that_reached_the_annotator_anyway_is_not_rendered_as_a_notice() -> None:
+    """Defence in depth, and the direction matters.
+
+    `describe_unreadable` refuses such a report before anything is annotated, so
+    this is unreachable through the runner. If a later change makes it
+    reachable, the safe reading of a severity nobody has a branch for is the
+    loudest level, not the quietest: a grave finding rendered as a notice is an
+    unread finding wearing the appearance of a reviewed one.
+    """
+    runner = _runner_module()
+    assert runner.LEVELS.get("CRITICAL", runner.UNKNOWN_SEVERITY_LEVEL) == "error"
+
+
+def test_the_findings_list_is_checked_before_any_annotation_is_printed(tmp_path: Path) -> None:
+    """Order matters: an annotation for a finding the run then refuses would put
+    a severity this action cannot gate on into the workflow log as though it had
+    been handled."""
+    code, stdout = _run_against_stub(tmp_path, _report_with_severity("CRITICAL"))
+    assert code == 2
+    assert "::notice" not in stdout
