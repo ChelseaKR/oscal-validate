@@ -801,6 +801,44 @@ without reading `pyproject.toml`, so it exits 0 on a lock that no longer
 matches the manifest and cannot be a drift gate. The comment in the `Makefile`
 records the measurement.
 
+## Releasing
+
+`.github/workflows/release.yml` is the only path that publishes anything, and
+it runs only when the maintainer dispatches it:
+
+```sh
+git tag -s vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z
+gh workflow run release.yml --ref main -f tag=vX.Y.Z
+```
+
+Dispatch rather than a tag-push trigger, because a `push: tags:` workflow runs
+the definition stored *at the tagged ref* — whoever can push a tag would also
+choose the release workflow. Dispatching from `main` keeps the release
+authority on the reviewed branch and leaves the tag as data the workflow
+checks.
+
+What it does, in order: the shared `ChelseaKR/.github` authorization workflow
+proves the tag is annotated, signed against
+[`.github/allowed_signers`](.github/allowed_signers), and reachable from
+`main`; `make verify` re-runs at the tagged commit, and the tag, the
+`pyproject.toml` version and the CHANGELOG section must agree; the wheel and
+sdist are built once, with SLSA build provenance and a CycloneDX 1.7 SBOM
+attested through Sigstore; a checkout-free job publishes the GitHub release
+with the CHANGELOG section as its notes; and PyPI is uploaded over OIDC
+Trusted Publishing after the artifact digests are re-checked against the
+attested manifest. No job rebuilds what it publishes, and no PyPI token is
+stored anywhere. `tests/test_release_workflow.py` holds each of those
+properties.
+
+**PyPI is not wired up yet.** Trusted Publishing needs a one-time registration
+that only the project owner can make, on pypi.org under *Your projects →
+Publishing*, or *Add a pending publisher* while the project does not exist
+yet: project `oscal-validate`, owner `ChelseaKR`, repository
+`oscal-validate`, workflow `release.yml`, environment `pypi`. Until that
+exists the `pypi-publish` job fails at the upload and nothing reaches PyPI;
+every job before it — verification, build, attestation, the GitHub release —
+still runs and still succeeds.
+
 ## Disclosure
 
 This tool was built quickly with AI assistance (Claude), then reviewed and

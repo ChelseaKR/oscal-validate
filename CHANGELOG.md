@@ -41,6 +41,44 @@ and this project adheres to
 
 ### Added
 
+- **A release and publish path, which this repository did not have** (issue
+  #43's mechanism, not its decision), in `.github/workflows/release.yml`,
+  `.github/allowed_signers` and `tests/test_release_workflow.py` (all new),
+  plus a `Releasing` section in the README. The only workflows here were
+  `ci.yml`, `semgrep.yml` and `trufflehog.yml`: there was no release workflow
+  and no publish path at all, while the repository carried tags `v0.1.0` and
+  `v0.2.0` and `pypi.org/pypi/oscal-validate` returned nothing. So
+  `pip install oscal-validate` could not work, and the tags advertised
+  versions that existed nowhere installable.
+
+  The shape is `outcome-receipts`' security-reviewed one, which is the
+  standard here: `workflow_dispatch` taking an existing signed tag, because a
+  `push: tags:` trigger runs the workflow definition stored at the tagged ref
+  and would hand the release authority to whoever can push a tag; the
+  standards-owned `release-authorize` reusable workflow, pinned to a full
+  40-character commit SHA, proving the tag is annotated, signed against the
+  committed `.github/allowed_signers`, and reachable from `main`; `make
+  verify` re-run at the tagged commit, with the tag, the package version and
+  the CHANGELOG section required to agree; one build, attested for SLSA
+  provenance and described by a validated CycloneDX 1.7 SBOM through Sigstore,
+  with a `SHA256SUMS` manifest so no later job can publish different bytes; a
+  checkout-free, idempotent GitHub-release job; and PyPI over OIDC Trusted
+  Publishing, with no long-lived token stored anywhere.
+
+  Nothing publishes on merge. The workflow is inert until the owner registers
+  the PyPI Trusted Publisher (a web-UI action only she can take) and
+  dispatches it with a tag.
+
+  `tests/test_release_workflow.py` holds sixteen properties of that path, each
+  one a place where getting it wrong is silent. Three were checked by breaking
+  the workflow on purpose: a stored `secrets.PYPI_API_TOKEN`, a publish job
+  that checks out and rebuilds, and a tag-push trigger with the authorization
+  workflow pinned to `@main`. All three went red, and the workflow was
+  restored from a byte copy. The first draft of the trigger test was itself a
+  check that passed on a comment -- the file explains why a `push: tags:`
+  trigger is wrong, in prose, and the assertion matched the explanation -- so
+  the checks strip comments before reading.
+
 - **`--format sarif`: the same findings as SARIF 2.1.0, with no pass
   invented.** A third output format beside `text` and `json` (which stays
   the canonical report). ERROR and WARNING render as `kind: fail` at
