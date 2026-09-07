@@ -440,7 +440,8 @@ published text is the only evidence, and a verifier that is not a model sits
 between every reply and the screen.
 
 ```sh
-pip install 'oscal-validate[ai]'          # the public anthropic SDK; nothing else changes
+pip install '.[ai]'                       # the public anthropic SDK; nothing else changes
+                                          # (from a checkout: nothing is on PyPI yet)
 export ANTHROPIC_API_KEY=...              # from the environment only; never written to a file
 
 oscal-validate explain my-ssp.json --severity ERROR
@@ -508,7 +509,7 @@ A reply that cannot be parsed shows nothing.
 **Model and provider.** The public `anthropic` SDK, default
 `claude-sonnet-5`, configurable with `OSCAL_VALIDATE_AI_MODEL`;
 `OSCAL_VALIDATE_AI_PROVIDER=bedrock` with `AWS_REGION` uses Amazon Bedrock
-(`pip install 'oscal-validate[bedrock]'`), where the default is a different
+(`pip install '.[bedrock]'` from a checkout), where the default is a different
 model, `global.anthropic.claude-sonnet-4-6`. Bedrock grants model access per
 account rather than per SDK, so the two defaults answer different questions:
 the Bedrock one is the model every recorded eval and cassette here was actually
@@ -905,7 +906,7 @@ checked, and it is not a claim that any registry agrees with it yet.
 | Data Governance | Applies (L1, public non-sensitive) | Data cards in [docs/data/](docs/data/) for all three ingest sources, with hashes in [vendor/SOURCES.md](src/oscal_validate/vendor/SOURCES.md) enforced by `tests/test_vendor_integrity.py` and in [ai/corpus/MANIFEST.json](src/oscal_validate/ai/corpus/MANIFEST.json) enforced by `tests/test_ai_sources.py`. Survey records are dated per retrieval: `tools/fetch.py` stamps every fetch with `fetched_at` (UTC, RFC 3339), `tools/survey.py` carries it forward under `--provenance` instead of restamping a cached read, and `tests/test_survey_fetch.py` holds both. The five surveys committed under `docs/findings/` predate the field and are not backfilled; their lineage stays dated at file level, which [docs/data/published-oscal-corpus.md](docs/data/published-oscal-corpus.md) records. |
 | Documentation | Applies | This README, [CHANGELOG.md](CHANGELOG.md), ADRs in [docs/adr/](docs/adr/), [CITATION.cff](CITATION.cff), [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/CONSTRAINT-COVERAGE.md](docs/CONSTRAINT-COVERAGE.md). |
 | Quality & Metrics | Applies | [docs/ROADMAP.md](docs/ROADMAP.md) names every gate as AUTO, REVIEW, or a reasoned exception. |
-| Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current. `v0.1.0` and `v0.2.0` are tagged and `v0.2.0` is published as a GitHub release. `tests/test_release_metadata.py` measures every release claim against the tags in the repository rather than against another file: `CITATION.cff` must name a tagged version dated with that tag's own date, the Status paragraph above must name the declared version and every tag that exists and say when the declared version is untagged, and the declared version must have a changelog section. It refuses to read an empty tag list from a shallow checkout, and `.github/workflows/ci.yml` fetches tags so the checks run for real in CI. `pyproject.toml` declares `0.3.0` and no `v0.3.0` tag exists; that is stated rather than dated, and the citation file cites `0.2.0`. One gap remains, recorded in [docs/ROADMAP.md](docs/ROADMAP.md) rather than declared out of scope: there is no release workflow, so the steps that made the two existing releases are not written down. |
+| Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current. `v0.1.0` and `v0.2.0` are tagged and `v0.2.0` is published as a GitHub release. `tests/test_release_metadata.py` measures every release claim against the tags in the repository rather than against another file: `CITATION.cff` must name a tagged version dated with that tag's own date, the Status paragraph above must name the declared version and every tag that exists and say when the declared version is untagged, and the declared version must have a changelog section. It refuses to read an empty tag list from a shallow checkout, and `.github/workflows/ci.yml` fetches tags so the checks run for real in CI. `pyproject.toml` declares `0.3.0` and no `v0.3.0` tag exists; that is stated rather than dated, and the citation file cites `0.2.0`. The release path is now written down and enforced: `.github/workflows/release.yml` (dispatch-on-signed-tag, SLSA provenance, CycloneDX SBOM, PyPI Trusted Publishing over OIDC with no stored token) with sixteen of its properties held by `tests/test_release_workflow.py`, and the maintainer procedure in [Releasing](#releasing). One gap remains: nothing has been published to PyPI, because Trusted Publishing needs a one-time registration only the owner can make, so `pip install oscal-validate` still resolves to nothing and installation is from source. |
 
 ## License
 
