@@ -10,8 +10,10 @@ default parser sees the arguments, and the package that implements them is
 imported only then; ``tests/test_default_path_byte_identity.py`` checks in a
 fresh process that a validation run never loads it.
 
-``diff`` is dispatched the same way but is not one of them: it compares two
-runs and is as deterministic and as offline as the default path.
+``diff`` and ``rule`` are dispatched the same way but are not among them:
+``diff`` compares two runs and ``rule`` prints the citation trail for one
+constraint identifier or finding code, and both are as deterministic and as
+offline as the default path.
 
 ``--resolve`` takes more local files or directories. It is how an imported
 catalog or profile gets into the effective data model, and it is the difference
@@ -59,7 +61,7 @@ AI_COMMANDS = ("explain", "repair", "walkthrough", "ask")
 #: ``non-literal-import`` says so, and it is right that this is not a property
 #: worth having to save a line. ``test_every_deterministic_command_is_actually
 #: _dispatched`` holds the tuple and the branches together instead.
-DETERMINISTIC_COMMANDS = ("diff",)
+DETERMINISTIC_COMMANDS = ("diff", "rule")
 
 
 class PrintReportSchema(argparse.Action):
@@ -97,8 +99,10 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Severities: ERROR gates the exit code. UNVERIFIABLE never does; it marks "
             "what the supplied documents cannot settle, and is never a pass. "
-            f"`oscal-validate {DETERMINISTIC_COMMANDS[0]} --help` compares two runs, with "
-            "no model and no network, like this command. "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[0]} --help` compares two runs and "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[1]} --help` prints the citation "
+            "trail for one constraint or finding code, both with no model and no "
+            "network, like this command. "
             f"Opt-in model-backed subcommands ({', '.join(AI_COMMANDS)}) are documented by "
             "`oscal-validate explain --help`; they call a model, this command never does."
         ),
@@ -156,6 +160,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         diff_cli = importlib.import_module("oscal_validate.diff")
         verdict: int = diff_cli.main(arguments)
         return verdict
+    if arguments and arguments[0] == "rule":
+        rule_cli = importlib.import_module("oscal_validate.rule")
+        trail: int = rule_cli.main(arguments)
+        return trail
     args = build_parser().parse_args(arguments)
     try:
         session = build_session(

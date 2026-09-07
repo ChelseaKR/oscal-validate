@@ -8,7 +8,49 @@ and this project adheres to
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **`oscal-validate rule <constraint-id | finding-code>`: the citation trail,
+  offline, deterministic, and with no model in the process.** Most of what
+  `explain` is worth happens before it calls a model — it gathers the constraint
+  as NIST declared it, the level NIST published, the target expression and
+  whether this tool parses it, and the Metaschema specification's section for
+  that constraint kind. That gathering is deterministic, so it is now a verb of
+  its own, available to a user who will not send a document to a model, to the
+  GitHub Action, which never runs a model-backed command, and to anyone with no
+  optional dependency installed.
+
+  Every quotation is verbatim from a hash-pinned file and is printed beside the
+  SHA-256 of the bytes **this run read** — computed, not copied out of a
+  manifest, for the reason `snapshot.py` already gives. For a constraint this
+  tool does not evaluate it prints that constraint's *own* reason rather than
+  its kind's summary, which turns "why did this not fire" into one command.
+  For a finding code it prints every rule that can produce it: the fixed ones
+  quoted verbatim, the ones composed per finding named as such rather than
+  rendered with invented arguments, and the constraint-layer ones pointed at
+  `docs/CONSTRAINT-COVERAGE.md`. An identifier that is neither is exit 2 with
+  nothing printed.
+
+  The map from finding code to rule is hand-written and held to the source by
+  an AST walk that pairs each `code=` with the `rule=` beside it in the same
+  `Finding(...)` call — branch by branch where both are conditional
+  expressions, and refusing to pair them at all unless the two conditions are
+  the same expression. Its key set must equal the roster the finding-code
+  census already takes from the package, so a new code cannot arrive without an
+  entry. Negative control: pointing one entry at a rule its check does not cite
+  turns that walk red and names the code.
+
+### Changed
+
+- **The source layer moved out of the AI package**, from
+  `oscal_validate/ai/sources.py` to `oscal_validate/sources.py`. Loading NIST's
+  published text, splitting it into sections, quoting it verbatim and hashing
+  the bytes that were read is evidence for every command, not only the
+  model-backed ones; `ai/sources.py` now imports it and keeps only what is about
+  a prompt — which passages answer one finding or one question, in what order,
+  and inside what byte budget. Everything it exported is re-exported, so no
+  caller moves. The corpus **files** stay at `ai/corpus/`, where ADR-0005, the
+  data card and `pyproject.toml`'s package-data all say they are.
 
 ## [0.4.0] - 2026-09-07
 
