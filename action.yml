@@ -30,6 +30,19 @@ inputs:
       through `resolve`.
     required: false
     default: error
+  sarif-file:
+    description: >-
+      Write a SARIF 2.1.0 log of every finding to this path, for
+      github/codeql-action/upload-sarif. Empty (the default) writes nothing.
+      All documents are merged into one run, because GitHub accepts at most
+      twenty runs per file. The file is written only when every document
+      produced a complete SARIF run: an upload resolves any alert it does not
+      contain, so a file missing one document's findings would close real
+      alerts as fixed. Needs `security-events: write` on the job that uploads
+      it. UNVERIFIABLE findings arrive as `note`-level alerts and are never a
+      pass; `fail-on` is unchanged by this input.
+    required: false
+    default: ""
 
 outputs:
   error-count:
@@ -83,4 +96,5 @@ runs:
         OSCAL_PATH: ${{ inputs.path }}
         OSCAL_RESOLVE: ${{ inputs.resolve }}
         OSCAL_FAIL_ON: ${{ inputs['fail-on'] }}
+        OSCAL_SARIF_FILE: ${{ inputs['sarif-file'] }}
       run: python3 "$ACTION_PATH/tools/action_runner.py"

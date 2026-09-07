@@ -14,10 +14,13 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 from .conftest import load_fixture
 
@@ -140,3 +143,420 @@ def test_a_directory_is_validated_recursively_and_one_bad_file_fails_it(tmp_path
     assert code == 1
     assert outputs["files-validated"] == "2"
     assert outputs["error-count"] == "1"
+
+
+# -- the report the action reads is a contract, and a gap in it is not a zero --
+
+
+def _stub_cli(tmp_path: Path, report: object, exit_code: int = 0) -> Path:
+    """A package that answers ``python -m oscal_validate`` with one report.
+
+    The runner shells out to the CLI, so the only way to hand it a malformed
+    report end to end is to be the CLI. This writes a stub package and returns
+    the directory to put ahead of ``src`` on ``PYTHONPATH``.
+    """
+    package = tmp_path / "stub" / "oscal_validate"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "__main__.py").write_text(
+        f"import json, sys\nprint(json.dumps({report!r}))\nraise SystemExit({exit_code})\n",
+        encoding="utf-8",
+    )
+    return tmp_path / "stub"
+
+
+def _run_against_stub(tmp_path: Path, report: object) -> tuple[int, str]:
+    stub = _stub_cli(tmp_path, report)
+    written = tmp_path / "outputs.txt"
+    completed = subprocess.run(
+        [sys.executable, str(RUNNER)],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        env={
+            **os.environ,
+            "PYTHONPATH": f"{stub}{os.pathsep}{ROOT / 'src'}",
+            "GITHUB_OUTPUT": str(written),
+            "OSCAL_PATH": str(FIXTURES / "clean_catalog.json"),
+        },
+        check=False,
+    )
+    return completed.returncode, completed.stdout
+
+
+def _whole_report() -> dict[str, Any]:
+    return {
+        "report_schema_version": "1.0.0",
+        "tool": {"name": "oscal-validate", "version": "0.0.0"},
+        "document": {"model": "catalog"},
+        "findings": [],
+        "summary": {"ERROR": 0, "WARNING": 0, "INFO": 0, "UNVERIFIABLE": 0},
+    }
+
+
+def test_the_stub_harness_itself_passes_when_the_report_is_whole(tmp_path: Path) -> None:
+    """Without this, every assertion below could be passing for the wrong
+    reason -- a stub that never runs also never reports a clean gate."""
+    code, stdout = _run_against_stub(tmp_path, _whole_report())
+    assert code == 0, stdout
+
+
+def test_a_summary_missing_a_severity_is_not_read_as_zero(tmp_path: Path) -> None:
+    """This is the regression. ``summary.get(severity, 0)`` folded a missing
+    ERROR count in as zero and the job passed clean."""
+    report = _whole_report()
+    report["summary"] = {"WARNING": 0, "INFO": 0, "UNVERIFIABLE": 0}
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code == 2, "a report with no ERROR count is unreadable, not clean"
+    assert "ERROR" in stdout
+
+
+def test_a_summary_count_that_is_not_a_number_is_not_read_as_zero(tmp_path: Path) -> None:
+    report = _whole_report()
+    report["summary"]["ERROR"] = "lots"
+    assert _run_against_stub(tmp_path, report)[0] == 2
+
+
+def test_a_report_with_no_schema_version_is_refused(tmp_path: Path) -> None:
+    report = _whole_report()
+    del report["report_schema_version"]
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code == 2
+    assert "report_schema_version" in stdout
+
+
+def test_a_report_from_a_future_major_is_refused_rather_than_guessed_at(
+    tmp_path: Path,
+) -> None:
+    report = _whole_report()
+    report["report_schema_version"] = "2.0.0"
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code == 2
+    assert "2.0.0" in stdout
+
+
+def test_a_later_minor_of_the_same_major_is_still_read(tmp_path: Path) -> None:
+    """A minor bump adds a key an existing consumer may ignore, so refusing it
+    would make every additive change a breaking one."""
+    report = _whole_report()
+    report["report_schema_version"] = "1.7.0"
+    assert _run_against_stub(tmp_path, report)[0] == 0
+
+
+def test_a_report_that_lost_its_findings_is_refused(tmp_path: Path) -> None:
+    report = _whole_report()
+    del report["findings"]
+    assert _run_against_stub(tmp_path, report)[0] == 2
+
+
+def test_the_action_reads_the_version_the_package_actually_writes() -> None:
+    """The runner's supported major and the package's schema version cannot
+    drift apart without this failing."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    try:
+        import action_runner
+    finally:
+        sys.path.pop(0)
+    from oscal_validate import REPORT_SCHEMA_VERSION
+
+    assert REPORT_SCHEMA_VERSION.split(".")[0] == action_runner.SUPPORTED_REPORT_SCHEMA_MAJOR
+
+
+# -- the SARIF file: complete, or not written at all ----------------------------
+
+
+def _sarif_run(tmp_path: Path, path: str, **inputs: str) -> tuple[int, str, Path]:
+    destination = tmp_path / "out" / "oscal-validate.sarif"
+    code, stdout, _ = _run(tmp_path, OSCAL_PATH=path, OSCAL_SARIF_FILE=str(destination), **inputs)
+    return code, stdout, destination
+
+
+def test_no_sarif_is_written_unless_it_is_asked_for(tmp_path: Path) -> None:
+    code, _, _ = _run(tmp_path, OSCAL_PATH=str(FIXTURES / "clean_catalog.json"))
+    assert code == 0
+    assert not list(tmp_path.rglob("*.sarif"))
+
+
+def test_the_sarif_file_carries_every_document_as_one_run(tmp_path: Path) -> None:
+    documents = tmp_path / "documents"
+    documents.mkdir()
+    for name in ("clean_catalog.json", "clean_profile.json"):
+        (documents / name).write_bytes((ROOT / FIXTURES / name).read_bytes())
+
+    code, stdout, destination = _sarif_run(tmp_path, str(documents))
+    assert code == 0, stdout
+    log = json.loads(destination.read_text(encoding="utf-8"))
+    assert log["version"] == "2.1.0"
+    assert len(log["runs"]) == 1, "GitHub accepts at most twenty runs in one file"
+    run = log["runs"][0]
+    assert [d["path"] for d in run["properties"]["documents"]] == [
+        (documents / name).as_uri() for name in ("clean_catalog.json", "clean_profile.json")
+    ]
+    assert run["results"], "a run that reports nothing at all is not a clean run"
+    rules = run["tool"]["driver"]["rules"]
+    for result in run["results"]:
+        assert rules[result["ruleIndex"]]["id"] == result["ruleId"]
+
+
+def test_the_sarif_file_records_which_vendored_snapshot_decided_it(tmp_path: Path) -> None:
+    code, stdout, destination = _sarif_run(tmp_path, str(FIXTURES / "clean_catalog.json"))
+    assert code == 0, stdout
+    log = json.loads(destination.read_text(encoding="utf-8"))
+    recorded = log["runs"][0]["tool"]["driver"]["properties"]["vendoredSnapshot"]
+    assert recorded["algorithm"] == "sha256"
+    assert len(recorded["files"]) >= 14
+
+
+def test_findings_still_gate_the_job_with_sarif_requested(tmp_path: Path) -> None:
+    """`fail-on` is unchanged by asking for SARIF, and the file is still
+    written for a run that fails: those are the findings to upload."""
+    broken = _broken_catalog(tmp_path)
+    code, stdout, destination = _sarif_run(tmp_path, str(broken))
+    assert code == 1, stdout
+    assert json.loads(destination.read_text(encoding="utf-8"))["runs"][0]["results"]
+
+
+def test_no_sarif_is_written_when_a_document_could_not_be_read(tmp_path: Path) -> None:
+    """An upload resolves the alerts it omits, so a file missing a document's
+    findings is worse than no file: it closes real alerts as fixed."""
+    documents = tmp_path / "documents"
+    documents.mkdir()
+    (documents / "clean_catalog.json").write_bytes(
+        (ROOT / FIXTURES / "clean_catalog.json").read_bytes()
+    )
+    (documents / "broken.json").write_text("{ not json", encoding="utf-8")
+
+    code, stdout, destination = _sarif_run(tmp_path, str(documents))
+    assert code == 2, stdout
+    assert not destination.exists(), "a partial SARIF file must never be written"
+    assert "resolves the alerts it omits" in stdout
+
+
+def _sarif_stub(tmp_path: Path, report: object, sarif: object) -> Path:
+    """A stub CLI that answers both formats, so the two can be made to disagree.
+
+    This one replaces the command-line entry point and *only* that: its
+    ``__init__`` extends ``__path__`` back over the real package, so
+    ``oscal_validate.sarif`` -- which the runner imports to merge -- is still
+    the real module. A whole-package stub would shadow it, and the runner
+    would then fail on an import error rather than on the thing under test.
+    """
+    package = tmp_path / "stub" / "oscal_validate"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text(
+        f"__path__.append({str(ROOT / 'src' / 'oscal_validate')!r})\n", encoding="utf-8"
+    )
+    (package / "__main__.py").write_text(
+        "import json, sys\n"
+        f"print(json.dumps({sarif!r} if '--format' in sys.argv and "
+        f"sys.argv[sys.argv.index('--format') + 1] == 'sarif' else {report!r}))\n",
+        encoding="utf-8",
+    )
+    return tmp_path / "stub"
+
+
+def _run_with_sarif_stub(tmp_path: Path, report: object, sarif: object) -> tuple[int, str, Path]:
+    stub = _sarif_stub(tmp_path, report, sarif)
+    destination = tmp_path / "oscal-validate.sarif"
+    completed = subprocess.run(
+        [sys.executable, str(RUNNER)],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        env={
+            **os.environ,
+            "PYTHONPATH": f"{stub}{os.pathsep}{ROOT / 'src'}",
+            "GITHUB_OUTPUT": str(tmp_path / "outputs.txt"),
+            "OSCAL_PATH": str(FIXTURES / "clean_catalog.json"),
+            "OSCAL_SARIF_FILE": str(destination),
+        },
+        check=False,
+    )
+    return completed.returncode, completed.stdout, destination
+
+
+def _whole_sarif(results: int) -> dict[str, Any]:
+    return {
+        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "oscal-validate",
+                        "properties": {},
+                        "rules": [
+                            {
+                                "id": "X",
+                                "name": "X",
+                                "properties": {
+                                    "sources": [
+                                        {
+                                            "url": "https://example.invalid/x",
+                                            "retrieved": "2026-01-01",
+                                        }
+                                    ]
+                                },
+                            }
+                        ],
+                    }
+                },
+                "results": [
+                    {"ruleId": "X", "ruleIndex": 0, "message": {"text": "x"}}
+                    for _ in range(results)
+                ],
+                "properties": {
+                    "document": {"model": "catalog", "path": "x.json"},
+                    "summary": {"ERROR": 0, "WARNING": 0, "INFO": 0, "UNVERIFIABLE": results},
+                },
+            }
+        ],
+    }
+
+
+def _report_with(findings: int) -> dict[str, Any]:
+    report = _whole_report()
+    report["findings"] = [
+        {
+            "code": "X",
+            "severity": "UNVERIFIABLE",
+            "location": "/catalog",
+            "property": "p",
+            "value": "v",
+            "message": "m",
+            "rule": {"citation": "c", "url": "u", "retrieved": "r"},
+        }
+        for _ in range(findings)
+    ]
+    report["summary"]["UNVERIFIABLE"] = findings
+    return report
+
+
+def test_the_sarif_stub_harness_itself_passes_when_the_two_agree(tmp_path: Path) -> None:
+    """Without this every assertion below could pass for the wrong reason."""
+    code, stdout, destination = _run_with_sarif_stub(tmp_path, _report_with(2), _whole_sarif(2))
+    assert code == 0, stdout
+    assert destination.exists()
+
+
+def test_a_sarif_run_that_lost_a_result_is_refused_not_uploaded(tmp_path: Path) -> None:
+    """Two renderings of one list of findings cannot legitimately disagree,
+    and the smaller one is the one that would be uploaded."""
+    code, stdout, destination = _run_with_sarif_stub(tmp_path, _report_with(2), _whole_sarif(1))
+    assert code == 2, stdout
+    assert not destination.exists()
+    assert "1 result(s)" in stdout and "2 finding(s)" in stdout
+
+
+def test_sarif_that_is_not_one_run_is_refused(tmp_path: Path) -> None:
+    log = _whole_sarif(0)
+    log["runs"] = log["runs"] + log["runs"]
+    code, stdout, destination = _run_with_sarif_stub(tmp_path, _report_with(0), log)
+    assert code == 2, stdout
+    assert not destination.exists()
+    assert "exactly one run" in stdout
+
+
+def test_the_action_inputs_and_the_runner_read_the_same_environment(tmp_path: Path) -> None:
+    """A renamed input does not fail; it arrives as an empty string, and the
+    feature it controls silently does nothing. This is the only thing that
+    notices."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    try:
+        import action_runner
+    finally:
+        sys.path.pop(0)
+    source = Path(action_runner.__file__).read_text(encoding="utf-8")
+    read = set(re.findall(r'os\.environ\.get\("(OSCAL_[A-Z_]+)"\)', source))
+    passed = set(
+        re.findall(r"^\s+(OSCAL_[A-Z_]+):", (ROOT / "action.yml").read_text("utf-8"), re.M)
+    )
+    assert read == passed, "action.yml and the runner disagree about the environment"
+
+
+# -- an unknown severity is not a count of zero --------------------------------
+#
+# `docs/API.md` allows `Severity` to gain a member within a major version, and
+# says a consumer "must not treat an unknown severity as a pass". This script
+# did exactly that, in two places at once: `validate_one` folds only the four
+# names in `SEVERITIES` into `totals`, so a fifth reached no `fail-on`
+# threshold and the run exited 0; and `report_findings` mapped it through
+# `LEVELS.get(severity, "notice")`, the mildest level GitHub has. Adding a
+# severity is a minor bump, and the runner already accepts later minors of the
+# same major on purpose, so both were reachable without any change here.
+
+
+def _runner_module() -> Any:
+    """The runner imported as a module, the way two tests above already do it."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    try:
+        import action_runner
+    finally:
+        sys.path.pop(0)
+    return action_runner
+
+
+def _report_with_severity(name: str) -> dict[str, Any]:
+    report = _whole_report()
+    report["findings"] = [
+        {
+            "code": "SOMETHING_NEW",
+            "severity": name,
+            "location": "/catalog/uuid",
+            "property": "uuid",
+            "value": "x",
+            "message": "a finding this action has no branch for",
+            "rule": {"citation": "c", "url": "u", "retrieved": "2026-09-07"},
+        }
+    ]
+    return report
+
+
+def test_a_finding_carrying_an_unknown_severity_fails_the_run(tmp_path: Path) -> None:
+    """The whole point: exit 2, not exit 0 with the finding rendered as a notice."""
+    code, stdout = _run_against_stub(tmp_path, _report_with_severity("CRITICAL"))
+    assert code == 2, stdout
+    assert "CRITICAL" in stdout
+
+
+def test_a_summary_counting_a_severity_this_action_cannot_gate_on_fails_the_run(
+    tmp_path: Path,
+) -> None:
+    """A count under a name `totals` never folds is a population no threshold reaches."""
+    report = _whole_report()
+    report["summary"]["CRITICAL"] = 3
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code == 2, stdout
+    assert "CRITICAL" in stdout
+
+
+@pytest.mark.parametrize("name", ["ERROR", "WARNING", "INFO", "UNVERIFIABLE"])
+def test_a_finding_of_every_known_severity_is_still_read(name: str, tmp_path: Path) -> None:
+    """The control on the two above: refusing an unknown name must not refuse a known one."""
+    assert name in _runner_module().SEVERITIES, "this list and the runner's have drifted"
+    report = _report_with_severity(name)
+    report["summary"][name] = 1
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code in (0, 1), f"{name}: {stdout}"
+
+
+def test_a_severity_that_reached_the_annotator_anyway_is_not_rendered_as_a_notice() -> None:
+    """Defence in depth, and the direction matters.
+
+    `describe_unreadable` refuses such a report before anything is annotated, so
+    this is unreachable through the runner. If a later change makes it
+    reachable, the safe reading of a severity nobody has a branch for is the
+    loudest level, not the quietest: a grave finding rendered as a notice is an
+    unread finding wearing the appearance of a reviewed one.
+    """
+    runner = _runner_module()
+    assert runner.LEVELS.get("CRITICAL", runner.UNKNOWN_SEVERITY_LEVEL) == "error"
+
+
+def test_the_findings_list_is_checked_before_any_annotation_is_printed(tmp_path: Path) -> None:
+    """Order matters: an annotation for a finding the run then refuses would put
+    a severity this action cannot gate on into the workflow log as though it had
+    been handled."""
+    code, stdout = _run_against_stub(tmp_path, _report_with_severity("CRITICAL"))
+    assert code == 2
+    assert "::notice" not in stdout

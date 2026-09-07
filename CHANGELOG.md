@@ -8,6 +8,91 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- **The Action treated a severity it did not know as a count of zero, and
+  annotated it as a notice.** `docs/API.md` permits `Severity` to gain a member
+  within a major version and says a consumer "must not treat an unknown
+  severity as a pass". `tools/action_runner.py` did exactly that, in two places
+  at once:
+
+  - `validate_one` folds only the four names in `SEVERITIES` into `totals`, so
+    findings of a fifth would have been counted by **no** `fail-on` threshold
+    and the run would have exited 0 with them in the report;
+  - `report_findings` mapped it through `LEVELS.get(severity, "notice")` — the
+    mildest level GitHub has — so a severity possibly graver than ERROR would
+    have rendered as an informational annotation.
+
+  Both were reachable without any change this script would otherwise have
+  noticed, because adding a severity is a minor bump and the runner accepts
+  later minors of the same major on purpose (`test_a_later_minor_of_the_same_
+  major_is_still_read`, added deliberately so additive changes are not
+  breaking ones).
+
+  This is the same defect as the `summary.get(severity, 0)` fold that was
+  removed on 2026-09-06, said the other way round: a count that is not there is
+  not a count of none, and **a count this action does not know how to gate on is
+  not a count of zero either.** `describe_unreadable` now refuses a report
+  carrying an unrecognised severity — in a finding or as a summary key — and the
+  run exits 2 rather than gating on a subset of what was reported. The
+  annotator's fallback level moved from `notice` to `error`; it is unreachable
+  now that the report is refused first, and the direction still matters, because
+  a grave finding rendered as a notice is an unread finding wearing the
+  appearance of a reviewed one.
+
+  Not live: the tool has emitted exactly four severities in every release. The
+  hole was in what would happen the first time it did not.
+
+- **Four places told a reader to run an install command that cannot work.** The
+  README's AI section said `pip install 'oscal-validate[ai]'`, the Bedrock
+  paragraph said `pip install 'oscal-validate[bedrock]'`, ADR-0005 repeated the
+  first, and `oscal_validate/ai/client.py` printed both as the remedy when a
+  lazily-imported extra was missing. Nothing here is on PyPI -- the README's own
+  Status paragraph says so, eight lines from the top -- so every one of those
+  commands ends at `No matching distribution found`, and the runtime ones are
+  the worst placed of the four: they are what a user reads at the exact moment
+  something did not work. All four now name the extra and give the command that
+  does work from the only install path this project has, `pip install '.[ai]'`
+  and `pip install '.[bedrock]'` from a checkout, and say why.
+
+- **The Release & Versioning conformance row still said there was no release
+  workflow.** `.github/workflows/release.yml`, `.github/allowed_signers` and
+  `tests/test_release_workflow.py` landed on `main` before this, so the row was
+  describing a state that no longer existed while sitting in a table whose
+  stated contract is "what is true today, not what is intended". It now
+  describes the release path that exists and keeps the gap that is still real:
+  nothing has been published, because PyPI Trusted Publishing needs a one-time
+  registration only the owner can make.
+
+- **The full-history secret scan could not fail on a credential that had been
+  revoked.** `trufflehog.yml` ran `--only-verified`, which reports a finding
+  only when TruffleHog authenticates the credential against the live service.
+  A credential that leaked and was then revoked -- the normal end state of a
+  real incident, and the exact case a scheduled history sweep exists to catch
+  -- answers "no", and TruffleHog files that answer under `unverified`. The
+  sweep was therefore structurally incapable of failing on the thing it exists
+  for, and `tests/test_security_policy.py` asserted that setting as intended
+  behaviour, so the defect had a test defending it. Measured on a throwaway
+  clone with a real-shaped AWS key planted in one commit and deleted in the
+  next: `--only-verified`, `--results=verified` and `--results=verified,unknown`
+  all exited 0 reporting nothing; `--results=verified,unknown,unverified`
+  exited 183 reporting it.
+
+  The scan now runs `--results=verified,unknown,unverified`, and the assertion
+  is inverted rather than deleted. This repository's entire history was
+  re-scanned under the widened tier before the change and reported nothing, so
+  no allowlist was needed. `--exclude-detectors=Lob` is kept, re-measured: it
+  still suppresses only pytest function names.
+
+  The step also had no `version:` input, which selects the scanning binary
+  (`ghcr.io/trufflesecurity/trufflehog:${VERSION}`) and defaults to `latest`,
+  so the SHA pin above it pinned only the wrapper. It is now pinned to 3.97.1,
+  the release that SHA names.
+
+  `tests/test_secret_scan_tiers.py` fails if any lane drops the `unverified`
+  tier, reintroduces `--only-verified`, loses `fetch-depth: 0` or `path: ./`,
+  or lets the pinned ref and the `version:` input name different releases.
+
 ### Added
 
 - **`VERSION_SKEW_SUSPECTED`: which of this report's ERRORs were not checked
@@ -51,6 +136,141 @@ and this project adheres to
   declared version — deliberately open, because it would change what this
   project claims to be. The new finding is the hook such a decision would hang
   on: a report now names the ERRORs a second schema would settle.
+
+- **The GitHub Action can write SARIF, and every log now says which vendored
+  snapshot decided it** (completes issue #62, whose SARIF renderer landed in
+  #80 without these two parts).
+
+  `tool.driver.properties.vendoredSnapshot` carries the OSCAL release and the
+  SHA-256 of every file under `vendor/oscal/`, computed at run time from the
+  bytes the run actually read rather than transcribed from `SOURCES.md`. A
+  code-scanning alert outlives the checkout that produced it, and
+  "oscal-validate 0.2.0 said so" does not identify the snapshot the verdict
+  was made against. `tests/test_sarif.py` asserts the identity covers every
+  file in `vendor/` -- a fingerprint that silently omits a metaschema module
+  looks complete while a changed module passes under it -- and that altering a
+  vendored file's bytes moves its digest, which a transcribed hash would not.
+
+  `action.yml` gains `sarif-file`, and `tools/action_runner.py` merges the
+  documents into **one** SARIF run rather than one run each, because GitHub
+  accepts at most twenty runs per uploaded file and a delivery of twenty-one
+  OSCAL documents is an ordinary delivery. The merge is
+  `oscal_validate.sarif.merge_logs`, not a second implementation in the
+  runner: merging rules re-decides a code's `helpUri` when two documents cite
+  it from different sources, and that is a rendering decision.
+
+  The file is written only when every document produced a SARIF run whose
+  result count equals its own JSON summary; otherwise the run exits 2 and
+  writes nothing. `upload-sarif` treats an upload as the complete picture and
+  resolves any alert missing from it, so a SARIF file that had lost a
+  document's findings would not merely under-report -- it would close real
+  alerts as fixed. A partial file is the failure mode worth refusing, and it
+  is the same absence-published-as-a-measurement the report-shape check in
+  #80 was added for.
+
+  Also pinned: `action.yml` and the runner must read the same `OSCAL_*`
+  environment. A renamed input does not fail -- it arrives as an empty string
+  and the feature it controls silently does nothing.
+
+- **A release and publish path, which this repository did not have** (issue
+  #43's mechanism, not its decision), in `.github/workflows/release.yml`,
+  `.github/allowed_signers` and `tests/test_release_workflow.py` (all new),
+  plus a `Releasing` section in the README. The only workflows here were
+  `ci.yml`, `semgrep.yml` and `trufflehog.yml`: there was no release workflow
+  and no publish path at all, while the repository carried tags `v0.1.0` and
+  `v0.2.0` and `pypi.org/pypi/oscal-validate` returned nothing. So
+  `pip install oscal-validate` could not work, and the tags advertised
+  versions that existed nowhere installable.
+
+  The shape is `outcome-receipts`' security-reviewed one, which is the
+  standard here: `workflow_dispatch` taking an existing signed tag, because a
+  `push: tags:` trigger runs the workflow definition stored at the tagged ref
+  and would hand the release authority to whoever can push a tag; the
+  standards-owned `release-authorize` reusable workflow, pinned to a full
+  40-character commit SHA, proving the tag is annotated, signed against the
+  committed `.github/allowed_signers`, and reachable from `main`; `make
+  verify` re-run at the tagged commit, with the tag, the package version and
+  the CHANGELOG section required to agree; one build, attested for SLSA
+  provenance and described by a validated CycloneDX 1.7 SBOM through Sigstore,
+  with a `SHA256SUMS` manifest so no later job can publish different bytes; a
+  checkout-free, idempotent GitHub-release job; and PyPI over OIDC Trusted
+  Publishing, with no long-lived token stored anywhere.
+
+  Nothing publishes on merge. The workflow is inert until the owner registers
+  the PyPI Trusted Publisher (a web-UI action only she can take) and
+  dispatches it with a tag.
+
+  `tests/test_release_workflow.py` holds sixteen properties of that path, each
+  one a place where getting it wrong is silent. Three were checked by breaking
+  the workflow on purpose: a stored `secrets.PYPI_API_TOKEN`, a publish job
+  that checks out and rebuilds, and a tag-push trigger with the authorization
+  workflow pinned to `@main`. All three went red, and the workflow was
+  restored from a byte copy. The first draft of the trigger test was itself a
+  check that passed on a comment -- the file explains why a `push: tags:`
+  trigger is wrong, in prose, and the assertion matched the explanation -- so
+  the checks strip comments before reading.
+
+- **`--format sarif`: the same findings as SARIF 2.1.0, with no pass
+  invented.** A third output format beside `text` and `json` (which stays
+  the canonical report). ERROR and WARNING render as `kind: fail` at
+  `level: error` and `warning`; UNVERIFIABLE as `kind: open`, SARIF's word
+  for "evaluated and not settled"; INFO as `kind: informational`; nothing is
+  ever `kind: pass`, and a clean document still has results because the
+  constraints it did not evaluate are among them. Every finding code is a
+  `reportingDescriptor` with `helpUri` set to the citation URL when one URL
+  covers every finding under it, and `properties.sources` naming every
+  source with its retrieval date; every result carries its own citation,
+  URL, and retrieval date in `properties.rule`, its JSON Pointer as a
+  logical location, and a stable `partialFingerprints` entry. No line
+  number is reported. Non-`fail` results carry `level: note` rather than
+  the specification's `none`, deliberately and with the reason recorded in
+  `src/oscal_validate/sarif.py`: GitHub code scanning ignores `kind` and
+  does not render `none`, and a hidden UNVERIFIABLE is an absence rendered
+  as a pass. `tests/test_sarif.py` validates every report offline against
+  the OASIS schema vendored in `tests/sarif/` (hash in its README), pins two
+  goldens byte for byte, and checks that the SARIF carries exactly the JSON
+  report's findings in the same order with the same citations. The README
+  gains an "Output formats" section and a code-scanning upload snippet.
+  `jsonschema` joins the dev toolchain; the validator still has no runtime
+  dependency.
+
+- **A versioned, published schema for the JSON report, and a named public
+  library API** (issue #72), in `src/oscal_validate/report.schema.json` (new,
+  shipped as package data), `report.py` (new), `findings.py`, `cli.py`,
+  `__init__.py`, `tools/action_runner.py`, `docs/API.md` (new),
+  `tests/schema_check.py`, `tests/test_report_schema.py` and
+  `tests/test_public_api.py` (all new). `--format json` is parsed by the
+  GitHub Action, by the survey harness, and by anything wiring the tool into a
+  pipeline, and its shape was defined only by the function that wrote it.
+
+  Every report now carries `report_schema_version`, and
+  `oscal-validate --report-schema` prints the JSON Schema (draft 2020-12) it
+  conforms to. The schema version moves independently of the tool version, and
+  `docs/API.md` says which kind of change moves which part of it. Twelve
+  golden reports and every report the suite produces are validated against the
+  shipped schema; the twelve goldens were recaptured, and the only byte that
+  changed in each is the new key.
+
+  **The Action was reading an absent count as zero.**
+  `tools/action_runner.py` folded its totals with
+  `int(summary.get(severity, 0))`, so a summary that had lost a key -- renamed
+  in a later version, or truncated -- contributed nothing and the gate passed
+  clean. That is an absence published as a measurement, in the tool whose
+  purpose is to refuse exactly that. It now checks the shape it is about to
+  read, including the report's declared schema major, and exits 2 with an
+  annotation saying what was missing rather than gating on a partial report.
+
+  The conformance checker is `tests/schema_check.py`, about a hundred lines of
+  stdlib, because the default path has no runtime dependency and the check
+  should not add one. It **raises on any JSON Schema keyword it does not
+  implement** rather than skipping it: a subset checker that ignores what it
+  does not know is a gate that cannot fail on the part of the contract it
+  never learned, which is the same defect one level up.
+
+  `docs/API.md` names the nine public symbols with their exact signatures and
+  a SemVer stability promise; `tests/test_public_api.py` pins those signatures
+  and the fields of `Finding` and `Rule`, so widening or narrowing the surface
+  is a deliberate act with a red suite in front of it.
 
 - **`--suggest`: the identifier that *is* declared, next to the one that is
   not** (closes #64), in `src/oscal_validate/suggest.py`,

@@ -1,0 +1,15 @@
+# SSH allowed-signers file for the release-tag verification gate.
+#
+# Public key only; the maintainer holds the private signing key. The shared
+# `ChelseaKR/.github` release-authorize workflow reads this file to check that
+# the tag `release.yml` was dispatched with is an annotated tag whose SSH
+# signature verifies against it. A tag that is lightweight, unsigned, or
+# signed by anything else does not release.
+#
+# `namespaces="git"` restricts the key to the namespace `git verify-tag` uses,
+# so a signature made for any other purpose cannot authorise a release.
+#
+# ED25519 fingerprint: SHA256:Kz1JPRtDNVmRa1tD/buR0/iOGDSwEa4P4iu3DN+bElk
+# The same key is committed in ctdl-validate, tods-validate and
+# outcome-receipts, and has signed every tag those repositories have released.
+3114598+ChelseaKR@users.noreply.github.com namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIOjn/aI0d9jElCoi7qT4+6j9UmgTH7vLGAqJXiKMoCE

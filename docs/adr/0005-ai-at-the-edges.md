@@ -36,7 +36,8 @@ offers nothing.
 Four opt-in subcommands call a model: `explain`, `repair --draft`,
 `walkthrough`, and `ask`. They live in `oscal_validate.ai`, a subpackage
 nothing in the validator imports, and the SDK they use is an optional extra
-(`pip install 'oscal-validate[ai]'`) imported lazily inside the command.
+(`pip install '.[ai]'` from a checkout; nothing is published to PyPI) imported
+lazily inside the command.
 The bare command, `oscal-validate <file>`, is unchanged: it imports none of
 this, opens no socket, and produces the bytes it produced before. The rules
 that bind the four commands:

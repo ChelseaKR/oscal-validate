@@ -1,0 +1,460 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "properties": {
+        "document": {
+          "model": "profile",
+          "path": "tests/fixtures/clean_profile.json"
+        },
+        "summary": {
+          "ERROR": 0,
+          "INFO": 1,
+          "UNVERIFIABLE": 8,
+          "WARNING": 0
+        }
+      },
+      "results": [
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile",
+                  "name": "profile"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "TokenDatatype = 3 value(s) at /profile. 3 value(s) declared as TokenDatatype were not checked against its pattern ^(\\p{L}|_)(\\p{L}|\\p{N}|[.\\-_])*$ , because that pattern uses regular-expression syntax this tool cannot compile. They are neither passed nor failed.\n\nRule: oscal-validate policy: the schema declares a regular expression this tool cannot compile, because JSON Schema patterns are ECMA-262 regular expressions and Python's re module does not implement the Unicode property escapes ECMA-262 allows. Values governed by such a pattern are reported as unchecked rather than approximated with a hand-written substitute, which would be a rule encoded from memory.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "9be16ada771b2f7ca51f7b67d24028054533c07011828dd1528b01707ed06348"
+          },
+          "properties": {
+            "location": "/profile",
+            "property": "TokenDatatype",
+            "rule": {
+              "citation": "oscal-validate policy: the schema declares a regular expression this tool cannot compile, because JSON Schema patterns are ECMA-262 regular expressions and Python's re module does not implement the Unicode property escapes ECMA-262 allows. Values governed by such a pattern are reported as unchecked rather than approximated with a hand-written substitute, which would be a rule encoded from memory.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "3 value(s)"
+          },
+          "ruleId": "PATTERN_NOT_CHECKED",
+          "ruleIndex": 2
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile",
+                  "name": "profile"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "allowed-values = 200 constraint(s) at /profile. NIST publishes 200 allowed-values constraint(s) that this tool did not evaluate: which values a value node permits is decided by the applicable set of constraints sharing its target, and this tool does not resolve that set. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.\n\nRule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "24e5bc54d0904970f23b099ae468de6df19641ff096aedd0bbb2df73cded47ba"
+          },
+          "properties": {
+            "location": "/profile",
+            "property": "allowed-values",
+            "rule": {
+              "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "200 constraint(s)"
+          },
+          "ruleId": "CONSTRAINT_NOT_EVALUATED",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile",
+                  "name": "profile"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "expect = 12 constraint(s) at /profile. NIST publishes 12 expect constraint(s) that this tool did not evaluate: the test is a Metapath expression, which this tool does not implement. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.\n\nRule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "b5df71878e6344de449b1f2b4c78a625fb7a108040698b3ae08d6f3ef9371c6b"
+          },
+          "properties": {
+            "location": "/profile",
+            "property": "expect",
+            "rule": {
+              "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "12 constraint(s)"
+          },
+          "ruleId": "CONSTRAINT_NOT_EVALUATED",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile",
+                  "name": "profile"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "index = 1 constraint(s) at /profile. NIST publishes 1 index constraint(s) that this tool did not evaluate: their target expressions are outside the Metapath subset this tool parses. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.\n\nRule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "d428ecf07b34f20fde373ff98ccd1831aa773d6ffaa1d13bddffe94aa90e84ce"
+          },
+          "properties": {
+            "location": "/profile",
+            "property": "index",
+            "rule": {
+              "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "1 constraint(s)"
+          },
+          "ruleId": "CONSTRAINT_NOT_EVALUATED",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile",
+                  "name": "profile"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "matches = 14 constraint(s) at /profile. NIST publishes 14 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.\n\nRule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "7d82db63b39e9501db801888ad1c7c9a9740a3b47411690e48e52b690cc87d75"
+          },
+          "properties": {
+            "location": "/profile",
+            "property": "matches",
+            "rule": {
+              "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "14 constraint(s)"
+          },
+          "ruleId": "CONSTRAINT_NOT_EVALUATED",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "informational",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile/imports/0/href",
+                  "name": "href"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "href = clean_catalog.json at /profile/imports/0/href. No document with this file name was supplied. Identifiers it declares are outside the effective data model this run could see, so references into it are reported UNVERIFIABLE rather than as failures. Pass it with --resolve to settle them.\n\nRule: NIST, \"URI Usage\", section Linking to another OSCAL object (page last updated 2025-03-03): a reference \"uses a relative reference consisting of only a URI fragment containing the identifier or UUID of the referenced object within the current documents effective data model. The effective data model of a document includes all objects identified with the document and any directly or transitively imported documents.\"\nSource: https://pages.nist.gov/OSCAL/learn/concepts/uri-use/ (retrieved 2026-08-14)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "d0ab47436989fafce5dbf0b87570d5ea1affd20755a17f5e9e0a45f12f5e9ee9"
+          },
+          "properties": {
+            "location": "/profile/imports/0/href",
+            "property": "href",
+            "rule": {
+              "citation": "NIST, \"URI Usage\", section Linking to another OSCAL object (page last updated 2025-03-03): a reference \"uses a relative reference consisting of only a URI fragment containing the identifier or UUID of the referenced object within the current documents effective data model. The effective data model of a document includes all objects identified with the document and any directly or transitively imported documents.\"",
+              "retrieved": "2026-08-14",
+              "url": "https://pages.nist.gov/OSCAL/learn/concepts/uri-use/"
+            },
+            "severity": "INFO",
+            "value": "clean_catalog.json"
+          },
+          "ruleId": "IMPORT_NOT_SUPPLIED",
+          "ruleIndex": 1
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile/imports/0/include-controls/0/with-ids/0",
+                  "name": "0"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "with-ids = ex-1 at /profile/imports/0/include-controls/0/with-ids/0. This names a control in an imported control set, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (clean_catalog.json), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.\n\nRule: NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.\nSource: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "366371dd52b227ca21f01c222f3bb312d3df063d230d921de4e00f43046a47f8"
+          },
+          "properties": {
+            "location": "/profile/imports/0/include-controls/0/with-ids/0",
+            "property": "with-ids",
+            "rule": {
+              "citation": "NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.",
+              "retrieved": "2026-08-14",
+              "url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "ex-1"
+          },
+          "ruleId": "REFERENCE_UNVERIFIABLE",
+          "ruleIndex": 3
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile/imports/0/include-controls/0/with-ids/1",
+                  "name": "1"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "with-ids = ex-2 at /profile/imports/0/include-controls/0/with-ids/1. This names a control in an imported control set, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (clean_catalog.json), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.\n\nRule: NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.\nSource: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "34c8d756cbb8a5be69baeda0573093bb9e0ce94709dfcf742f6adcb39e97452c"
+          },
+          "properties": {
+            "location": "/profile/imports/0/include-controls/0/with-ids/1",
+            "property": "with-ids",
+            "rule": {
+              "citation": "NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.",
+              "retrieved": "2026-08-14",
+              "url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "ex-2"
+          },
+          "ruleId": "REFERENCE_UNVERIFIABLE",
+          "ruleIndex": 3
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/profile/modify/set-parameters/0/param-id",
+                  "name": "param-id"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/clean_profile.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "param-id = ex-1_prm_1 at /profile/modify/set-parameters/0/param-id. This names a parameter, and no such identifier is declared in the documents supplied. 1 imported document(s) named by this document were not supplied (clean_catalog.json), so the effective data model is incomplete. Supply the imported document with --resolve to settle this.\n\nRule: NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.\nSource: https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/ (retrieved 2026-08-14)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "0a57f3d8f1b95d662674377433f8d9bdc2d7662b257b05d09c686564bddd2377"
+          },
+          "properties": {
+            "location": "/profile/modify/set-parameters/0/param-id",
+            "property": "param-id",
+            "rule": {
+              "citation": "NIST, \"Identifier Use and UUIDs\", section Scope (page last updated 2025-06-10): \"since OSCAL supports composition relationships, there are many cases where identifiers in a source OSCAL instance need to be referenced from other OSCAL instances. These are considered cross-instance scoped identifier references.\" Where an imported document has not been supplied to this tool, a reference that does not resolve locally may be perfectly valid, and nothing here can settle it.",
+              "retrieved": "2026-08-14",
+              "url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "ex-1_prm_1"
+          },
+          "ruleId": "REFERENCE_UNVERIFIABLE",
+          "ruleIndex": 3
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/ChelseaKR/oscal-validate",
+          "name": "oscal-validate",
+          "properties": {
+            "vendoredSnapshot": {
+              "algorithm": "sha256",
+              "files": {
+                "oscal/complete_schema.json": "384324105c7a817af0f65b120a963146caa0e0d55d969cf0daf60e063b87a206",
+                "oscal/oscal_assessment-common_metaschema_RESOLVED.xml": "260b8163dabea22199ea8c342298adabe5b8effa7ad955657f0066c62fbe9660",
+                "oscal/oscal_assessment-plan_metaschema_RESOLVED.xml": "5505756506e60028d5e755fd926980763dc7a15c49e1ce09c1e4ee7f82200651",
+                "oscal/oscal_assessment-results_metaschema_RESOLVED.xml": "51a0960f2344a704af93c41361cfe340b8983f25abc291a461af4f727db767ac",
+                "oscal/oscal_catalog_metaschema_RESOLVED.xml": "775f8326e3dac336be17c4f7eefa89661053230fb1e8538364186c927ee062b1",
+                "oscal/oscal_component_metaschema_RESOLVED.xml": "86a91b71538bb59161b41e6394282d3983c2ad049923a3aea70d2f034c86138c",
+                "oscal/oscal_control-common_metaschema_RESOLVED.xml": "211517a6f94c9cba6644f2e0956986af0a5d36cf893259b1635b73dd6bd06542",
+                "oscal/oscal_implementation-common_metaschema_RESOLVED.xml": "3ea7b81bd48111fade0c1c7159bba192123f31c7f7d85dfcbee7c84cfb3b3870",
+                "oscal/oscal_mapping-common_metaschema_RESOLVED.xml": "ab036cd28543112c0bd5ad6def844b37e0a65d00b0a6a19b1cf1ede33431fea0",
+                "oscal/oscal_mapping_metaschema_RESOLVED.xml": "07e4df2c0bf05750bd9b359debd5fd5d5d7f1635c867bcd9bd1e55cb5afc0754",
+                "oscal/oscal_metadata_metaschema_RESOLVED.xml": "3d41842502a36c95554c281c79d0c2d533e4e956f0409b36cdede7001cec1b22",
+                "oscal/oscal_poam_metaschema_RESOLVED.xml": "bc8a90496eb9d762c6cb5dc3f18e252236ffbbc16e544f761ae4a12039d05e13",
+                "oscal/oscal_profile_metaschema_RESOLVED.xml": "ecef5ed68d793c59d2b659633e1c30633ee077e7d76f9894551ef06cadb083d9",
+                "oscal/oscal_ssp_metaschema_RESOLVED.xml": "2ffc8504bffe8f5dd7f2f689f48f308bf062950abeb438ddba9a89ca03a70ffe"
+              },
+              "release": "1.2.3"
+            }
+          },
+          "rules": [
+            {
+              "id": "CONSTRAINT_NOT_EVALUATED",
+              "name": "CONSTRAINT_NOT_EVALUATED",
+              "properties": {
+                "sources": [
+                  {
+                    "retrieved": "-",
+                    "url": "README.md (Limits)"
+                  }
+                ]
+              },
+              "shortDescription": {
+                "text": "A NIST constraint in scope for this document was not evaluated."
+              }
+            },
+            {
+              "helpUri": "https://pages.nist.gov/OSCAL/learn/concepts/uri-use/",
+              "id": "IMPORT_NOT_SUPPLIED",
+              "name": "IMPORT_NOT_SUPPLIED",
+              "properties": {
+                "sources": [
+                  {
+                    "retrieved": "2026-08-14",
+                    "url": "https://pages.nist.gov/OSCAL/learn/concepts/uri-use/"
+                  }
+                ]
+              },
+              "shortDescription": {
+                "text": "An import named by the document matched no supplied file."
+              }
+            },
+            {
+              "id": "PATTERN_NOT_CHECKED",
+              "name": "PATTERN_NOT_CHECKED",
+              "properties": {
+                "sources": [
+                  {
+                    "retrieved": "-",
+                    "url": "README.md (Limits)"
+                  }
+                ]
+              },
+              "shortDescription": {
+                "text": "Values governed by a pattern this tool cannot compile were neither passed nor failed."
+              }
+            },
+            {
+              "helpUri": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/",
+              "id": "REFERENCE_UNVERIFIABLE",
+              "name": "REFERENCE_UNVERIFIABLE",
+              "properties": {
+                "sources": [
+                  {
+                    "retrieved": "2026-08-14",
+                    "url": "https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/"
+                  }
+                ]
+              },
+              "shortDescription": {
+                "text": "A reference could not be settled because the effective data model is incomplete."
+              }
+            }
+          ],
+          "semanticVersion": "0.3.0",
+          "version": "0.3.0"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}
+
+[exit 0]

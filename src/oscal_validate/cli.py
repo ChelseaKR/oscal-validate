@@ -18,6 +18,10 @@ catalog or profile gets into the effective data model, and it is the difference
 between "this control reference resolves to nothing" and "this control
 reference cannot be checked from here".
 
+``--format`` selects text (default), json (the canonical machine-readable
+report), or sarif (SARIF 2.1.0, the same findings for code-scanning viewers;
+see ``sarif.py`` for how severities map and why no result is ever a pass).
+
 Exit codes: 0 = no ERROR findings; 1 = at least one ERROR finding; 2 = the
 input could not be read or parsed at all.
 """
@@ -33,7 +37,9 @@ from pathlib import Path
 from . import __version__
 from .document import DocumentError
 from .findings import Severity, render_findings_json, render_findings_text
+from .report import read_report_schema
 from .rules import OSCAL_RELEASE
+from .sarif import render_findings_sarif
 from .schema import SchemaError
 from .validator import build_session, validate
 
@@ -54,6 +60,28 @@ AI_COMMANDS = ("explain", "repair", "walkthrough", "ask")
 #: worth having to save a line. ``test_every_deterministic_command_is_actually
 #: _dispatched`` holds the tuple and the branches together instead.
 DETERMINISTIC_COMMANDS = ("diff",)
+
+
+class PrintReportSchema(argparse.Action):
+    """Print the published report schema and exit, the way ``--version`` does.
+
+    An action rather than a subcommand: it takes no argument and answers
+    before the required positional is missed, so ``oscal-validate
+    --report-schema`` needs no document.
+    """
+
+    def __init__(self, option_strings: Sequence[str], dest: str, **kwargs: object) -> None:
+        super().__init__(option_strings=list(option_strings), dest=dest, nargs=0, **kwargs)  # type: ignore[arg-type]
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: object,
+        option_string: str | None = None,
+    ) -> None:
+        print(read_report_schema(), end="")
+        parser.exit()
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -88,9 +116,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--format",
-        choices=("text", "json"),
+        choices=("text", "json", "sarif"),
         default="text",
-        help="output format (default: text)",
+        help=(
+            "output format (default: text). sarif is SARIF 2.1.0 with the same findings: "
+            "ERROR and WARNING as kind fail, UNVERIFIABLE as kind open, never a pass"
+        ),
     )
     parser.add_argument(
         "--suggest",
@@ -101,6 +132,14 @@ def build_parser() -> argparse.ArgumentParser:
             "Computed offline from the documents supplied; never offered for an "
             "UNVERIFIABLE reference, and never asserted to be what was meant. Off by "
             "default: without it this command's bytes are unchanged."
+        ),
+    )
+    parser.add_argument(
+        "--report-schema",
+        action=PrintReportSchema,
+        help=(
+            "print the JSON Schema that every --format json report conforms to, and exit. "
+            "The report carries the schema's version in report_schema_version"
         ),
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -134,11 +173,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     model = session.corpus.primary.walked.model
-    print(
-        render_findings_json(findings, __version__, model)
-        if args.format == "json"
-        else render_findings_text(findings, model)
-    )
+    if args.format == "json":
+        print(render_findings_json(findings, __version__, model))
+    elif args.format == "sarif":
+        print(render_findings_sarif(findings, __version__, model, Path(args.file)))
+    else:
+        print(render_findings_text(findings, model))
     return 1 if any(f.severity is Severity.ERROR for f in findings) else 0
 
 

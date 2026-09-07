@@ -53,7 +53,8 @@ ERROR        REFERENCE_UNRESOLVED  at=/catalog/groups/16/controls/23/parts/2/par
 
 Exit code 0 when there are no ERROR findings, 1 when there are, 2 when the
 input cannot be read at all. `--format json` produces machine-readable output
-with the same content.
+with the same content, and `--format sarif` the same findings as SARIF 2.1.0
+(see [Output formats](#output-formats)).
 
 ## Why this exists
 
@@ -92,6 +93,8 @@ oscal-validate tests/fixtures/clean_catalog.json    # 0 ERROR, exit 0
 oscal-validate tests/fixtures/broken_catalog.json   # 3 ERROR, exit 1
 
 oscal-validate <file.json> --format json
+oscal-validate <file.json> --format sarif
+oscal-validate --report-schema                      # the shape that report conforms to
 oscal-validate my-ssp.json --resolve baseline-profile.json --resolve catalog.json
 oscal-validate my-ssp.json --resolve catalog.json --suggest
 
@@ -104,6 +107,49 @@ imported catalog or profile gets into the picture, and it is the difference
 between a definite answer and an honest "cannot tell" (see
 [The effective data model](#the-effective-data-model)). Nothing is ever
 fetched.
+
+### Output formats
+
+`text` is the default. `json` is the canonical machine-readable report: every
+finding with its code, severity, JSON Pointer, property, value, message, and
+rule citation with source URL and retrieval date, plus a summary by severity;
+`tests/golden/` pins its bytes. `sarif` renders the same findings, in the same
+order, as [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html)
+and adds nothing to them. ERROR and WARNING are `kind: fail`; UNVERIFIABLE is
+`kind: open`, SARIF's own word for "evaluated and not settled"; INFO is
+`kind: informational`; no result is ever `kind: pass`, and a clean document
+still has results, because the constraints that were not evaluated are among
+them. Each code is a rule whose `helpUri` is the citation URL when one URL
+covers every finding under it, and every result carries its own citation,
+source, and retrieval date in `properties.rule`. The location is the document
+plus the JSON Pointer; no line number is reported, because none is tracked.
+Non-`fail` results carry `level: note` rather than the specification's
+`none`, deliberately: GitHub code scanning ignores `kind` and does not render
+`none`, and an UNVERIFIABLE finding that disappears there would be an absence
+rendered as a pass (the reasoning is in `src/oscal_validate/sarif.py`). The
+output validates offline against the OASIS schema vendored in `tests/sarif/`.
+
+### The JSON report is a published contract
+
+`--format json` is what the GitHub Action, the survey harness, and any
+pipeline read. Its shape is published as a JSON Schema (draft 2020-12), shipped
+inside the package and printed by `oscal-validate --report-schema`, and every
+report carries the `report_schema_version` it conforms to. That version is the
+schema's, not the tool's, and the two move independently;
+[docs/API.md](docs/API.md) says which kind of change moves which part of it,
+and names the library surface with the same promise.
+
+Read counts out of `summary` by key, never with a default:
+
+```python
+errors = report["summary"]["ERROR"]  # yes
+errors = report["summary"].get("ERROR", 0)  # no
+```
+
+Every severity is always present, including the ones that are zero, so that a
+missing key is a broken report rather than a count of none. `additionalProperties`
+is false throughout the schema for the same reason: a consumer that validates
+what it reads learns about a new key instead of passing over it.
 
 ### `diff`: what changed between two runs
 
@@ -281,7 +327,7 @@ jobs:
 ```
 
 `path` takes one document, a directory (searched recursively for `*.json`), or
-a glob such as `oscal/**/*.json`. Two further inputs, both optional:
+a glob such as `oscal/**/*.json`. Three further inputs, all optional:
 
 - `resolve`: space-separated documents or directories to resolve imports and
   references against, passed through as repeated `--resolve`. Same rules as
@@ -292,6 +338,9 @@ a glob such as `oscal/**/*.json`. Two further inputs, both optional:
   counts in the CLI's own `--format json` summary. UNVERIFIABLE is gated at no
   setting, because it marks what the supplied documents cannot settle and is
   never a pass.
+- `sarif-file`: a path to write SARIF 2.1.0 to, for
+  `github/codeql-action/upload-sarif`. Empty by default, which writes nothing.
+  See [below](#code-scanning).
 
 ```yaml
       - uses: ChelseaKR/oscal-validate@v0.2.0
@@ -307,6 +356,58 @@ The counts are published as outputs: `error-count`, `warning-count`,
 `info-count`, `unverifiable-count`, and `files-validated`. Watch the
 unverifiable count: a run of a large package with imports withheld can be
 green and still have settled very little, and the number is how you see that.
+
+### Code scanning
+
+Annotations vanish with the workflow run. To keep the findings, set
+`sarif-file` and hand the file to `github/codeql-action/upload-sarif`; the
+findings then appear in the Security tab and inline on the pull request. Every
+UNVERIFIABLE finding arrives as an alert at level `note`, on purpose; filter by
+rule, never by hiding them.
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  code-scanning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ChelseaKR/oscal-validate@v0.2.0 # `sarif-file` is newer than v0.2.0; pin a commit that carries it
+        id: oscal
+        with:
+          path: oscal/
+          resolve: baselines/
+          sarif-file: oscal-validate.sarif
+      - if: ${{ !cancelled() && steps.oscal.outcome != 'skipped' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: oscal-validate.sarif
+          category: oscal-validate
+```
+
+The `if:` is what carries a *failing* run's findings to the Security tab:
+without it the upload is skipped exactly when there is something to upload.
+
+Every document goes into one SARIF run, not one run each, because GitHub
+accepts at most twenty runs per file and a delivery is routinely more than
+twenty documents. The file is written only when every document produced a
+complete SARIF run, and the run fails without writing it otherwise. That is
+deliberate and worth knowing: `upload-sarif` treats an upload as the complete
+picture and resolves any alert it does not contain, so a file that had quietly
+lost one document's findings would close those alerts as fixed. A missing file
+fails the upload step loudly instead.
+
+`tool.driver.properties.vendoredSnapshot` in the log records the OSCAL release
+and the SHA-256 of every vendored file the run read, computed from the files
+themselves. An alert outlives the checkout that produced it, and the version
+of the tool alone does not say which bytes decided the verdict.
+
+The CLI can still be run directly for the same output on one document —
+`oscal-validate <file> --format sarif` — which is what to do outside Actions.
+
 The exit codes are the CLI's, unchanged: 0 when nothing meets the threshold, 1
 when something does, 2 when a document could not be read. A `path` that
 matches no file at all is also exit 2, because a run that validated nothing is
@@ -339,7 +440,8 @@ published text is the only evidence, and a verifier that is not a model sits
 between every reply and the screen.
 
 ```sh
-pip install 'oscal-validate[ai]'          # the public anthropic SDK; nothing else changes
+pip install '.[ai]'                       # the public anthropic SDK; nothing else changes
+                                          # (from a checkout: nothing is on PyPI yet)
 export ANTHROPIC_API_KEY=...              # from the environment only; never written to a file
 
 oscal-validate explain my-ssp.json --severity ERROR
@@ -408,7 +510,7 @@ A reply that cannot be parsed shows nothing.
 **Model and provider.** The public `anthropic` SDK, default
 `claude-sonnet-5`, configurable with `OSCAL_VALIDATE_AI_MODEL`;
 `OSCAL_VALIDATE_AI_PROVIDER=bedrock` with `AWS_REGION` uses Amazon Bedrock
-(`pip install 'oscal-validate[bedrock]'`), where the default is a different
+(`pip install '.[bedrock]'` from a checkout), where the default is a different
 model, `global.anthropic.claude-sonnet-4-6`. Bedrock grants model access per
 account rather than per SDK, so the two defaults answer different questions:
 the Bedrock one is the model every recorded eval and cassette here was actually
@@ -735,6 +837,44 @@ without reading `pyproject.toml`, so it exits 0 on a lock that no longer
 matches the manifest and cannot be a drift gate. The comment in the `Makefile`
 records the measurement.
 
+## Releasing
+
+`.github/workflows/release.yml` is the only path that publishes anything, and
+it runs only when the maintainer dispatches it:
+
+```sh
+git tag -s vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z
+gh workflow run release.yml --ref main -f tag=vX.Y.Z
+```
+
+Dispatch rather than a tag-push trigger, because a `push: tags:` workflow runs
+the definition stored *at the tagged ref* — whoever can push a tag would also
+choose the release workflow. Dispatching from `main` keeps the release
+authority on the reviewed branch and leaves the tag as data the workflow
+checks.
+
+What it does, in order: the shared `ChelseaKR/.github` authorization workflow
+proves the tag is annotated, signed against
+[`.github/allowed_signers`](.github/allowed_signers), and reachable from
+`main`; `make verify` re-runs at the tagged commit, and the tag, the
+`pyproject.toml` version and the CHANGELOG section must agree; the wheel and
+sdist are built once, with SLSA build provenance and a CycloneDX 1.7 SBOM
+attested through Sigstore; a checkout-free job publishes the GitHub release
+with the CHANGELOG section as its notes; and PyPI is uploaded over OIDC
+Trusted Publishing after the artifact digests are re-checked against the
+attested manifest. No job rebuilds what it publishes, and no PyPI token is
+stored anywhere. `tests/test_release_workflow.py` holds each of those
+properties.
+
+**PyPI is not wired up yet.** Trusted Publishing needs a one-time registration
+that only the project owner can make, on pypi.org under *Your projects →
+Publishing*, or *Add a pending publisher* while the project does not exist
+yet: project `oscal-validate`, owner `ChelseaKR`, repository
+`oscal-validate`, workflow `release.yml`, environment `pypi`. Until that
+exists the `pypi-publish` job fails at the upload and nothing reaches PyPI;
+every job before it — verification, build, attestation, the GitHub release —
+still runs and still succeeds.
+
 ## Disclosure
 
 This tool was built quickly with AI assistance (Claude), then reviewed and
@@ -771,7 +911,7 @@ checked, and it is not a claim that any registry agrees with it yet.
 | CI/CD | Applies | `ci.yml` runs the same `make verify` gate as local development. |
 | Observability | Applies (Tier C, library/CLI) | Declared in [docs/ROADMAP.md](docs/ROADMAP.md#observability). Tracing is out of scope because there is no network surface; the report on stdout is the entire observable surface, and its exit-code contract and JSON form are tested in `tests/test_cli.py`. Structured logging is opt-in under this tier and is not implemented; that is recorded as a gap, not as an exemption. |
 | Performance | N/A (pure library/CLI with no hosted route and no shipped HTML, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. |
-| Accessibility | N/A (no graphical or web surface; plain-text terminal output plus `--format json`) | Revisit if any web or GUI surface is added. |
+| Accessibility | N/A (no graphical or web surface; plain-text terminal output plus `--format json` and `--format sarif`) | Revisit if any web or GUI surface is added. |
 | Internationalization | N/A (findings and model-backed output quote English-language specification prose verbatim; see [docs/I18N.md](docs/I18N.md)) | Multilingual document *data* validates identically. |
 | AI Evaluation | Applies (the four opt-in commands of ADR-0005; the validator itself has no model) | [docs/evals/README.md](docs/evals/README.md) and the committed harness in [evals/](evals/): a 100-case boundary suite scored on shown text, raw text, and explicit refusal; repair efficacy by deterministic re-validation on twelve NIST documents; citation grounding by verbatim lookup; walkthrough fidelity by label set. Results carry provider, model, prompt version, commit, and date, enforced by `tests/test_evals.py`; prompts are versioned in `oscal_validate.ai.PROMPT_VERSION`. |
 | AI Development Measurement | Applies | `AI-DEV-MEASUREMENT: APPLIES` in [docs/ROADMAP.md](docs/ROADMAP.md). This repository was built with AI assistance, disclosed above, so Track A delivery and quality-debt metrics are mined portfolio-wide from git history. Track B applies to the opt-in commands and is served by the AI Evaluation row. |
@@ -779,7 +919,7 @@ checked, and it is not a claim that any registry agrees with it yet.
 | Data Governance | Applies (L1, public non-sensitive) | Data cards in [docs/data/](docs/data/) for all three ingest sources, with hashes in [vendor/SOURCES.md](src/oscal_validate/vendor/SOURCES.md) enforced by `tests/test_vendor_integrity.py` and in [ai/corpus/MANIFEST.json](src/oscal_validate/ai/corpus/MANIFEST.json) enforced by `tests/test_ai_sources.py`. Survey records are dated per retrieval: `tools/fetch.py` stamps every fetch with `fetched_at` (UTC, RFC 3339), `tools/survey.py` carries it forward under `--provenance` instead of restamping a cached read, and `tests/test_survey_fetch.py` holds both. The five surveys committed under `docs/findings/` predate the field and are not backfilled; their lineage stays dated at file level, which [docs/data/published-oscal-corpus.md](docs/data/published-oscal-corpus.md) records. |
 | Documentation | Applies | This README, [CHANGELOG.md](CHANGELOG.md), ADRs in [docs/adr/](docs/adr/), [CITATION.cff](CITATION.cff), [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/CONSTRAINT-COVERAGE.md](docs/CONSTRAINT-COVERAGE.md). |
 | Quality & Metrics | Applies | [docs/ROADMAP.md](docs/ROADMAP.md) names every gate as AUTO, REVIEW, or a reasoned exception. |
-| Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current. `v0.1.0` and `v0.2.0` are tagged and `v0.2.0` is published as a GitHub release. `tests/test_release_metadata.py` measures every release claim against the tags in the repository rather than against another file: `CITATION.cff` must name a tagged version dated with that tag's own date, the Status paragraph above must name the declared version and every tag that exists and say when the declared version is untagged, and the declared version must have a changelog section. It refuses to read an empty tag list from a shallow checkout, and `.github/workflows/ci.yml` fetches tags so the checks run for real in CI. `pyproject.toml` declares `0.3.0` and no `v0.3.0` tag exists; that is stated rather than dated, and the citation file cites `0.2.0`. One gap remains, recorded in [docs/ROADMAP.md](docs/ROADMAP.md) rather than declared out of scope: there is no release workflow, so the steps that made the two existing releases are not written down. |
+| Release & Versioning | Applies | SemVer; `CHANGELOG.md` kept current. `v0.1.0` and `v0.2.0` are tagged and `v0.2.0` is published as a GitHub release. `tests/test_release_metadata.py` measures every release claim against the tags in the repository rather than against another file: `CITATION.cff` must name a tagged version dated with that tag's own date, the Status paragraph above must name the declared version and every tag that exists and say when the declared version is untagged, and the declared version must have a changelog section. It refuses to read an empty tag list from a shallow checkout, and `.github/workflows/ci.yml` fetches tags so the checks run for real in CI. `pyproject.toml` declares `0.3.0` and no `v0.3.0` tag exists; that is stated rather than dated, and the citation file cites `0.2.0`. The release path is now written down and enforced: `.github/workflows/release.yml` (dispatch-on-signed-tag, SLSA provenance, CycloneDX SBOM, PyPI Trusted Publishing over OIDC with no stored token) with sixteen of its properties held by `tests/test_release_workflow.py`, and the maintainer procedure in [Releasing](#releasing). One gap remains: nothing has been published to PyPI, because Trusted Publishing needs a one-time registration only the owner can make, so the distribution `oscal-validate` still resolves to nothing on the index and installation is from source. |
 
 ## License
 

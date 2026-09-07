@@ -82,7 +82,16 @@ def test_the_only_semgrep_suppression_is_the_vendored_xml_parse_and_it_is_justif
 
 def test_the_secret_scan_excludes_one_known_false_positive_and_nothing_else() -> None:
     workflow = TRUFFLEHOG.read_text(encoding="utf-8")
-    assert "--only-verified" in workflow
+    # This used to assert `--only-verified`, i.e. it held the scan to a setting
+    # that could not fail on a revoked credential. See
+    # tests/test_secret_scan_tiers.py for the measurement and the tier contract;
+    # what is checked here is that the allowlist stays a single named detector.
+    # Read the `extra_args:` line rather than the whole file, because the
+    # workflow's comment now spells out why `--only-verified` is wrong and a
+    # substring check over the file would trip on the explanation.
+    invocations = re.findall(r"^\s*extra_args:\s*(.+?)\s*$", workflow, flags=re.MULTILINE)
+    assert invocations, "no `extra_args:` line; this assertion can no longer see the flags"
+    assert all("--only-verified" not in args for args in invocations), invocations
     assert workflow.count("--exclude-detectors=") == 1
     assert "--exclude-detectors=Lob" in workflow
     assert "--exclude-paths" not in workflow, "excluding paths would blind the scan to fixtures"
