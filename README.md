@@ -628,7 +628,7 @@ evaluated, so the line counting the unevaluated ones went from 25 to 14. On
 version, so twelve lines moved, one per JSON golden, and the twelve text
 goldens did not move at all. On 2026-09-06 (#81): every JSON report gained
 `report_schema_version`, again twelve lines and no text golden. On 2026-09-07
-(#PENDING), cutting 0.4.0: the version stamp again, twelve lines and no text
+(#88), cutting 0.4.0: the version stamp again, twelve lines and no text
 golden. Each time the
 goldens were recaptured from the same documents, each verified by SHA-256
 against the manifest that recorded them, and every other byte of the output is

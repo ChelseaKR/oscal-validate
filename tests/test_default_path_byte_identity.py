@@ -45,7 +45,7 @@ untouched because the text format does not print it. No document gained or lost
 a finding. This recapture went unrecorded here and in the README for a day,
 while both documents still said the goldens had moved exactly twice.
 
-On 2026-09-07 (#PENDING), cutting 0.4.0: the same one line as #38, for the same
+On 2026-09-07 (#88), cutting 0.4.0: the same one line as #38, for the same
 reason -- the JSON report stamps ``tool.version``, so a version bump moves that
 line and nothing else. Twelve lines, one per JSON golden; the twelve text
 goldens are untouched because the text format does not print the version, and
