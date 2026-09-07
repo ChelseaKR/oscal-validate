@@ -1,0 +1,399 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "properties": {
+        "document": {
+          "model": "catalog"
+        },
+        "summary": {
+          "ERROR": 3,
+          "INFO": 0,
+          "UNVERIFIABLE": 5,
+          "WARNING": 0
+        }
+      },
+      "results": [
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/catalog",
+                  "name": "catalog"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/broken_catalog.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "TokenDatatype = 11 value(s) at /catalog. 11 value(s) declared as TokenDatatype were not checked against its pattern ^(\\p{L}|_)(\\p{L}|\\p{N}|[.\\-_])*$ , because that pattern uses regular-expression syntax this tool cannot compile. They are neither passed nor failed.\n\nRule: oscal-validate policy: the schema declares a regular expression this tool cannot compile, because JSON Schema patterns are ECMA-262 regular expressions and Python's re module does not implement the Unicode property escapes ECMA-262 allows. Values governed by such a pattern are reported as unchecked rather than approximated with a hand-written substitute, which would be a rule encoded from memory.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "dad6b18f4b9c41cdb385792b4d6a77342e6888f64ed9f76c7b43e238bfc5d853"
+          },
+          "properties": {
+            "location": "/catalog",
+            "property": "TokenDatatype",
+            "rule": {
+              "citation": "oscal-validate policy: the schema declares a regular expression this tool cannot compile, because JSON Schema patterns are ECMA-262 regular expressions and Python's re module does not implement the Unicode property escapes ECMA-262 allows. Values governed by such a pattern are reported as unchecked rather than approximated with a hand-written substitute, which would be a rule encoded from memory.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "11 value(s)"
+          },
+          "ruleId": "PATTERN_NOT_CHECKED",
+          "ruleIndex": 2
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/catalog",
+                  "name": "catalog"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/broken_catalog.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "allowed-values = 200 constraint(s) at /catalog. NIST publishes 200 allowed-values constraint(s) that this tool did not evaluate: which values a value node permits is decided by the applicable set of constraints sharing its target, and this tool does not resolve that set. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.\n\nRule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "9def33942a418618f5638aca6e0fa9f635a021a27348a63a8f86f4ccc95b6351"
+          },
+          "properties": {
+            "location": "/catalog",
+            "property": "allowed-values",
+            "rule": {
+              "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "200 constraint(s)"
+          },
+          "ruleId": "CONSTRAINT_NOT_EVALUATED",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/catalog",
+                  "name": "catalog"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/broken_catalog.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "expect = 12 constraint(s) at /catalog. NIST publishes 12 expect constraint(s) that this tool did not evaluate: the test is a Metapath expression, which this tool does not implement. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.\n\nRule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "dcbd475027b9166c199d2c1469f2f1606154cff5e3c315bdc6307fc0434597ac"
+          },
+          "properties": {
+            "location": "/catalog",
+            "property": "expect",
+            "rule": {
+              "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "12 constraint(s)"
+          },
+          "ruleId": "CONSTRAINT_NOT_EVALUATED",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/catalog",
+                  "name": "catalog"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/broken_catalog.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "index = 1 constraint(s) at /catalog. NIST publishes 1 index constraint(s) that this tool did not evaluate: their target expressions are outside the Metapath subset this tool parses. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.\n\nRule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "544590f578dd44322652dcc1ed73e484bfcb5e5ddfb45cce6b76c43253563dfb"
+          },
+          "properties": {
+            "location": "/catalog",
+            "property": "index",
+            "rule": {
+              "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "1 constraint(s)"
+          },
+          "ruleId": "CONSTRAINT_NOT_EVALUATED",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "open",
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/catalog",
+                  "name": "catalog"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/broken_catalog.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "matches = 14 constraint(s) at /catalog. NIST publishes 14 matches constraint(s) that this tool did not evaluate: the value constraint is applied through Metapath datatype coercion. They are neither passed nor failed. Every one of them is listed, with its reason, in docs/CONSTRAINT-COVERAGE.md.\n\nRule: oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.\nSource: README.md (Limits) (retrieved -)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "67516bfaf1220fcc9523879ca081f573d359d8c5c42020d4002aaf9c4d58185e"
+          },
+          "properties": {
+            "location": "/catalog",
+            "property": "matches",
+            "rule": {
+              "citation": "oscal-validate policy: where the published schema combines alternatives in a form this tool does not resolve, the subtree is left unread and reported. An unread subtree is not a clean one, and the two are never merged in the output.",
+              "retrieved": "-",
+              "url": "README.md (Limits)"
+            },
+            "severity": "UNVERIFIABLE",
+            "value": "14 constraint(s)"
+          },
+          "ruleId": "CONSTRAINT_NOT_EVALUATED",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "fail",
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/catalog/groups/0/controls/1",
+                  "name": "1"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/broken_catalog.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "@id = ex-1 at /catalog/groups/0/controls/1. This key is already used at /catalog/groups/0/controls/0. NIST's constraint oscal-catalog-controls requires it to be unique among the '//control' of each catalog.\n\nRule: NIST OSCAL constraint oscal-catalog-controls (index, level ERROR), declared on catalog in oscal_catalog_metaschema_RESOLVED.xml at OSCAL 1.2.3: target '//control', key @id. An index constraint requires each member entry to be unique on its composite key.\nSource: https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_catalog_metaschema_RESOLVED.xml (retrieved 2026-08-14)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "488a902ea9ac656ab1473a27b67041529f41ea86f635786c1f44169c6d6fec2a"
+          },
+          "properties": {
+            "location": "/catalog/groups/0/controls/1",
+            "property": "@id",
+            "rule": {
+              "citation": "NIST OSCAL constraint oscal-catalog-controls (index, level ERROR), declared on catalog in oscal_catalog_metaschema_RESOLVED.xml at OSCAL 1.2.3: target '//control', key @id. An index constraint requires each member entry to be unique on its composite key.",
+              "retrieved": "2026-08-14",
+              "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_catalog_metaschema_RESOLVED.xml"
+            },
+            "severity": "ERROR",
+            "value": "ex-1"
+          },
+          "ruleId": "CONSTRAINT_NOT_UNIQUE",
+          "ruleIndex": 1
+        },
+        {
+          "kind": "fail",
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/catalog/groups/0/controls/1",
+                  "name": "1"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/broken_catalog.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "@id = ex-1 at /catalog/groups/0/controls/1. This key is already used at /catalog/groups/0/controls/0. NIST's constraint oscal-catalog-groups-controls-parts requires it to be unique among the '//(control|group|part)' of each catalog.\n\nRule: NIST OSCAL constraint oscal-catalog-groups-controls-parts (index, level ERROR), declared on catalog in oscal_catalog_metaschema_RESOLVED.xml at OSCAL 1.2.3: target '//(control|group|part)', key @id. An index constraint requires each member entry to be unique on its composite key.\nSource: https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_catalog_metaschema_RESOLVED.xml (retrieved 2026-08-14)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "87d90698119ec7b03e33349878ffa409281cbdfa04c37f84f311f10f4660b0e3"
+          },
+          "properties": {
+            "location": "/catalog/groups/0/controls/1",
+            "property": "@id",
+            "rule": {
+              "citation": "NIST OSCAL constraint oscal-catalog-groups-controls-parts (index, level ERROR), declared on catalog in oscal_catalog_metaschema_RESOLVED.xml at OSCAL 1.2.3: target '//(control|group|part)', key @id. An index constraint requires each member entry to be unique on its composite key.",
+              "retrieved": "2026-08-14",
+              "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_catalog_metaschema_RESOLVED.xml"
+            },
+            "severity": "ERROR",
+            "value": "ex-1"
+          },
+          "ruleId": "CONSTRAINT_NOT_UNIQUE",
+          "ruleIndex": 1
+        },
+        {
+          "kind": "fail",
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/catalog/metadata",
+                  "name": "metadata"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/broken_catalog.json"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "last-modified = (absent) at /catalog/metadata. Document Metadata requires a 'last-modified' property and this one does not have it.\n\nRule: The schema declares \"last-modified\" in the required list of Document Metadata in the vendored oscal_complete_schema.json for OSCAL 1.2.3. A document missing it does not conform to the model it declares itself to be.\nSource: https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_complete_schema.json (retrieved 2026-08-14)"
+          },
+          "partialFingerprints": {
+            "oscalValidate/finding/v1": "c0a4aa2987c312dd38b72d7254d3c1d3b896a1bbed96377feab4b82cc63aa734"
+          },
+          "properties": {
+            "location": "/catalog/metadata",
+            "property": "last-modified",
+            "rule": {
+              "citation": "The schema declares \"last-modified\" in the required list of Document Metadata in the vendored oscal_complete_schema.json for OSCAL 1.2.3. A document missing it does not conform to the model it declares itself to be.",
+              "retrieved": "2026-08-14",
+              "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_complete_schema.json"
+            },
+            "severity": "ERROR",
+            "value": "(absent)"
+          },
+          "ruleId": "REQUIRED_PROPERTY_MISSING",
+          "ruleIndex": 3
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/ChelseaKR/oscal-validate",
+          "name": "oscal-validate",
+          "rules": [
+            {
+              "id": "CONSTRAINT_NOT_EVALUATED",
+              "name": "CONSTRAINT_NOT_EVALUATED",
+              "properties": {
+                "sources": [
+                  {
+                    "retrieved": "-",
+                    "url": "README.md (Limits)"
+                  }
+                ]
+              },
+              "shortDescription": {
+                "text": "A NIST constraint in scope for this document was not evaluated."
+              }
+            },
+            {
+              "helpUri": "https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_catalog_metaschema_RESOLVED.xml",
+              "id": "CONSTRAINT_NOT_UNIQUE",
+              "name": "CONSTRAINT_NOT_UNIQUE",
+              "properties": {
+                "sources": [
+                  {
+                    "retrieved": "2026-08-14",
+                    "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_catalog_metaschema_RESOLVED.xml"
+                  }
+                ]
+              },
+              "shortDescription": {
+                "text": "A value that a NIST constraint requires to be unique is repeated."
+              }
+            },
+            {
+              "id": "PATTERN_NOT_CHECKED",
+              "name": "PATTERN_NOT_CHECKED",
+              "properties": {
+                "sources": [
+                  {
+                    "retrieved": "-",
+                    "url": "README.md (Limits)"
+                  }
+                ]
+              },
+              "shortDescription": {
+                "text": "Values governed by a pattern this tool cannot compile were neither passed nor failed."
+              }
+            },
+            {
+              "helpUri": "https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_complete_schema.json",
+              "id": "REQUIRED_PROPERTY_MISSING",
+              "name": "REQUIRED_PROPERTY_MISSING",
+              "properties": {
+                "sources": [
+                  {
+                    "retrieved": "2026-08-14",
+                    "url": "https://github.com/usnistgov/OSCAL/releases/download/v1.2.3/oscal_complete_schema.json"
+                  }
+                ]
+              },
+              "shortDescription": {
+                "text": "A property the schema requires is absent."
+              }
+            }
+          ],
+          "semanticVersion": "0.3.0",
+          "version": "0.3.0"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}
+
+[exit 1]
