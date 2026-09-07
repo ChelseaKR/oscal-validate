@@ -268,3 +268,55 @@ def test_ci_fetches_the_tags_these_checks_read() -> None:
         assert "fetch-tags: true" in body, (
             f"job {name!r} does not fetch tags, so tests/test_release_metadata.py skips there"
         )
+
+
+#: A `pip install` naming this project's own distribution, in any quoting and
+#: with or without an extra. `oscal_validate` too, because pip accepts the
+#: underscore spelling and a reader copying it would hit the same wall.
+SELF_PIP_INSTALL = re.compile(r"pip install\s+['\"]?oscal[-_]validate")
+
+#: The sentence in the README's Status paragraph that makes the check below
+#: apply. When the first upload happens this line goes, and the gate retires
+#: itself rather than having to be remembered and deleted.
+README_SAYS_NOT_ON_PYPI = "Nothing is published to PyPI"
+
+
+def _reader_facing_files() -> list[Path]:
+    """Every file that hands a *reader* an install command.
+
+    `CHANGELOG.md` and `tests/` are excluded on purpose: both describe past
+    states and this defect in the past tense, and a historical record that
+    could not quote the broken command would be a worse record.
+    """
+    files = [README, *sorted((ROOT / "docs").rglob("*.md"))]
+    files += sorted((ROOT / "src").rglob("*.py"))
+    return files
+
+
+def test_nothing_hands_a_reader_an_install_command_for_an_unpublished_name() -> None:
+    """`pip install oscal-validate` ends at `No matching distribution found`.
+
+    Four places printed it anyway: the README's AI section, its Bedrock
+    paragraph, ADR-0005, and two `ModelError` messages in
+    `oscal_validate/ai/client.py` -- the last two being what a user reads at
+    the moment something has already failed. The README says eight lines from
+    its top that nothing is published, so the instruction contradicted the
+    status in the same document.
+
+    This is the same shape as the defects this tool reports on: a name that
+    resolves to nothing, published as though it resolved to something.
+    """
+    if README_SAYS_NOT_ON_PYPI not in README.read_text(encoding="utf-8"):
+        pytest.skip(
+            "the README no longer says nothing is published, so an install command "
+            "naming this distribution may now be correct"
+        )
+    offenders: list[str] = []
+    for path in _reader_facing_files():
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if SELF_PIP_INSTALL.search(line):
+                offenders.append(f"{path.relative_to(ROOT)}:{number}: {line.strip()}")
+    assert not offenders, (
+        "these lines tell a reader to install a distribution that is not on any index, "
+        "while README.md says nothing is published:\n  " + "\n  ".join(offenders)
+    )

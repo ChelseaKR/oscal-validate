@@ -10,6 +10,27 @@ and this project adheres to
 
 ### Fixed
 
+- **Four places told a reader to run an install command that cannot work.** The
+  README's AI section said `pip install 'oscal-validate[ai]'`, the Bedrock
+  paragraph said `pip install 'oscal-validate[bedrock]'`, ADR-0005 repeated the
+  first, and `oscal_validate/ai/client.py` printed both as the remedy when a
+  lazily-imported extra was missing. Nothing here is on PyPI -- the README's own
+  Status paragraph says so, eight lines from the top -- so every one of those
+  commands ends at `No matching distribution found`, and the runtime ones are
+  the worst placed of the four: they are what a user reads at the exact moment
+  something did not work. All four now name the extra and give the command that
+  does work from the only install path this project has, `pip install '.[ai]'`
+  and `pip install '.[bedrock]'` from a checkout, and say why.
+
+- **The Release & Versioning conformance row still said there was no release
+  workflow.** `.github/workflows/release.yml`, `.github/allowed_signers` and
+  `tests/test_release_workflow.py` landed on `main` before this, so the row was
+  describing a state that no longer existed while sitting in a table whose
+  stated contract is "what is true today, not what is intended". It now
+  describes the release path that exists and keeps the gap that is still real:
+  nothing has been published, because PyPI Trusted Publishing needs a one-time
+  registration only the owner can make.
+
 - **The full-history secret scan could not fail on a credential that had been
   revoked.** `trufflehog.yml` ran `--only-verified`, which reports a finding
   only when TruffleHog authenticates the credential against the live service.

@@ -120,8 +120,9 @@ class AnthropicClient:
             import anthropic  # noqa: PLC0415 - lazy on purpose; see the module docstring
         except ImportError as exc:  # pragma: no cover - exercised only without the extra
             raise ModelError(
-                "the anthropic SDK is not installed; install it with "
-                "pip install 'oscal-validate[ai]'"
+                "the anthropic SDK is not installed; install this package's 'ai' "
+                "extra with pip install '.[ai]' from a checkout of this repository "
+                "(nothing is published to PyPI yet; see the README's Install section)"
             ) from exc
         self._errors = anthropic
         self._client: anthropic.Anthropic | anthropic.AnthropicBedrock = (
@@ -161,7 +162,9 @@ class AnthropicClient:
         except ImportError as exc:  # pragma: no cover - only without the bedrock extra
             raise ModelError(
                 f"the {self._settings.provider} provider needs an extra that is not installed "
-                f"({exc.name}); install it with pip install 'oscal-validate[bedrock]'"
+                f"({exc.name}); install this package's 'bedrock' extra with "
+                "pip install '.[bedrock]' from a checkout of this repository "
+                "(nothing is published to PyPI yet; see the README's Install section)"
             ) from exc
         text = "".join(block.text for block in response.content if block.type == "text")
         return Completion(
