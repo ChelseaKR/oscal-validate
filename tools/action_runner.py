@@ -66,6 +66,15 @@ GATED: dict[str, tuple[str, ...]] = {
 #: Severity to GitHub annotation level. GitHub has three; the tool has four.
 LEVELS = {"ERROR": "error", "WARNING": "warning", "INFO": "notice", "UNVERIFIABLE": "notice"}
 
+#: Where a severity this script does not know goes, if one ever reaches
+#: :func:`report_findings`. It should not: :func:`describe_unreadable` refuses
+#: such a report before anything is annotated. The default is ``error`` rather
+#: than ``notice`` because the two directions are not symmetric -- an unknown
+#: severity rendered as the mildest level GitHub has is an unread finding
+#: wearing the appearance of a reviewed one, and `docs/API.md` says in terms
+#: that a consumer "must not treat an unknown severity as a pass".
+UNKNOWN_SEVERITY_LEVEL = "error"
+
 EXIT_CLEAN = 0
 EXIT_FINDINGS = 1
 EXIT_USAGE = 2
@@ -128,7 +137,7 @@ def report_findings(document: Path, findings: list[dict[str, str]]) -> None:
         severity = str(finding["severity"])
         where = f"{finding['location']}: {finding['property']} = {finding['value']}"
         annotate(
-            LEVELS.get(severity, "notice"),
+            LEVELS.get(severity, UNKNOWN_SEVERITY_LEVEL),
             f"{where}. {finding['message']}",
             file=str(document),
             title=f"{finding['code']} ({severity})",
@@ -146,6 +155,19 @@ def describe_unreadable(report: object) -> str | None:
     count of none, so a report missing any part of the contract fails the run
     (exit 2) instead of being read as clean.
 
+    The same rule, said the other way round: **a count this script does not
+    know how to gate on is not a count of zero either.** ``docs/API.md`` allows
+    ``Severity`` to gain a member within a major version, and requires that a
+    consumer "must not treat an unknown severity as a pass". This script did
+    exactly that. ``validate_one`` folds only the four severities in
+    :data:`SEVERITIES` into ``totals``, so a fifth would have been gated on by
+    no ``fail-on`` threshold and the run would have exited 0; and
+    ``report_findings`` mapped it through ``LEVELS.get(severity, "notice")``,
+    the mildest level GitHub has, for a severity that might be graver than
+    ERROR. Adding one is a minor bump, so both were reachable without any
+    change this script would otherwise have noticed. A report carrying a
+    severity this script does not know now fails the run instead.
+
     The check is on the shape the action actually reads, not the whole schema:
     the schema is the published contract and lives in the package, but this
     script must stay dependency-free and must not fail a run over a key it
@@ -162,8 +184,21 @@ def describe_unreadable(report: object) -> str | None:
             f"report_schema_version is {declared}, and this action reads "
             f"{SUPPORTED_REPORT_SCHEMA_MAJOR}.x"
         )
-    if not isinstance(report.get("findings"), list):
+    findings = report.get("findings")
+    if not isinstance(findings, list):
         return "findings is missing or is not a list"
+    unknown = sorted(
+        {
+            str(f.get("severity"))
+            for f in findings
+            if isinstance(f, dict) and f.get("severity") not in SEVERITIES
+        }
+    )
+    if unknown:
+        return (
+            f"a finding carries severity {', '.join(unknown)}, which this action does not "
+            f"know how to gate on. It is not counted as none"
+        )
     document = report.get("document")
     if not isinstance(document, dict) or not isinstance(document.get("model"), str):
         return "document.model is missing"
@@ -173,6 +208,16 @@ def describe_unreadable(report: object) -> str | None:
     absent = [severity for severity in SEVERITIES if not isinstance(summary.get(severity), int)]
     if absent:
         return f"summary has no integer count for {', '.join(absent)}"
+    extra = sorted(str(key) for key in summary if key not in SEVERITIES)
+    if extra:
+        # Not pedantry about an unexpected key. `validate_one` folds only the
+        # four it knows into `totals`, so a count under any other name is a
+        # population of findings that no `fail-on` threshold can reach, and
+        # the run would exit 0 having silently declined to gate on it.
+        return (
+            f"summary carries a count for {', '.join(extra)}, which this action does not "
+            f"know how to gate on. It is not counted as none"
+        )
     return None
 
 
