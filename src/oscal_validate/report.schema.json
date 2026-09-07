@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ChelseaKR/oscal-validate/main/src/oscal_validate/report.schema.json",
+  "title": "oscal-validate report",
+  "description": "The shape of `oscal-validate --format json`. Every report carries `report_schema_version`, which is the version of this document and not the version of the tool. `additionalProperties` is false everywhere on purpose: a consumer that validates against this schema learns about a new key rather than ignoring it.",
+  "type": "object",
+  "required": [
+    "report_schema_version",
+    "tool",
+    "document",
+    "findings",
+    "summary"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "report_schema_version": {
+      "description": "The version of this schema that the report conforms to. Semantic: the major part changes when a consumer that reads the old shape would break.",
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "tool": {
+      "description": "What produced the report.",
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "const": "oscal-validate"
+        },
+        "version": {
+          "description": "The tool's own version, which moves independently of report_schema_version.",
+          "type": "string"
+        }
+      }
+    },
+    "document": {
+      "description": "What was validated.",
+      "type": "object",
+      "required": [
+        "model"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "description": "The OSCAL model at the root of the primary document, e.g. catalog, profile, system-security-plan.",
+          "type": "string"
+        }
+      }
+    },
+    "findings": {
+      "description": "Every finding, deduplicated and in the tool's own deterministic order. An empty array is possible in principle and does not occur in practice, because a run always reports the constraints it did not evaluate.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "summary": {
+      "description": "How many findings of each severity. Every severity is always present, including the ones that are zero: a consumer must never have to read the absence of a key as a count of none.",
+      "type": "object",
+      "required": [
+        "ERROR",
+        "WARNING",
+        "INFO",
+        "UNVERIFIABLE"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ERROR": {
+          "$ref": "#/$defs/count"
+        },
+        "WARNING": {
+          "$ref": "#/$defs/count"
+        },
+        "INFO": {
+          "$ref": "#/$defs/count"
+        },
+        "UNVERIFIABLE": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "severity": {
+      "description": "ERROR gates the exit code. UNVERIFIABLE never does; it marks what the supplied documents cannot settle, and it is never a pass.",
+      "type": "string",
+      "enum": [
+        "ERROR",
+        "WARNING",
+        "INFO",
+        "UNVERIFIABLE"
+      ]
+    },
+    "rule": {
+      "description": "The published rule a finding is made under, with the source it was read from and the date it was read. Never a rule written from memory.",
+      "type": "object",
+      "required": [
+        "citation",
+        "url",
+        "retrieved"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "citation": {
+          "type": "string"
+        },
+        "url": {
+          "description": "Where the rule was read. A URL for a published rule; for this tool's own stated policy, the document and section that states it.",
+          "type": "string"
+        },
+        "retrieved": {
+          "description": "The date the source was read, ISO 8601, or \"-\" where the source travels with the repository and has no retrieval date.",
+          "type": "string"
+        }
+      }
+    },
+    "suggestion": {
+      "description": "An identifier that IS declared and is close to one that resolved to nothing. Present only under --suggest, and never a claim about what was meant.",
+      "type": "object",
+      "required": [
+        "value",
+        "difference"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "difference": {
+          "description": "What a reader would have to change, in the tool's own vocabulary.",
+          "type": "string"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "code",
+        "severity",
+        "location",
+        "property",
+        "value",
+        "message",
+        "rule"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "description": "The stable identifier of what was found.",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "location": {
+          "description": "An RFC 6901 JSON Pointer into the primary document, or <path>#<pointer> when the finding is in a document supplied through --resolve.",
+          "type": "string"
+        },
+        "property": {
+          "description": "The property, constraint target, or datatype the finding is about.",
+          "type": "string"
+        },
+        "value": {
+          "description": "The value as written, rendered as a string. \"(absent)\" where the finding is that nothing was written.",
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "rule": {
+          "$ref": "#/$defs/rule"
+        },
+        "suggestions": {
+          "description": "Absent unless --suggest is on and this finding is settled. Absent is not the same as empty: a run without the flag makes no claim either way.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/suggestion"
+          }
+        }
+      }
+    }
+  }
+}

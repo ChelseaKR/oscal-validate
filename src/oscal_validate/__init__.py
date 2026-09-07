@@ -12,14 +12,21 @@ from __future__ import annotations
 __version__ = "0.3.0"
 
 from .findings import Finding, Rule, Severity
+from .report import REPORT_SCHEMA_VERSION, read_report_schema
 from .validator import build_session, validate, validate_file
 
+#: The public library surface. Everything here is documented in docs/API.md
+#: with a stability promise; everything not here is internal and may move in
+#: any release. ``tests/test_public_api.py`` pins these names and their
+#: signatures, so widening or narrowing this list is a deliberate act.
 __all__ = [
+    "REPORT_SCHEMA_VERSION",
     "Finding",
     "Rule",
     "Severity",
     "__version__",
     "build_session",
+    "read_report_schema",
     "validate",
     "validate_file",
 ]

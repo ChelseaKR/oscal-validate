@@ -69,6 +69,7 @@
       "value": "14 constraint(s)"
     }
   ],
+  "report_schema_version": "1.0.0",
   "summary": {
     "ERROR": 0,
     "INFO": 0,

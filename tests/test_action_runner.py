@@ -140,3 +140,120 @@ def test_a_directory_is_validated_recursively_and_one_bad_file_fails_it(tmp_path
     assert code == 1
     assert outputs["files-validated"] == "2"
     assert outputs["error-count"] == "1"
+
+
+# -- the report the action reads is a contract, and a gap in it is not a zero --
+
+
+def _stub_cli(tmp_path: Path, report: object, exit_code: int = 0) -> Path:
+    """A package that answers ``python -m oscal_validate`` with one report.
+
+    The runner shells out to the CLI, so the only way to hand it a malformed
+    report end to end is to be the CLI. This writes a stub package and returns
+    the directory to put ahead of ``src`` on ``PYTHONPATH``.
+    """
+    package = tmp_path / "stub" / "oscal_validate"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "__main__.py").write_text(
+        f"import json, sys\nprint(json.dumps({report!r}))\nraise SystemExit({exit_code})\n",
+        encoding="utf-8",
+    )
+    return tmp_path / "stub"
+
+
+def _run_against_stub(tmp_path: Path, report: object) -> tuple[int, str]:
+    stub = _stub_cli(tmp_path, report)
+    written = tmp_path / "outputs.txt"
+    completed = subprocess.run(
+        [sys.executable, str(RUNNER)],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        env={
+            **os.environ,
+            "PYTHONPATH": f"{stub}{os.pathsep}{ROOT / 'src'}",
+            "GITHUB_OUTPUT": str(written),
+            "OSCAL_PATH": str(FIXTURES / "clean_catalog.json"),
+        },
+        check=False,
+    )
+    return completed.returncode, completed.stdout
+
+
+def _whole_report() -> dict[str, Any]:
+    return {
+        "report_schema_version": "1.0.0",
+        "tool": {"name": "oscal-validate", "version": "0.0.0"},
+        "document": {"model": "catalog"},
+        "findings": [],
+        "summary": {"ERROR": 0, "WARNING": 0, "INFO": 0, "UNVERIFIABLE": 0},
+    }
+
+
+def test_the_stub_harness_itself_passes_when_the_report_is_whole(tmp_path: Path) -> None:
+    """Without this, every assertion below could be passing for the wrong
+    reason -- a stub that never runs also never reports a clean gate."""
+    code, stdout = _run_against_stub(tmp_path, _whole_report())
+    assert code == 0, stdout
+
+
+def test_a_summary_missing_a_severity_is_not_read_as_zero(tmp_path: Path) -> None:
+    """This is the regression. ``summary.get(severity, 0)`` folded a missing
+    ERROR count in as zero and the job passed clean."""
+    report = _whole_report()
+    report["summary"] = {"WARNING": 0, "INFO": 0, "UNVERIFIABLE": 0}
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code == 2, "a report with no ERROR count is unreadable, not clean"
+    assert "ERROR" in stdout
+
+
+def test_a_summary_count_that_is_not_a_number_is_not_read_as_zero(tmp_path: Path) -> None:
+    report = _whole_report()
+    report["summary"]["ERROR"] = "lots"
+    assert _run_against_stub(tmp_path, report)[0] == 2
+
+
+def test_a_report_with_no_schema_version_is_refused(tmp_path: Path) -> None:
+    report = _whole_report()
+    del report["report_schema_version"]
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code == 2
+    assert "report_schema_version" in stdout
+
+
+def test_a_report_from_a_future_major_is_refused_rather_than_guessed_at(
+    tmp_path: Path,
+) -> None:
+    report = _whole_report()
+    report["report_schema_version"] = "2.0.0"
+    code, stdout = _run_against_stub(tmp_path, report)
+    assert code == 2
+    assert "2.0.0" in stdout
+
+
+def test_a_later_minor_of_the_same_major_is_still_read(tmp_path: Path) -> None:
+    """A minor bump adds a key an existing consumer may ignore, so refusing it
+    would make every additive change a breaking one."""
+    report = _whole_report()
+    report["report_schema_version"] = "1.7.0"
+    assert _run_against_stub(tmp_path, report)[0] == 0
+
+
+def test_a_report_that_lost_its_findings_is_refused(tmp_path: Path) -> None:
+    report = _whole_report()
+    del report["findings"]
+    assert _run_against_stub(tmp_path, report)[0] == 2
+
+
+def test_the_action_reads_the_version_the_package_actually_writes() -> None:
+    """The runner's supported major and the package's schema version cannot
+    drift apart without this failing."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    try:
+        import action_runner
+    finally:
+        sys.path.pop(0)
+    from oscal_validate import REPORT_SCHEMA_VERSION
+
+    assert REPORT_SCHEMA_VERSION.split(".")[0] == action_runner.SUPPORTED_REPORT_SCHEMA_MAJOR

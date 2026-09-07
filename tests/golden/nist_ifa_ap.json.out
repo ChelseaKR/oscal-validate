@@ -121,6 +121,7 @@
       "value": "ac-6.1"
     }
   ],
+  "report_schema_version": "1.0.0",
   "summary": {
     "ERROR": 0,
     "INFO": 1,
