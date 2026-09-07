@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.4.0] - 2026-09-07
+
 ### Fixed
 
 - **The golden re-capture log had lost track of the re-captures.** The bytes in
@@ -539,6 +543,27 @@ and this project adheres to
   function is exempt by name — and `RECONSTRUCTION` is held to exactly the
   functions that exist and are actually skipped, so a renamed function cannot
   leave a silent hole and the list cannot quietly grow.
+
+### Released
+
+- **0.4.0, and the first release cut since `v0.2.0`.** `0.3.0` was prepared in
+  the source on 2026-09-02, dated in this file, and never tagged; the work that
+  landed after it — SARIF output, the published report schema and the named
+  library API, the release and publish path itself, and the Action fixes above
+  — is larger than `0.3.0` was, so it is released as `0.4.0` rather than
+  shipped under a heading that does not describe it. Nothing in `0.3.0`'s
+  section moves: it stays as the record of a version that was prepared and not
+  cut.
+
+  Bumping the version moves two things that are easy to miss. `uv.lock` records
+  this package's own version, so it no longer matched `pyproject.toml` and was
+  re-locked in the same change — `make install` runs `uv sync --locked`, which
+  *fails* on a stale lock, so a bump committed without it breaks the release
+  workflow's very first step. And the JSON report stamps `tool.version`, so the
+  twelve JSON goldens were recaptured; the whole diff is twelve lines, each one
+  `"version": "0.3.0"` becoming `"version": "0.4.0"`, and no text golden moved.
+  That recapture is recorded with the other four in
+  `tests/test_default_path_byte_identity.py`.
 
 ## [0.3.0] - 2026-09-02
 
