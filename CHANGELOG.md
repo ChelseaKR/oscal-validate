@@ -565,6 +565,25 @@ Nothing yet.
   That recapture is recorded with the other four in
   `tests/test_default_path_byte_identity.py`.
 
+- **The first tag could not be cut in one commit, and this is how it was.**
+  `tests/test_release_metadata.py` asserts both directions: with no tag for the
+  declared version the README's Status paragraph *must* say so and
+  `CITATION.cff` must carry no release date, and once the tag exists the
+  paragraph must *not* say so and the citation must be dated with that tag's
+  own date. `release.yml` then re-runs `make verify` at the tagged commit. So
+  whichever commit is tagged was written for the other world, and a repository
+  can sit in that state indefinitely with a green `main` and a release it
+  cannot cut.
+
+  The way through is three commits: prepare the version while the no-tag
+  language is still true; push the signed annotated tag; then flip the two
+  statements in a change whose own CI can see the tag, and move the tag onto
+  that commit before dispatching the release. Between the second and third
+  steps `main`'s recorded verdict is stale rather than red -- `ci.yml` triggers
+  on `push: branches: [main]`, and pushing a tag is not that -- which is worth
+  knowing, because a green badge in that window is describing a commit whose
+  README had already stopped being true.
+
 ## [0.3.0] - 2026-09-02
 
 ### Changed
