@@ -21,6 +21,18 @@ and an unreadable document exits 2 even when every other document is clean.
 on ERROR and only ERROR, so a stricter threshold is applied here, from the
 published summary counts. UNVERIFIABLE is excluded at every threshold, because
 it marks what the supplied documents cannot settle and is never a pass.
+
+``sarif-file`` is the second: the CLI renders SARIF for one document, and a
+code-scanning upload wants one file for the whole set. The merge itself is
+:func:`oscal_validate.sarif.merge_logs`, imported rather than reimplemented,
+because merging rules re-decides a rule's ``helpUri`` and that is a rendering
+decision. What is decided *here* is when the file may be written at all, and
+the answer is: only when every document produced a SARIF run whose result
+count equals its own JSON summary. That is not caution for its own sake.
+``upload-sarif`` treats an upload as the complete picture and resolves any
+alert missing from it, so a SARIF file that lost a document's findings does
+not merely under-report -- it closes real alerts as fixed. A partial file is
+never written; the run fails instead.
 """
 
 from __future__ import annotations
@@ -97,9 +109,11 @@ def discover(raw: str) -> list[Path]:
     return [target]
 
 
-def run_cli(document: Path, resolve: Sequence[str]) -> subprocess.CompletedProcess[str]:
+def run_cli(
+    document: Path, resolve: Sequence[str], report_format: str = "json"
+) -> subprocess.CompletedProcess[str]:
     """Run the CLI over one document, as a child process of this interpreter."""
-    command = [sys.executable, "-m", MODULE, str(document), "--format", "json"]
+    command = [sys.executable, "-m", MODULE, str(document), "--format", report_format]
     for extra in resolve:
         command += ["--resolve", extra]
     # S603 flags untrusted input reaching a subprocess. The action's inputs do
@@ -162,11 +176,68 @@ def describe_unreadable(report: object) -> str | None:
     return None
 
 
-def validate_one(document: Path, resolve: Sequence[str], totals: dict[str, int]) -> bool:
+def describe_unusable_sarif(log: object, expected_results: int) -> str | None:
+    """Why this SARIF log cannot go into the uploaded file, or ``None``.
+
+    The result count is checked against the JSON summary the same run
+    published, because those are two renderings of one list of findings and
+    they cannot legitimately disagree. If they do, something dropped findings
+    between them, and the smaller number is the one that would be uploaded --
+    an absence that reads as a clean file.
+    """
+    if not isinstance(log, dict):
+        return "the SARIF log is not a JSON object"
+    runs = log.get("runs")
+    if not isinstance(runs, list) or len(runs) != 1 or not isinstance(runs[0], dict):
+        return "the SARIF log does not carry exactly one run"
+    results = runs[0].get("results")
+    if not isinstance(results, list):
+        return "the SARIF run has no results array"
+    if len(results) != expected_results:
+        return (
+            f"the SARIF run has {len(results)} result(s) and the JSON report "
+            f"has {expected_results} finding(s)"
+        )
+    return None
+
+
+def sarif_for(document: Path, resolve: Sequence[str], expected_results: int) -> object | None:
+    """The SARIF log for one document, or ``None`` after saying what went wrong."""
+    completed = run_cli(document, resolve, "sarif")
+    if completed.returncode not in (EXIT_CLEAN, EXIT_FINDINGS):
+        detail = completed.stderr.strip() or f"{TOOL} exited {completed.returncode}"
+        annotate("error", f"SARIF output failed: {detail}", file=str(document))
+        return None
+    try:
+        log: object = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        annotate("error", f"{TOOL} produced SARIF this action could not parse", file=str(document))
+        return None
+    unusable = describe_unusable_sarif(log, expected_results)
+    if unusable is not None:
+        annotate(
+            "error",
+            f"{TOOL} produced SARIF that cannot be uploaded: {unusable}",
+            file=str(document),
+        )
+        return None
+    return log
+
+
+def validate_one(
+    document: Path,
+    resolve: Sequence[str],
+    totals: dict[str, int],
+    sarif_logs: list[object] | None = None,
+) -> bool:
     """Validate one document and fold its counts into ``totals``.
 
     Returns False when the document could not be read, which is a failure of
-    the run and not a finding about the document.
+    the run and not a finding about the document. When ``sarif_logs`` is
+    given, the document's SARIF log is appended to it, and a document whose
+    SARIF could not be produced or does not agree with its own JSON report is
+    a failure too -- see the module docstring for why a partial SARIF file is
+    worse than none.
     """
     completed = run_cli(document, resolve)
     if completed.returncode not in (EXIT_CLEAN, EXIT_FINDINGS):
@@ -190,10 +261,40 @@ def validate_one(document: Path, resolve: Sequence[str], totals: dict[str, int])
 
     report_findings(document, report["findings"])
     summary = report["summary"]
+
+    if sarif_logs is not None:
+        log = sarif_for(document, resolve, sum(int(summary[s]) for s in SEVERITIES))
+        if log is None:
+            return False
+        sarif_logs.append(log)
+
     for severity in SEVERITIES:
         totals[severity] += int(summary[severity])
     counted = ", ".join(f"{summary[s]} {s}" for s in SEVERITIES)
     print(f"{document} ({report['document']['model']}): {counted}")
+    return True
+
+
+def write_sarif(destination: Path, logs: list[object]) -> bool:
+    """Merge the per-document logs into one file, or say why nothing was written."""
+    # Imported here, not at module scope, for the same reason the counts come
+    # from the CLI: the merge is the package's own rendering decision and is
+    # not reimplemented. It is deferred so that the rest of this script keeps
+    # running against a CLI it only ever reaches by subprocess.
+    from oscal_validate.sarif import merge_logs  # noqa: PLC0415
+
+    try:
+        merged = merge_logs(logs)
+    except (ValueError, KeyError, TypeError) as error:
+        annotate("error", f"the SARIF logs could not be merged into one file: {error}")
+        return False
+    try:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(merged + "\n", encoding="utf-8")
+    except OSError as error:
+        annotate("error", f"the SARIF file could not be written: {error}")
+        return False
+    print(f"{destination}: {len(logs)} document(s) merged into one SARIF run")
     return True
 
 
@@ -225,8 +326,12 @@ def main() -> int:
         return EXIT_USAGE
 
     resolve = (os.environ.get("OSCAL_RESOLVE") or "").split()
+    sarif_file = (os.environ.get("OSCAL_SARIF_FILE") or "").strip()
+    sarif_logs: list[object] | None = [] if sarif_file else None
     totals = dict.fromkeys(SEVERITIES, 0)
-    unreadable = sum(not validate_one(document, resolve, totals) for document in documents)
+    unreadable = sum(
+        not validate_one(document, resolve, totals, sarif_logs) for document in documents
+    )
 
     write_outputs(
         {
@@ -243,7 +348,15 @@ def main() -> int:
     )
 
     if unreadable:
+        if sarif_file:
+            annotate(
+                "error",
+                f"no SARIF was written to {sarif_file}: {unreadable} document(s) are missing "
+                "from it, and an upload missing findings resolves the alerts it omits",
+            )
         annotate("error", f"{unreadable} document(s) could not be read or parsed")
+        return EXIT_USAGE
+    if sarif_logs is not None and not write_sarif(Path(sarif_file), sarif_logs):
         return EXIT_USAGE
     gating = sum(totals[severity] for severity in GATED[fail_on])
     if gating:
