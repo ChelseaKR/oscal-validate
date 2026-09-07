@@ -22,8 +22,13 @@ license: Apache-2.0
 # no `v0.3.0` tag exists and nothing was published on that date. Both fields
 # move when a tag is pushed, and `tests/test_release_metadata.py` holds them to
 # the tags in the repository.
-version: "0.2.0"
-date-released: "2026-08-16"
+#
+# These two numbers happen to equal `pyproject.toml`'s right now, because the
+# declared version has just been released. That is a coincidence of timing and
+# not a rule: the next bump moves the manifest and leaves this file where it
+# is, until the tag for that version is pushed.
+version: "0.4.0"
+date-released: "2026-09-07"
 repository-code: "https://github.com/ChelseaKR/oscal-validate"
 url: "https://github.com/ChelseaKR/oscal-validate"
 keywords:

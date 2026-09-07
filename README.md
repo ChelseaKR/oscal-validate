@@ -30,11 +30,11 @@ document it was not given: every one of those is reported **UNVERIFIABLE**, and
 UNVERIFIABLE is never rendered as a pass. A clean report always lists what was
 not checked, alongside what was.
 
-**Status:** Beta. Tagged `v0.1.0` and `v0.2.0`, of which `v0.2.0` also carries
-a GitHub release. `0.3.0` was prepared in the source on 2026-09-02 and never
-cut, and the work since it is larger than it was; `0.4.0` is prepared in the
-source and dated in the changelog but is not tagged. Nothing is published to
-PyPI, so installation is from source. This is a demonstration and reference
+**Status:** Beta. Tagged `v0.1.0`, `v0.2.0` and `v0.4.0`. `0.4.0` is the current
+release, cut on 2026-09-07 from the changelog section of the same name; `0.3.0`
+was prepared in the source on 2026-09-02 and never cut, which is why the
+numbering skips it. Nothing is published to PyPI, so installation is from
+source. This is a demonstration and reference
 implementation. It is not affiliated with, endorsed by, or reviewed by NIST,
 FedRAMP, or StateRAMP.
 
