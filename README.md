@@ -94,6 +94,7 @@ oscal-validate tests/fixtures/broken_catalog.json   # 3 ERROR, exit 1
 
 oscal-validate <file.json> --format json
 oscal-validate <file.json> --format sarif
+oscal-validate --report-schema                      # the shape that report conforms to
 oscal-validate my-ssp.json --resolve baseline-profile.json --resolve catalog.json
 oscal-validate my-ssp.json --resolve catalog.json --suggest
 
@@ -127,6 +128,28 @@ Non-`fail` results carry `level: note` rather than the specification's
 `none`, and an UNVERIFIABLE finding that disappears there would be an absence
 rendered as a pass (the reasoning is in `src/oscal_validate/sarif.py`). The
 output validates offline against the OASIS schema vendored in `tests/sarif/`.
+
+### The JSON report is a published contract
+
+`--format json` is what the GitHub Action, the survey harness, and any
+pipeline read. Its shape is published as a JSON Schema (draft 2020-12), shipped
+inside the package and printed by `oscal-validate --report-schema`, and every
+report carries the `report_schema_version` it conforms to. That version is the
+schema's, not the tool's, and the two move independently;
+[docs/API.md](docs/API.md) says which kind of change moves which part of it,
+and names the library surface with the same promise.
+
+Read counts out of `summary` by key, never with a default:
+
+```python
+errors = report["summary"]["ERROR"]  # yes
+errors = report["summary"].get("ERROR", 0)  # no
+```
+
+Every severity is always present, including the ones that are zero, so that a
+missing key is a broken report rather than a count of none. `additionalProperties`
+is false throughout the schema for the same reason: a consumer that validates
+what it reads learns about a new key instead of passing over it.
 
 ### `diff`: what changed between two runs
 

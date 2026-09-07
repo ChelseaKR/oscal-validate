@@ -18,6 +18,7 @@ import json
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from .report import REPORT_SCHEMA_VERSION
 from .suggest import Suggestion
 
 
@@ -113,7 +114,14 @@ def counts(findings: list[Finding]) -> dict[str, int]:
 
 
 def render_findings_json(findings: list[Finding], version: str, model: str) -> str:
+    """The canonical machine-readable report.
+
+    ``report_schema_version`` names the published shape this conforms to, so a
+    consumer can check what it is reading instead of inferring it from the
+    tool version. See :mod:`oscal_validate.report`.
+    """
     payload = {
+        "report_schema_version": REPORT_SCHEMA_VERSION,
         "tool": {"name": "oscal-validate", "version": version},
         "document": {"model": model},
         "findings": [f.to_dict() for f in findings],

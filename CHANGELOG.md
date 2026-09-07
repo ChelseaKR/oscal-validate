@@ -65,6 +65,44 @@ and this project adheres to
   `jsonschema` joins the dev toolchain; the validator still has no runtime
   dependency.
 
+- **A versioned, published schema for the JSON report, and a named public
+  library API** (issue #72), in `src/oscal_validate/report.schema.json` (new,
+  shipped as package data), `report.py` (new), `findings.py`, `cli.py`,
+  `__init__.py`, `tools/action_runner.py`, `docs/API.md` (new),
+  `tests/schema_check.py`, `tests/test_report_schema.py` and
+  `tests/test_public_api.py` (all new). `--format json` is parsed by the
+  GitHub Action, by the survey harness, and by anything wiring the tool into a
+  pipeline, and its shape was defined only by the function that wrote it.
+
+  Every report now carries `report_schema_version`, and
+  `oscal-validate --report-schema` prints the JSON Schema (draft 2020-12) it
+  conforms to. The schema version moves independently of the tool version, and
+  `docs/API.md` says which kind of change moves which part of it. Twelve
+  golden reports and every report the suite produces are validated against the
+  shipped schema; the twelve goldens were recaptured, and the only byte that
+  changed in each is the new key.
+
+  **The Action was reading an absent count as zero.**
+  `tools/action_runner.py` folded its totals with
+  `int(summary.get(severity, 0))`, so a summary that had lost a key -- renamed
+  in a later version, or truncated -- contributed nothing and the gate passed
+  clean. That is an absence published as a measurement, in the tool whose
+  purpose is to refuse exactly that. It now checks the shape it is about to
+  read, including the report's declared schema major, and exits 2 with an
+  annotation saying what was missing rather than gating on a partial report.
+
+  The conformance checker is `tests/schema_check.py`, about a hundred lines of
+  stdlib, because the default path has no runtime dependency and the check
+  should not add one. It **raises on any JSON Schema keyword it does not
+  implement** rather than skipping it: a subset checker that ignores what it
+  does not know is a gate that cannot fail on the part of the contract it
+  never learned, which is the same defect one level up.
+
+  `docs/API.md` names the nine public symbols with their exact signatures and
+  a SemVer stability promise; `tests/test_public_api.py` pins those signatures
+  and the fields of `Finding` and `Rule`, so widening or narrowing the surface
+  is a deliberate act with a red suite in front of it.
+
 - **`--suggest`: the identifier that *is* declared, next to the one that is
   not** (closes #64), in `src/oscal_validate/suggest.py`,
   `checks/references.py`, `findings.py`, `session.py`, `validator.py`,
