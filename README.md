@@ -53,7 +53,8 @@ ERROR        REFERENCE_UNRESOLVED  at=/catalog/groups/16/controls/23/parts/2/par
 
 Exit code 0 when there are no ERROR findings, 1 when there are, 2 when the
 input cannot be read at all. `--format json` produces machine-readable output
-with the same content.
+with the same content, and `--format sarif` the same findings as SARIF 2.1.0
+(see [Output formats](#output-formats)).
 
 ## Why this exists
 
@@ -92,6 +93,7 @@ oscal-validate tests/fixtures/clean_catalog.json    # 0 ERROR, exit 0
 oscal-validate tests/fixtures/broken_catalog.json   # 3 ERROR, exit 1
 
 oscal-validate <file.json> --format json
+oscal-validate <file.json> --format sarif
 oscal-validate my-ssp.json --resolve baseline-profile.json --resolve catalog.json
 oscal-validate my-ssp.json --resolve catalog.json --suggest
 
@@ -104,6 +106,27 @@ imported catalog or profile gets into the picture, and it is the difference
 between a definite answer and an honest "cannot tell" (see
 [The effective data model](#the-effective-data-model)). Nothing is ever
 fetched.
+
+### Output formats
+
+`text` is the default. `json` is the canonical machine-readable report: every
+finding with its code, severity, JSON Pointer, property, value, message, and
+rule citation with source URL and retrieval date, plus a summary by severity;
+`tests/golden/` pins its bytes. `sarif` renders the same findings, in the same
+order, as [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html)
+and adds nothing to them. ERROR and WARNING are `kind: fail`; UNVERIFIABLE is
+`kind: open`, SARIF's own word for "evaluated and not settled"; INFO is
+`kind: informational`; no result is ever `kind: pass`, and a clean document
+still has results, because the constraints that were not evaluated are among
+them. Each code is a rule whose `helpUri` is the citation URL when one URL
+covers every finding under it, and every result carries its own citation,
+source, and retrieval date in `properties.rule`. The location is the document
+plus the JSON Pointer; no line number is reported, because none is tracked.
+Non-`fail` results carry `level: note` rather than the specification's
+`none`, deliberately: GitHub code scanning ignores `kind` and does not render
+`none`, and an UNVERIFIABLE finding that disappears there would be an absence
+rendered as a pass (the reasoning is in `src/oscal_validate/sarif.py`). The
+output validates offline against the OASIS schema vendored in `tests/sarif/`.
 
 ### `diff`: what changed between two runs
 
@@ -307,6 +330,39 @@ The counts are published as outputs: `error-count`, `warning-count`,
 `info-count`, `unverifiable-count`, and `files-validated`. Watch the
 unverifiable count: a run of a large package with imports withheld can be
 green and still have settled very little, and the number is how you see that.
+
+The action annotates the pull request directly and does not write SARIF. To
+put the findings into the repository's code-scanning alerts as well, run the
+CLI's `--format sarif` from the checked-out source and upload the file; the
+`|| [ $? -eq 1 ]` keeps an exit code of 1 (ERROR findings, which the upload
+should carry) from stopping the job before the upload, while an unreadable
+document (exit 2) still fails it. Every UNVERIFIABLE finding arrives as an
+alert at level `note`, on purpose; filter by rule, never by hiding them.
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  code-scanning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: ChelseaKR/oscal-validate
+          ref: main # SARIF output is newer than v0.2.0; pin a commit that carries it
+          path: .oscal-validate
+      - run: |
+          PYTHONPATH=.oscal-validate/src python3 -m oscal_validate oscal/ssp.json \
+            --resolve baselines/ --format sarif > oscal-validate.sarif || [ $? -eq 1 ]
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: oscal-validate.sarif
+          category: oscal-validate
+```
+
 The exit codes are the CLI's, unchanged: 0 when nothing meets the threshold, 1
 when something does, 2 when a document could not be read. A `path` that
 matches no file at all is also exit 2, because a run that validated nothing is
@@ -758,7 +814,7 @@ checked, and it is not a claim that any registry agrees with it yet.
 | CI/CD | Applies | `ci.yml` runs the same `make verify` gate as local development. |
 | Observability | Applies (Tier C, library/CLI) | Declared in [docs/ROADMAP.md](docs/ROADMAP.md#observability). Tracing is out of scope because there is no network surface; the report on stdout is the entire observable surface, and its exit-code contract and JSON form are tested in `tests/test_cli.py`. Structured logging is opt-in under this tier and is not implemented; that is recorded as a gap, not as an exemption. |
 | Performance | N/A (pure library/CLI with no hosted route and no shipped HTML, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. |
-| Accessibility | N/A (no graphical or web surface; plain-text terminal output plus `--format json`) | Revisit if any web or GUI surface is added. |
+| Accessibility | N/A (no graphical or web surface; plain-text terminal output plus `--format json` and `--format sarif`) | Revisit if any web or GUI surface is added. |
 | Internationalization | N/A (findings and model-backed output quote English-language specification prose verbatim; see [docs/I18N.md](docs/I18N.md)) | Multilingual document *data* validates identically. |
 | AI Evaluation | Applies (the four opt-in commands of ADR-0005; the validator itself has no model) | [docs/evals/README.md](docs/evals/README.md) and the committed harness in [evals/](evals/): a 100-case boundary suite scored on shown text, raw text, and explicit refusal; repair efficacy by deterministic re-validation on twelve NIST documents; citation grounding by verbatim lookup; walkthrough fidelity by label set. Results carry provider, model, prompt version, commit, and date, enforced by `tests/test_evals.py`; prompts are versioned in `oscal_validate.ai.PROMPT_VERSION`. |
 | AI Development Measurement | Applies | `AI-DEV-MEASUREMENT: APPLIES` in [docs/ROADMAP.md](docs/ROADMAP.md). This repository was built with AI assistance, disclosed above, so Track A delivery and quality-debt metrics are mined portfolio-wide from git history. Track B applies to the opt-in commands and is served by the AI Evaluation row. |

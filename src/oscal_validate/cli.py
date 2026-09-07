@@ -18,6 +18,10 @@ catalog or profile gets into the effective data model, and it is the difference
 between "this control reference resolves to nothing" and "this control
 reference cannot be checked from here".
 
+``--format`` selects text (default), json (the canonical machine-readable
+report), or sarif (SARIF 2.1.0, the same findings for code-scanning viewers;
+see ``sarif.py`` for how severities map and why no result is ever a pass).
+
 Exit codes: 0 = no ERROR findings; 1 = at least one ERROR finding; 2 = the
 input could not be read or parsed at all.
 """
@@ -34,6 +38,7 @@ from . import __version__
 from .document import DocumentError
 from .findings import Severity, render_findings_json, render_findings_text
 from .rules import OSCAL_RELEASE
+from .sarif import render_findings_sarif
 from .schema import SchemaError
 from .validator import build_session, validate
 
@@ -88,9 +93,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--format",
-        choices=("text", "json"),
+        choices=("text", "json", "sarif"),
         default="text",
-        help="output format (default: text)",
+        help=(
+            "output format (default: text). sarif is SARIF 2.1.0 with the same findings: "
+            "ERROR and WARNING as kind fail, UNVERIFIABLE as kind open, never a pass"
+        ),
     )
     parser.add_argument(
         "--suggest",
@@ -134,11 +142,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     model = session.corpus.primary.walked.model
-    print(
-        render_findings_json(findings, __version__, model)
-        if args.format == "json"
-        else render_findings_text(findings, model)
-    )
+    if args.format == "json":
+        print(render_findings_json(findings, __version__, model))
+    elif args.format == "sarif":
+        print(render_findings_sarif(findings, __version__, model, Path(args.file)))
+    else:
+        print(render_findings_text(findings, model))
     return 1 if any(f.severity is Severity.ERROR for f in findings) else 0
 
 

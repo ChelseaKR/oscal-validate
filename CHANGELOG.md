@@ -41,6 +41,30 @@ and this project adheres to
 
 ### Added
 
+- **`--format sarif`: the same findings as SARIF 2.1.0, with no pass
+  invented.** A third output format beside `text` and `json` (which stays
+  the canonical report). ERROR and WARNING render as `kind: fail` at
+  `level: error` and `warning`; UNVERIFIABLE as `kind: open`, SARIF's word
+  for "evaluated and not settled"; INFO as `kind: informational`; nothing is
+  ever `kind: pass`, and a clean document still has results because the
+  constraints it did not evaluate are among them. Every finding code is a
+  `reportingDescriptor` with `helpUri` set to the citation URL when one URL
+  covers every finding under it, and `properties.sources` naming every
+  source with its retrieval date; every result carries its own citation,
+  URL, and retrieval date in `properties.rule`, its JSON Pointer as a
+  logical location, and a stable `partialFingerprints` entry. No line
+  number is reported. Non-`fail` results carry `level: note` rather than
+  the specification's `none`, deliberately and with the reason recorded in
+  `src/oscal_validate/sarif.py`: GitHub code scanning ignores `kind` and
+  does not render `none`, and a hidden UNVERIFIABLE is an absence rendered
+  as a pass. `tests/test_sarif.py` validates every report offline against
+  the OASIS schema vendored in `tests/sarif/` (hash in its README), pins two
+  goldens byte for byte, and checks that the SARIF carries exactly the JSON
+  report's findings in the same order with the same citations. The README
+  gains an "Output formats" section and a code-scanning upload snippet.
+  `jsonschema` joins the dev toolchain; the validator still has no runtime
+  dependency.
+
 - **`--suggest`: the identifier that *is* declared, next to the one that is
   not** (closes #64), in `src/oscal_validate/suggest.py`,
   `checks/references.py`, `findings.py`, `session.py`, `validator.py`,
