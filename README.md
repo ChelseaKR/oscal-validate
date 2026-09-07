@@ -612,22 +612,26 @@ imports `ai/`; and that `ai/` names the SDK only inside a function, so
 importing it costs nothing. `tests/test_default_path_byte_identity.py` runs
 the default command in a fresh process and asserts it loaded neither the
 package nor the SDK, and compares its exact bytes over the fixtures and
-nine published NIST documents against [`tests/golden/`](tests/golden/),
+nine published documents against [`tests/golden/`](tests/golden/),
 first captured from commit `6978895`, the last commit before any model-backed
 command existed.
 
 **The model-backed layer has never moved those bytes, and that is what this
-gate is for.** They have moved twice, both for unrelated reasons. On
-2026-08-29: the `CONSTRAINT_NOT_EVALUATED` finding for `allowed-values`
-carried a sentence that said something false about NIST's `allow-other`
-semantics, and correcting a sentence the report prints is a change to the
-report. On 2026-09-01, cutting 0.3.0: the JSON report stamps the tool's own
+gate is for.** They have moved four times, every one for an unrelated reason.
+On 2026-08-29 (#35): the `CONSTRAINT_NOT_EVALUATED` finding for
+`allowed-values` carried a sentence that said something false about NIST's
+`allow-other` semantics, and correcting a sentence the report prints is a
+change to the report. On 2026-09-01 (#30): eleven `matches` constraints became
+evaluated, so the line counting the unevaluated ones went from 25 to 14. On
+2026-09-02 (#38), cutting 0.3.0: the JSON report stamps the tool's own
 version, so twelve lines moved, one per JSON golden, and the twelve text
-goldens did not move at all. Both times the goldens were recaptured from the
-same documents, each verified by SHA-256 against the manifest that recorded
-them, and every other byte of the output is unchanged. Those two are the only
-recaptures since `6978895`; [CHANGELOG.md](CHANGELOG.md) and
-`tests/test_default_path_byte_identity.py` record both, and
+goldens did not move at all. On 2026-09-06 (#81): every JSON report gained
+`report_schema_version`, again twelve lines and no text golden. Each time the
+goldens were recaptured from the same documents, each verified by SHA-256
+against the manifest that recorded them, and every other byte of the output is
+unchanged. Those four are the only recaptures since `6978895`;
+[CHANGELOG.md](CHANGELOG.md) and
+`tests/test_default_path_byte_identity.py` record all four, and
 `tests/golden/capture.py` now refuses to write a manifest smaller than the
 committed one, so a recapture on a machine without the cached documents cannot
 quietly shrink what this compares.
