@@ -30,9 +30,10 @@ document it was not given: every one of those is reported **UNVERIFIABLE**, and
 UNVERIFIABLE is never rendered as a pass. A clean report always lists what was
 not checked, alongside what was.
 
-**Status:** Beta. Tagged `v0.1.0` and `v0.2.0`, of which `v0.2.0` also carries
-a GitHub release; `0.3.0` is prepared in the source and dated in the changelog
-but is not tagged. Nothing is published to PyPI, so installation is from
+**Status:** Beta. Tagged `v0.1.0`, `v0.2.0` and `v0.4.0`. `0.4.0` is the current
+release, cut on 2026-09-07 from the changelog section of the same name; `0.3.0`
+was prepared in the source on 2026-09-02 and never cut, which is why the
+numbering skips it. Nothing is published to PyPI, so installation is from
 source. This is a demonstration and reference
 implementation. It is not affiliated with, endorsed by, or reviewed by NIST,
 FedRAMP, or StateRAMP.
@@ -618,7 +619,7 @@ first captured from commit `6978895`, the last commit before any model-backed
 command existed.
 
 **The model-backed layer has never moved those bytes, and that is what this
-gate is for.** They have moved five times, every one for an unrelated reason.
+gate is for.** They have moved six times, every one for an unrelated reason.
 On 2026-08-29 (#35): the `CONSTRAINT_NOT_EVALUATED` finding for
 `allowed-values` carried a sentence that said something false about NIST's
 `allow-other` semantics, and correcting a sentence the report prints is a
@@ -628,14 +629,16 @@ evaluated, so the line counting the unevaluated ones went from 25 to 14. On
 version, so twelve lines moved, one per JSON golden, and the twelve text
 goldens did not move at all. On 2026-09-06 (#81): every JSON report gained
 `report_schema_version`, again twelve lines and no text golden. On 2026-09-07
-(#77): a document that declares a non-vendored release *and* carries an ERROR
-gains one `VERSION_SKEW_SUSPECTED` INFO finding, which two of the twelve cases
-do; the other ten are untouched and no ERROR count or exit code moves. Each
-time the goldens were recaptured from the same documents, each verified by
-SHA-256 against the manifest that recorded them, and every other byte of the
-output is unchanged. Those five are the only recaptures since `6978895`;
+(#88), cutting 0.4.0: the version stamp again, twelve lines and no text
+golden. On 2026-09-07 (#77): a document that declares a non-vendored release
+*and* carries an ERROR gains one `VERSION_SKEW_SUSPECTED` INFO finding, which
+two of the twelve cases do; the other ten are untouched and no ERROR count or
+exit code moves. Each time the goldens were recaptured from the same documents,
+each verified by SHA-256 against the manifest that recorded them, and every
+other byte of the output is unchanged. Those six are the only recaptures since
+`6978895`;
 [CHANGELOG.md](CHANGELOG.md) and
-`tests/test_default_path_byte_identity.py` record all five, and
+`tests/test_default_path_byte_identity.py` record all six, and
 `tests/golden/capture.py` now refuses to write a manifest smaller than the
 committed one, so a recapture on a machine without the cached documents cannot
 quietly shrink what this compares.

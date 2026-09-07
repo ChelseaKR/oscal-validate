@@ -7,7 +7,7 @@ the last commit before any model-backed command existed. Every later commit has
 to reproduce those bytes. This is the proof behind the README's claim that the
 opt-in commands changed nothing about the command that was already there.
 
-Re-captured five times since. Each reason is recorded here because a golden
+Re-captured six times since. Each reason is recorded here because a golden
 re-captured without one stops being evidence, and each entry names the pull
 request that made it so a reader can check the diff rather than take the
 description on trust. The pull request is cited rather than the commit because
@@ -43,6 +43,14 @@ whole diff is twelve lines, one per JSON golden, and the twelve text goldens are
 untouched because the text format does not print it. No document gained or lost
 a finding. This recapture went unrecorded here and in the README for a day,
 while both documents still said the goldens had moved exactly twice.
+
+On 2026-09-07 (#88), cutting 0.4.0: the same one line as #38, for the same
+reason -- the JSON report stamps ``tool.version``, so a version bump moves that
+line and nothing else. Twelve lines, one per JSON golden; the twelve text
+goldens are untouched because the text format does not print the version, and
+no document gained or lost a finding. Verified before committing by reading the
+whole diff: every changed line is ``"version": "0.3.0"`` becoming
+``"version": "0.4.0"``.
 
 On 2026-09-07 (#77), ADR-0008: a document that both declares a non-vendored OSCAL
 release and carries an ERROR gains one ``VERSION_SKEW_SUSPECTED`` INFO finding.

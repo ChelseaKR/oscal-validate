@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.4.0] - 2026-09-07
+
 ### Fixed
 
 - **The golden re-capture log had lost track of the re-captures.** The bytes in
@@ -581,6 +585,46 @@ and this project adheres to
   function is exempt by name — and `RECONSTRUCTION` is held to exactly the
   functions that exist and are actually skipped, so a renamed function cannot
   leave a silent hole and the list cannot quietly grow.
+
+### Released
+
+- **0.4.0, and the first release cut since `v0.2.0`.** `0.3.0` was prepared in
+  the source on 2026-09-02, dated in this file, and never tagged; the work that
+  landed after it — SARIF output, the published report schema and the named
+  library API, the release and publish path itself, and the Action fixes above
+  — is larger than `0.3.0` was, so it is released as `0.4.0` rather than
+  shipped under a heading that does not describe it. Nothing in `0.3.0`'s
+  section moves: it stays as the record of a version that was prepared and not
+  cut.
+
+  Bumping the version moves two things that are easy to miss. `uv.lock` records
+  this package's own version, so it no longer matched `pyproject.toml` and was
+  re-locked in the same change — `make install` runs `uv sync --locked`, which
+  *fails* on a stale lock, so a bump committed without it breaks the release
+  workflow's very first step. And the JSON report stamps `tool.version`, so the
+  twelve JSON goldens were recaptured; the whole diff is twelve lines, each one
+  `"version": "0.3.0"` becoming `"version": "0.4.0"`, and no text golden moved.
+  That recapture is recorded with the other four in
+  `tests/test_default_path_byte_identity.py`.
+
+- **The first tag could not be cut in one commit, and this is how it was.**
+  `tests/test_release_metadata.py` asserts both directions: with no tag for the
+  declared version the README's Status paragraph *must* say so and
+  `CITATION.cff` must carry no release date, and once the tag exists the
+  paragraph must *not* say so and the citation must be dated with that tag's
+  own date. `release.yml` then re-runs `make verify` at the tagged commit. So
+  whichever commit is tagged was written for the other world, and a repository
+  can sit in that state indefinitely with a green `main` and a release it
+  cannot cut.
+
+  The way through is three commits: prepare the version while the no-tag
+  language is still true; push the signed annotated tag; then flip the two
+  statements in a change whose own CI can see the tag, and move the tag onto
+  that commit before dispatching the release. Between the second and third
+  steps `main`'s recorded verdict is stale rather than red -- `ci.yml` triggers
+  on `push: branches: [main]`, and pushing a tag is not that -- which is worth
+  knowing, because a green badge in that window is describing a commit whose
+  README had already stopped being true.
 
 ## [0.3.0] - 2026-09-02
 
