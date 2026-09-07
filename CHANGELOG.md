@@ -10,6 +10,37 @@ and this project adheres to
 
 ### Fixed
 
+- **The golden re-capture log had lost track of the re-captures.** The bytes in
+  `tests/golden/` are the evidence behind the README's claim that the
+  model-backed layer never moved the default path, so a re-capture without a
+  recorded reason is a reset of that evidence with nothing behind it. Both
+  places that record them said the goldens had moved **twice**, and each named a
+  **different** pair: the README had 2026-08-29 (#35) and the 0.3.0 version
+  stamp, and `tests/test_default_path_byte_identity.py` had the `matches`
+  widening (#30) and the version stamp. Between them the two documents recorded
+  three of the four re-captures, and neither said so. The fourth — every JSON
+  report gaining `report_schema_version` in #81, twelve lines, one per JSON
+  golden — was recorded in **neither**, and landed the day before this.
+
+  Nothing detected it because nothing checks it. Both places now list all four
+  with the pull request that made each, so the description can be checked
+  against the diff; the pull request is cited rather than the commit because
+  these land as squash merges and the SHA does not exist when the entry is
+  written. `docs/ROADMAP.md`'s conformance row said "recaptured once on
+  2026-08-29" and now points at that list rather than restating it.
+
+  The test module says plainly that the list is hand-maintained and why it is
+  not gated: a check reading `git log` would have to name the re-capture commit
+  inside the commit that makes it, and a count gated on equality would go red on
+  whoever is doing the re-capture correctly, at the moment they do it. The
+  citations are what make a hand-maintained record checkable instead.
+
+  Also corrected in passing, in the same sentences: the corpus was described as
+  "nine published NIST documents" and as "eight published NIST documents". It is
+  twelve cases over eleven documents — three committed fixtures and eight cached
+  public ones, of which **seven** are NIST's and one is EasyDynamics' derivative
+  of NIST's `ssp-example`, as `tests/golden/capture.py` has always said.
+
 - **The Action treated a severity it did not know as a count of zero, and
   annotated it as a notice.** `docs/API.md` permits `Severity` to gain a member
   within a major version and says a consumer "must not treat an unknown
