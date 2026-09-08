@@ -48,7 +48,7 @@ from oscal_validate.rule import (
 from oscal_validate.sources import SPECIFICATION, section_at, specification_path
 
 from .conftest import fixture_path
-from .test_finding_code_census import ROSTER
+from .test_finding_code_census import RECONSTRUCTION, ROSTER
 
 ROOT = Path(__file__).resolve().parent.parent
 CHECKS = ROOT / "src" / "oscal_validate" / "checks"
@@ -114,10 +114,25 @@ def test_every_named_template_is_a_factory_citing_the_vendored_schema() -> None:
 class _Pairs(ast.NodeVisitor):
     """Collect ``(code, rule)`` pairs from every ``Finding(...)`` in a module."""
 
-    def __init__(self) -> None:
+    def __init__(self, module: str = "") -> None:
         self.pairs: set[tuple[str, str]] = set()
         self.literals: dict[str, set[str]] = {}
         self.unresolved: list[str] = []
+        self.module = module
+        self._reconstructing = 0
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        """A function that copies an existing finding originates no code.
+
+        The same exemption the census makes, by the same names, so the two
+        walks cannot disagree about which calls are originations.
+        """
+        if node.name in RECONSTRUCTION:
+            self._reconstructing += 1
+            self.generic_visit(node)
+            self._reconstructing -= 1
+        else:
+            self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> None:
         if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
@@ -130,7 +145,7 @@ class _Pairs(ast.NodeVisitor):
         keywords = {k.arg: k.value for k in node.keywords if k.arg}
         code = keywords.get("code")
         rule = keywords.get("rule")
-        if code is not None and rule is not None:
+        if code is not None and rule is not None and not self._reconstructing:
             self._pair(code, rule)
         self.generic_visit(node)
 
@@ -162,6 +177,11 @@ class _Pairs(ast.NodeVisitor):
     def _rules(self, node: ast.expr) -> set[str]:
         if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
             return {f"{node.value.id}.{node.attr}"}
+        if isinstance(node, ast.Name) and node.id.isupper():
+            # A module-level Rule constant cited by its bare name. Qualified
+            # with the module it is read in, so the spelling matches the
+            # ``rules.X`` form the checks use.
+            return {f"{self.module}.{node.id}"}
         if isinstance(node, ast.IfExp):
             return self._rules(node.body) | self._rules(node.orelse)
         if isinstance(node, ast.Call):
@@ -174,12 +194,29 @@ class _Pairs(ast.NodeVisitor):
         return set()
 
 
-def _walk_the_checks() -> dict[str, set[str]]:
+def _originating_sources() -> list[Path]:
+    """Every non-AI package module that builds a ``Finding``.
+
+    Derived, not written down. It was ``checks/*.py`` until ``baseline.py``
+    arrived, which is exactly how a list like this stops covering what it
+    claims to: the walk would have gone on passing over a directory that no
+    longer held every originating module.
+    """
+    package = ROOT / "src" / "oscal_validate"
+    ai = package / "ai"
+    return [
+        path
+        for path in sorted(package.rglob("*.py"))
+        if ai not in path.parents and "Finding(" in path.read_text(encoding="utf-8")
+    ]
+
+
+def _walk_the_source() -> dict[str, set[str]]:
     cited: dict[str, set[str]] = {}
-    sources = sorted(CHECKS.glob("*.py"))
-    assert sources, "no check modules found; this walk would pass on nothing"
+    sources = _originating_sources()
+    assert len(sources) >= 8, f"only {len(sources)} module(s); this walk would prove little"
     for path in sources:
-        visitor = _Pairs()
+        visitor = _Pairs(module=path.stem)
         visitor.visit(ast.parse(path.read_text(encoding="utf-8")))
         assert not visitor.unresolved, f"{path.name}: {visitor.unresolved}"
         for code, rule in visitor.pairs:
@@ -189,11 +226,11 @@ def _walk_the_checks() -> dict[str, set[str]]:
 
 def test_the_walk_finds_every_code_the_roster_holds() -> None:
     """A walk that stopped matching would otherwise pass on an empty result."""
-    assert set(_walk_the_checks()) == set(ROSTER)
+    assert set(_walk_the_source()) == set(ROSTER)
 
 
-def test_the_map_names_the_rules_the_checks_actually_cite() -> None:
-    cited = _walk_the_checks()
+def test_the_map_names_the_rules_the_source_actually_cites() -> None:
+    cited = _walk_the_source()
     for code, entry in CODES.items():
         declared = {_qualified(reference.kind, reference.name) for reference in entry.produced_by}
         assert declared == cited[code], code

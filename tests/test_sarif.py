@@ -43,7 +43,8 @@ from .sarif.capture import CASES, HERE, ROOT, run
 EXPECTED_VENDOR_HASHES = test_vendor_integrity.EXPECTED
 
 SCHEMA = json.loads((HERE / "sarif-schema-2.1.0.json").read_text(encoding="utf-8"))
-CHECKS = ROOT / "src" / "oscal_validate" / "checks"
+PACKAGE = ROOT / "src" / "oscal_validate"
+AI_PACKAGE = PACKAGE / "ai"
 
 
 def _sarif(document: Path, resolve: list[Path] | None = None) -> dict[str, Any]:
@@ -310,15 +311,25 @@ def test_a_code_cited_from_two_sources_keeps_both_and_no_single_help_uri() -> No
     assert not errors, errors
 
 
-def test_every_code_the_checks_can_emit_has_a_description() -> None:
+def test_every_code_the_package_can_emit_has_a_description() -> None:
+    """A SARIF rule with no ``shortDescription`` is a code a viewer cannot read.
+
+    The file set is derived rather than written down. It used to be
+    ``checks/*.py``, which was every module that originated a finding at the
+    time and stopped being so the moment ``baseline.py`` arrived: a new code
+    would have reached SARIF with no description and this test would have
+    stayed green over a directory that no longer held all of them.
+    """
     # A code is assigned on one line, as ``code="X"``, ``code = "X"``, or
     # ``code="X" if ... else "Y"``; every quoted token on such a line is one.
+    sources = [p for p in sorted(PACKAGE.rglob("*.py")) if AI_PACKAGE not in p.parents]
+    assert len(sources) >= 20, "the source scan found almost nothing; it would pass on that"
     emitted: set[str] = set()
-    for path in CHECKS.glob("*.py"):
+    for path in sources:
         for line in path.read_text(encoding="utf-8").splitlines():
             if re.search(r"\bcode\s*=", line):
                 emitted |= set(re.findall(r'"([A-Z][A-Z_]+)"', line))
-    assert len(emitted) >= 19, sorted(emitted)
+    assert len(emitted) >= 20, sorted(emitted)
     assert emitted == set(DESCRIPTIONS), sorted(emitted ^ set(DESCRIPTIONS))
 
 

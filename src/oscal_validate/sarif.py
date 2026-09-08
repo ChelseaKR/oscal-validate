@@ -142,6 +142,10 @@ DESCRIPTIONS: dict[str, str] = {
     "OSCAL_VERSION_DIFFERS": (
         "The document declares an OSCAL release other than the one it was judged against."
     ),
+    "BASELINE_STALE": (
+        "A --baseline entry acknowledges a finding this run did not report, so the "
+        "acknowledgement no longer describes anything."
+    ),
 }
 
 

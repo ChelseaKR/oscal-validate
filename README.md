@@ -347,6 +347,54 @@ case, the separator character, or zero-padding come first; then anything within
 an edit distance of two, adjacent transpositions counted as one edit; ties
 broken lexically.
 
+### `--baseline`: acknowledge a finding without hiding it
+
+NIST's own SP 800-53 rev 5 catalog carries an ERROR this tool reports: a link
+naming a statement that does not exist. A team that imports that catalog cannot
+edit NIST's file, so today their options are to ignore the exit code or to turn
+the gate off, and both end with nobody reading the report.
+
+```sh
+oscal-validate my-ssp.json --write-baseline > oscal-baseline.json
+# write a reason and a date into every entry, then commit the file
+oscal-validate my-ssp.json --baseline oscal-baseline.json
+```
+
+**An acknowledged finding is still a finding.** It is printed, it keeps its
+severity, it is counted in the summary, and it appears in the JSON report, the
+SARIF log and the HTML page exactly as it did — with the reason and the date
+beside it. The single thing an acknowledgement changes is whether the finding
+gates the exit code. A report that showed three ERRORs and a summary saying
+zero would be the failure this tool exists to prevent.
+
+Four refusals keep it from becoming a suppression list:
+
+- **A written reason is required.** An entry with none, or with an empty one,
+  is refused at exit 2 — not defaulted and not warned about. This is also why
+  `--write-baseline` writes to stdout with every `reason` empty: the generated
+  file is refused as generated, so it cannot be committed and pointed at
+  without someone saying why each entry is there.
+- **A baseline cannot outlive the defect it excused.** An entry that matches
+  nothing in this run is reported as `BASELINE_STALE` at WARNING, quoting the
+  reason that was written for it, and `--fail-on-stale` makes that gate. It is
+  a WARNING by default because the document may simply have been fixed.
+- **UNVERIFIABLE cannot be baselined.** There is nothing to acknowledge in an
+  answer the tool did not reach; acknowledging one would turn "this could not
+  be settled" into "this was decided to be acceptable". Refused at exit 2, and
+  `--write-baseline` never offers one.
+- **Nothing reads the clock.** `acknowledged_on` is checked for being a real
+  `YYYY-MM-DD` calendar date and is never compared against today. A gate that
+  goes red on a calendar rather than on a commit stops every unrelated change
+  in a repository.
+
+An entry names a finding by code, JSON Pointer, property and value — never by
+its message, which is prose this project edits and whose rewording would
+silently restore a gate. One consequence is worth knowing before you write a
+reason: **a key does not always name exactly one finding.** The same duplicated
+identifier can be reported under two different NIST constraints, differing only
+in message and rule, and one entry acknowledges both. `--write-baseline` writes
+one entry per key for that reason.
+
 ## What it checks
 
 | # | Check | Codes | Rule source |
@@ -435,7 +483,7 @@ jobs:
 ```
 
 `path` takes one document, a directory (searched recursively for `*.json`), or
-a glob such as `oscal/**/*.json`. Three further inputs, all optional:
+a glob such as `oscal/**/*.json`. Five further inputs, all optional:
 
 - `resolve`: space-separated documents or directories to resolve imports and
   references against, passed through as repeated `--resolve`. Same rules as
@@ -449,6 +497,14 @@ a glob such as `oscal/**/*.json`. Three further inputs, all optional:
 - `sarif-file`: a path to write SARIF 2.1.0 to, for
   `github/codeql-action/upload-sarif`. Empty by default, which writes nothing.
   See [below](#code-scanning).
+- `baseline`: a committed baseline file, as described
+  [above](#--baseline-acknowledge-a-finding-without-hiding-it). Findings it
+  names are still annotated at their own severity and still counted in
+  `error-count`; they no longer count towards `fail-on`. An entry with no
+  written reason fails the job rather than being skipped.
+- `fail-on-stale`: `"true"` to fail the job when a baseline entry matched
+  nothing in this run. Setting it without a `baseline` fails the job rather
+  than passing silently.
 
 ```yaml
       - uses: ChelseaKR/oscal-validate@v0.2.0
@@ -461,9 +517,13 @@ a glob such as `oscal/**/*.json`. Three further inputs, all optional:
 ```
 
 The counts are published as outputs: `error-count`, `warning-count`,
-`info-count`, `unverifiable-count`, and `files-validated`. Watch the
-unverifiable count: a run of a large package with imports withheld can be
-green and still have settled very little, and the number is how you see that.
+`info-count`, `unverifiable-count`, `acknowledged-count`,
+`stale-baseline-count`, and `files-validated`. Watch the unverifiable count: a
+run of a large package with imports withheld can be green and still have
+settled very little, and the number is how you see that. Watch
+`acknowledged-count` for the same reason in the other direction: it is how many
+of those findings a baseline is holding open, and it is deliberately *not*
+subtracted from `error-count`.
 
 ### Code scanning
 
@@ -725,7 +785,7 @@ first captured from commit `6978895`, the last commit before any model-backed
 command existed.
 
 **The model-backed layer has never moved those bytes, and that is what this
-gate is for.** They have moved five times, every one for an unrelated reason.
+gate is for.** They have moved six times, every one for an unrelated reason.
 On 2026-08-29 (#35): the `CONSTRAINT_NOT_EVALUATED` finding for
 `allowed-values` carried a sentence that said something false about NIST's
 `allow-other` semantics, and correcting a sentence the report prints is a
@@ -736,12 +796,15 @@ version, so twelve lines moved, one per JSON golden, and the twelve text
 goldens did not move at all. On 2026-09-06 (#81): every JSON report gained
 `report_schema_version`, again twelve lines and no text golden. On 2026-09-07
 (#88), cutting 0.4.0: the version stamp again, twelve lines and no text
-golden. Each time the
+golden. On 2026-09-07 (#92): the report schema went to `1.1.0` for the two keys
+`--baseline` adds, so every JSON report's `report_schema_version` line moved —
+twelve lines, one per JSON golden, and no text golden, because the text format
+does not print it. Each time the
 goldens were recaptured from the same documents, each verified by SHA-256
 against the manifest that recorded them, and every other byte of the output is
-unchanged. Those five are the only recaptures since `6978895`;
+unchanged. Those six are the only recaptures since `6978895`;
 [CHANGELOG.md](CHANGELOG.md) and
-`tests/test_default_path_byte_identity.py` record all five, and
+`tests/test_default_path_byte_identity.py` record all six, and
 `tests/golden/capture.py` now refuses to write a manifest smaller than the
 committed one, so a recapture on a machine without the cached documents cannot
 quietly shrink what this compares.

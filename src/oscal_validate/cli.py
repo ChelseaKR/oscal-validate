@@ -26,8 +26,15 @@ report), sarif (SARIF 2.1.0, the same findings for code-scanning viewers; see
 (one self-contained page for a reviewer, written to stdout like the others; see
 ``htmlreport.py``).
 
-Exit codes: 0 = no ERROR findings; 1 = at least one ERROR finding; 2 = the
-input could not be read or parsed at all.
+``--baseline`` reads a committed list of acknowledged findings. A finding it
+names is still printed, still counted and still an ERROR; the one thing it
+stops doing is gating the exit code. ``--write-baseline`` prints such a file
+for a human to annotate, to stdout rather than to disk, because this command
+has never written a file and the privacy audit says so. See ``baseline.py``.
+
+Exit codes: 0 = no ERROR findings the baseline did not acknowledge; 1 = at
+least one that it did not, or a stale baseline entry under
+``--fail-on-stale``; 2 = the input, or the baseline, could not be read.
 """
 
 from __future__ import annotations
@@ -38,9 +45,9 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from . import __version__
+from . import __version__, baseline
 from .document import DocumentError
-from .findings import Severity, render_findings_json, render_findings_text
+from .findings import Finding, render_findings_json, render_findings_text, stale_count
 from .htmlreport import render_findings_html
 from .report import read_report_schema
 from .rules import OSCAL_RELEASE
@@ -144,6 +151,37 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--baseline",
+        metavar="FILE",
+        help=(
+            "a committed list of acknowledged findings, each with a written reason and "
+            "the date it was acknowledged. Findings it names are still printed, still "
+            "counted, and marked ACKNOWLEDGED, but do not gate the exit code; everything "
+            "else gates exactly as it does without this flag. An entry that matches "
+            "nothing is reported as BASELINE_STALE. An entry with no reason, or one that "
+            "names an UNVERIFIABLE finding, is refused (exit 2)"
+        ),
+    )
+    parser.add_argument(
+        "--fail-on-stale",
+        action="store_true",
+        help=(
+            "exit 1 when a --baseline entry matched nothing in this run, so a baseline "
+            "cannot outlive the defect it excused"
+        ),
+    )
+    parser.add_argument(
+        "--write-baseline",
+        action="store_true",
+        help=(
+            "print a baseline document for this run instead of the report, for a human "
+            "to annotate with reasons. It is written to stdout rather than to a file: "
+            "this tool has never written to disk and the privacy audit says so. As "
+            "generated it is refused by --baseline, because every entry needs a reason. "
+            "Exits 0 whatever the findings were; it generates, it does not gate"
+        ),
+    )
+    parser.add_argument(
         "--report-schema",
         action=PrintReportSchema,
         help=(
@@ -185,25 +223,70 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 2
 
-    model = session.corpus.primary.walked.model
-    if args.format == "json":
-        print(render_findings_json(findings, __version__, model))
-    elif args.format == "sarif":
-        print(render_findings_sarif(findings, __version__, model, Path(args.file)))
-    elif args.format == "html":
+    if args.write_baseline:
+        print(baseline.render(findings))
+        return 0
+
+    used = str(args.baseline or "")
+    if used:
+        try:
+            findings = baseline.apply(findings, baseline.load(Path(used)))
+        except baseline.BaselineError as exc:
+            print(f"oscal-validate: {exc}", file=sys.stderr)
+            return 2
+
+    _render(
+        findings,
+        args.format,
+        session.corpus.primary.walked.model,
+        args.file,
+        [str(p) for p in args.resolve],
+        used,
+    )
+    return _exit_code(findings, fail_on_stale=args.fail_on_stale)
+
+
+def _render(
+    findings: list[Finding],
+    fmt: str,
+    model: str,
+    document: str,
+    resolve: list[str],
+    baseline_path: str,
+) -> None:
+    if fmt == "json":
+        print(render_findings_json(findings, __version__, model, baseline_path))
+    elif fmt == "sarif":
+        print(render_findings_sarif(findings, __version__, model, Path(document)))
+    elif fmt == "html":
         print(
             render_findings_html(
                 findings,
                 __version__,
                 model,
-                Path(args.file),
-                [Path(p) for p in args.resolve],
+                Path(document),
+                [Path(p) for p in resolve],
+                baseline_path,
             ),
             end="",
         )
     else:
-        print(render_findings_text(findings, model))
-    return 1 if any(f.severity is Severity.ERROR for f in findings) else 0
+        print(render_findings_text(findings, model, baseline_path))
+
+
+def _exit_code(findings: list[Finding], *, fail_on_stale: bool) -> int:
+    """0 or 1, and the only place either is decided.
+
+    ``Finding.gates`` is what makes an acknowledged ERROR not gate; it is a
+    property of the finding rather than a filter written here, so every reader
+    of a finding gets the same answer. A stale baseline entry gates only when
+    it was asked to, because the document may simply have been fixed.
+    """
+    if any(finding.gates for finding in findings):
+        return 1
+    if fail_on_stale and stale_count(findings):
+        return 1
+    return 0
 
 
 def entrypoint() -> None:

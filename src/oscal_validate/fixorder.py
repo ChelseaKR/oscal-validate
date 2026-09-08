@@ -75,6 +75,12 @@ TIERS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "imports that were matched, listed so the effective data model is visible",
         ("IMPORT_RESOLVED",),
     ),
+    (
+        "Housekeeping: the baseline itself",
+        "not a statement about the document; a --baseline entry that matched nothing this "
+        "run found, so the acknowledgement may be outliving the defect it excused",
+        ("BASELINE_STALE",),
+    ),
 )
 
 #: What a code no tier names is placed under. It is placed, not dropped: a

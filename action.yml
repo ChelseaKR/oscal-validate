@@ -30,6 +30,26 @@ inputs:
       through `resolve`.
     required: false
     default: error
+  baseline:
+    description: >-
+      A committed baseline file naming findings that have been acknowledged,
+      each with a written reason and the date it was acknowledged. Findings it
+      names are still reported and still annotated at their own severity, and
+      they no longer count towards `fail-on`. Everything else gates exactly as
+      it does without this input. Generate the file with
+      `oscal-validate <doc> --write-baseline`, then write a reason into every
+      entry: an entry without one is refused and fails the job. An entry that
+      matches nothing this run found is reported as BASELINE_STALE.
+    required: false
+    default: ""
+  fail-on-stale:
+    description: >-
+      Set to "true" to fail the job when a baseline entry matched nothing in
+      this run, so a baseline cannot outlive the defect it excused. Needs
+      `baseline`; setting it without one fails the job rather than passing
+      silently.
+    required: false
+    default: ""
   sarif-file:
     description: >-
       Write a SARIF 2.1.0 log of every finding to this path, for
@@ -59,6 +79,18 @@ outputs:
       Number of UNVERIFIABLE findings: what the supplied documents could not
       settle. Never gates the job, and never a pass.
     value: ${{ steps.validate.outputs.unverifiable-count }}
+  acknowledged-count:
+    description: >-
+      Number of findings a `baseline` entry acknowledged. They are still in
+      the severity counts above: an acknowledged ERROR is still an ERROR, and
+      the only thing an acknowledgement changes is whether it gates.
+    value: ${{ steps.validate.outputs.acknowledged-count }}
+  stale-baseline-count:
+    description: >-
+      Number of `baseline` entries that matched nothing in this run. Gates
+      only under `fail-on-stale`, because the document may simply have been
+      fixed.
+    value: ${{ steps.validate.outputs.stale-baseline-count }}
   files-validated:
     description: Number of documents the run actually read.
     value: ${{ steps.validate.outputs.files-validated }}
@@ -97,4 +129,6 @@ runs:
         OSCAL_RESOLVE: ${{ inputs.resolve }}
         OSCAL_FAIL_ON: ${{ inputs['fail-on'] }}
         OSCAL_SARIF_FILE: ${{ inputs['sarif-file'] }}
+        OSCAL_BASELINE: ${{ inputs.baseline }}
+        OSCAL_FAIL_ON_STALE: ${{ inputs['fail-on-stale'] }}
       run: python3 "$ACTION_PATH/tools/action_runner.py"

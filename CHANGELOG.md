@@ -10,6 +10,64 @@ and this project adheres to
 
 ### Added
 
+- **`--baseline`: acknowledge a finding without hiding it.** NIST's own
+  SP 800-53 rev 5 catalog carries an ERROR this tool reports, and a team that
+  imports that catalog cannot edit NIST's file. Their options were to ignore
+  the exit code or to switch the gate off; both end with nobody reading the
+  report. A baseline names findings that have been looked at and accepted, each
+  with a written reason and the date it was written.
+
+  An acknowledged finding is still printed, still keeps its severity, and is
+  still counted in every summary, in every format. The single thing an
+  acknowledgement changes is whether the finding gates the exit code, and
+  `Finding.gates` is the one place that is decided, so no renderer can disagree
+  with the exit code. Four refusals keep it from becoming a suppression list: an
+  entry with no written reason is refused at exit 2; an entry naming an
+  UNVERIFIABLE finding is refused, because there is nothing to acknowledge in an
+  answer the tool did not reach; an entry that matches nothing this run found is
+  reported as `BASELINE_STALE` at WARNING, quoting its own reason, with
+  `--fail-on-stale` to make it gate; and `acknowledged_on` is validated as a
+  calendar date and never compared against today, so no verdict here depends on
+  when it runs.
+
+  `--write-baseline` generates the document, to stdout, with every reason empty
+  — so the file as generated is refused by `--baseline`, and cannot be committed
+  and used without someone writing down why each entry is there. It never offers
+  an UNVERIFIABLE finding, because the generator must not produce what the
+  reader will refuse.
+
+  The GitHub Action takes `baseline` and `fail-on-stale` inputs and publishes
+  `acknowledged-count` and `stale-baseline-count`. `acknowledged-count` is
+  deliberately not subtracted from `error-count`: an acknowledged ERROR is still
+  an ERROR. The action refuses a report whose `acknowledged` block it cannot
+  parse rather than reading it as absent, because absent is what makes a finding
+  gate.
+
+  The report schema goes to **1.1.0** for two optional keys — a `baseline` block
+  and an `acknowledged` object on a finding. Both counts in that block are
+  derived from the findings the report carries, so a report cannot claim an
+  acknowledgement it does not show, and the key is absent when no baseline was
+  given: a run never given one makes no claim either way.
+
+### Fixed
+
+- **`--write-baseline` generated a file `--baseline` refused.** Two findings can
+  share a baseline key — the same duplicated identifier reported under two
+  different NIST constraints, differing only in message and rule — and the
+  generator wrote one entry per finding. The result was refused as *duplicated*,
+  a refusal that blames the reader for something the generator did and whose
+  only obvious cure is to weaken the duplicate check. It now writes one entry
+  per distinct key, which is what `apply` matches on and therefore the only
+  shape that describes what an acknowledgement will do.
+
+- **The HTML report told a reviewer an acknowledged ERROR gates the exit code.**
+  Its summary answered `yes` in the "Gates the exit code" column for ERROR
+  unconditionally — true until `--baseline` existed. The page a person signs off
+  from now derives that cell from `Finding.gates`, names the acknowledgement, the
+  reason and the date on the finding's own row, and states the baseline path with
+  its acknowledged and stale counts. The defect class is a disclosure corrected
+  in the machine-readable formats and left wrong in the one a person reads.
+
 - **`--format html`: one self-contained page for a reviewer, and the project's
   first human-facing rendered surface.** The people who sign a package rarely
   run a CLI, and until now the only way to hand them findings was a pasted

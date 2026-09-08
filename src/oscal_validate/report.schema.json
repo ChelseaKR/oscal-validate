@@ -16,7 +16,7 @@
     "report_schema_version": {
       "description": "The version of this schema that the report conforms to. Semantic: the major part changes when a consumer that reads the old shape would break.",
       "type": "string",
-      "const": "1.0.0"
+      "const": "1.1.0"
     },
     "tool": {
       "description": "What produced the report.",
@@ -79,6 +79,27 @@
           "$ref": "#/$defs/count"
         },
         "UNVERIFIABLE": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "baseline": {
+      "description": "Present only when --baseline was given. Absent is not the same as a baseline that acknowledged nothing: a run that was never given one makes no claim either way. `path` is the file as it was named on the command line. `acknowledged` is how many findings in this report an entry matched -- they are still in `findings`, still carry their own severity, and are still counted in `summary`. `stale` is how many BASELINE_STALE findings this report carries, one per entry that matched nothing in this run. Both counts are derived from the findings this report carries, so a report cannot claim an acknowledgement it does not show.",
+      "type": "object",
+      "required": [
+        "path",
+        "acknowledged",
+        "stale"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "acknowledged": {
+          "$ref": "#/$defs/count"
+        },
+        "stale": {
           "$ref": "#/$defs/count"
         }
       }
@@ -184,6 +205,28 @@
           "items": {
             "$ref": "#/$defs/suggestion"
           }
+        },
+        "acknowledged": {
+          "$ref": "#/$defs/acknowledgement"
+        }
+      }
+    },
+    "acknowledgement": {
+      "description": "Why a finding was accepted and when, copied from the matching --baseline entry. Absent unless a baseline matched this finding, and its presence is the only thing that distinguishes an ERROR that gates the exit code from one that does not. It changes nothing else: the severity, the message and the counts are untouched.",
+      "type": "object",
+      "required": [
+        "reason",
+        "acknowledged_on"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "description": "The written reason. A baseline entry without one is refused.",
+          "type": "string"
+        },
+        "acknowledged_on": {
+          "description": "The date the entry was written, YYYY-MM-DD. Never compared against today: this tool does not read the clock.",
+          "type": "string"
         }
       }
     }

@@ -300,6 +300,15 @@ CODES: dict[str, CodeEntry] = {
         emitted_by=("checks/structure.py",),
         produced_by=(_template("min_items_rule"),),
     ),
+    "BASELINE_STALE": CodeEntry(
+        what=(
+            "a --baseline entry acknowledges a finding this run did not report, so the "
+            "acknowledgement no longer describes anything and may be outliving the defect "
+            "it excused"
+        ),
+        emitted_by=("baseline.py",),
+        produced_by=(_constant("BASELINE_POLICY"),),
+    ),
     "CONSTRAINT_CARDINALITY": CodeEntry(
         what="a has-cardinality constraint's target selected too few or too many nodes",
         emitted_by=("checks/constraints.py",),

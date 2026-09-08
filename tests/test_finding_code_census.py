@@ -31,7 +31,8 @@ from typing import Any
 
 import pytest
 
-from oscal_validate import validate_file
+from oscal_validate import baseline, validate_file
+from oscal_validate.baseline import BASELINE_VERSION
 
 from .conftest import fixture_path, load_fixture, write
 
@@ -42,6 +43,7 @@ PACKAGE = Path(__file__).resolve().parent.parent / "src" / "oscal_validate"
 ROSTER = frozenset(
     {
         "ARRAY_TOO_SHORT",
+        "BASELINE_STALE",
         "CONSTRAINT_CARDINALITY",
         "CONSTRAINT_NOT_EVALUATED",
         "CONSTRAINT_NOT_UNIQUE",
@@ -70,11 +72,14 @@ ROSTER = frozenset(
 #: The census asks which codes this package can *originate*.
 #: ``compare.findings_from_report`` rebuilds findings out of a saved report
 #: written by an earlier run, so its ``code=`` is whatever that file said and
-#: is not a code this source can introduce. Its body cannot be read as string
-#: constants and should not be: an entry here would be a hole in the census if
-#: it were not exactly one named function, so
-#: ``test_the_census_exemption_is_the_one_function_it_names`` holds it to that.
-RECONSTRUCTION = frozenset({"findings_from_report"})
+#: is not a code this source can introduce. ``baseline._acknowledged_copy``
+#: does the same to a finding this run already produced: it attaches an
+#: acknowledgement and copies every other field, the code included. Neither
+#: body can be read as string constants and neither should be. An entry here
+#: would be a hole in the census if it were not exactly a named function, so
+#: ``test_the_census_exemption_is_the_one_function_it_names`` holds every name
+#: on this list to existing in the package.
+RECONSTRUCTION = frozenset({"findings_from_report", "_acknowledged_copy"})
 
 
 class _CodeCensus(ast.NodeVisitor):
@@ -367,11 +372,36 @@ def test_import_ambiguous_needs_two_files_answering_to_one_name(tmp_path: Path) 
     assert "IMPORT_AMBIGUOUS" in {f.code for f in validate_file(profile, paths)}
 
 
+def test_baseline_stale_needs_a_baseline_entry_that_matches_nothing(tmp_path: Path) -> None:
+    """The second witness that cannot be a single document.
+
+    ``BASELINE_STALE`` is not a statement about the document at all: it is what
+    the tool reports when a committed acknowledgement no longer describes
+    anything this run found. So the witness is a clean catalog plus a baseline
+    naming a finding that is not in it.
+    """
+    document = write(tmp_path, "clean.json", _catalog())
+    entry = {
+        "code": "REFERENCE_UNRESOLVED",
+        "location": "/catalog/metadata/links/0",
+        "property": "href",
+        "value": "#gone",
+        "reason": "kept only so this run has a stale entry to report",
+        "acknowledged_on": "2026-09-07",
+    }
+    path = tmp_path / "oscal-baseline.json"
+    path.write_text(
+        json.dumps({"baseline_version": BASELINE_VERSION, "entries": [entry]}), encoding="utf-8"
+    )
+    findings = baseline.apply(validate_file(document), baseline.load(path))
+    assert "BASELINE_STALE" in {f.code for f in findings}
+
+
 def test_every_rostered_code_has_a_witness() -> None:
     """The assertion that makes the two above load-bearing.
 
     Without it, a code could be dropped from ``WITNESSES`` and the
     parametrized test would simply run one case fewer, in silence.
     """
-    covered = set(WITNESSES) | {"IMPORT_AMBIGUOUS"}
+    covered = set(WITNESSES) | {"IMPORT_AMBIGUOUS", "BASELINE_STALE"}
     assert covered == set(ROSTER), sorted(set(ROSTER) - covered)
