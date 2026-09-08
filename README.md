@@ -95,6 +95,7 @@ oscal-validate tests/fixtures/broken_catalog.json   # 3 ERROR, exit 1
 
 oscal-validate <file.json> --format json
 oscal-validate <file.json> --format sarif
+oscal-validate <file.json> --format html > review.html   # one self-contained page
 oscal-validate --report-schema                      # the shape that report conforms to
 oscal-validate my-ssp.json --resolve baseline-profile.json --resolve catalog.json
 oscal-validate my-ssp.json --resolve catalog.json --suggest
@@ -129,6 +130,37 @@ Non-`fail` results carry `level: note` rather than the specification's
 `none`, and an UNVERIFIABLE finding that disappears there would be an absence
 rendered as a pass (the reasoning is in `src/oscal_validate/sarif.py`). The
 output validates offline against the OASIS schema vendored in `tests/sarif/`.
+
+`html` is one self-contained page for the people who sign packages and do not
+run a CLI, written to stdout like the others:
+
+```sh
+oscal-validate my-ssp.json --resolve catalog.json --format html > review.html
+```
+
+It carries every finding the text report carries, grouped in the fix order
+`walkthrough` computes — from the same module, so a reviewer's page and the
+narrative cannot place a finding differently — with the JSON pointer, the
+value, the message, and the rule citation as a link to NIST's page with the
+date that page was retrieved. UNVERIFIABLE keeps its own section and the
+summary states the count on the page; nothing is folded into a pass.
+
+Four properties, each checked rather than asserted by
+`tests/test_html_report.py`:
+
+- **Self-contained.** One file. No script, no external stylesheet, no font, no
+  image, no `src` of any kind. It opens with the network off and requests
+  nothing; the only external URLs are the citation links a reader may follow on
+  purpose.
+- **Deterministic.** No timestamp and nothing else that moves between two runs
+  over the same inputs. The footer names the tool version, the OSCAL release,
+  the documents read, and the SHA-256 of every vendored file this run opened.
+- **Accessible, mechanically.** See the Accessibility row in
+  [Standards Conformance](#standards-conformance) for the seven rules and how
+  each is proved able to fail.
+- **Escaped.** OSCAL documents are untrusted input, so every value from the
+  document goes through `html.escape` with quoting on. There is an injection
+  test.
 
 ### The JSON report is a published contract
 
@@ -979,8 +1011,8 @@ checked, and it is not a claim that any registry agrees with it yet.
 | Security & Supply-Chain | Applies | [SECURITY.md](SECURITY.md); SHA-pinned Actions; Semgrep and full-history TruffleHog in CI; pip-audit in `make verify`; Dependabot; gitleaks in pre-commit. |
 | CI/CD | Applies | `ci.yml` runs the same `make verify` gate as local development. |
 | Observability | Applies (Tier C, library/CLI) | Declared in [docs/ROADMAP.md](docs/ROADMAP.md#observability). Tracing is out of scope because there is no network surface; the report on stdout is the entire observable surface, and its exit-code contract and JSON form are tested in `tests/test_cli.py`. Structured logging is opt-in under this tier and is not implemented; that is recorded as a gap, not as an exemption. |
-| Performance | N/A (pure library/CLI with no hosted route and no shipped HTML, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. |
-| Accessibility | N/A (no graphical or web surface; plain-text terminal output plus `--format json` and `--format sarif`) | Revisit if any web or GUI surface is added. |
+| Performance | N/A (pure library/CLI with no hosted route, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. `--format html` writes a file to stdout: it is not served, it loads nothing, and it carries no script, so there is no route to time and no bundle to size. |
+| Accessibility | Applies (since `--format html`, the first human-facing rendered surface) | `tests/test_html_report.py` parses the rendered page with the standard library and holds it to seven structural rules: one `h1` and no skipped heading level, `lang="en"`, a skip link whose target exists, no duplicate ids, a caption and `th scope` on every table with every row exactly as wide as its header, no element that fetches anything, and every form control labelled. Each rule is seeded with the defect it exists to catch, so none of them is a check that has never gone red. Severity is carried by the word, never by colour. The mechanical checks are not a full WCAG audit and the file says so: they cannot judge prose or rendered contrast. |
 | Internationalization | N/A (findings and model-backed output quote English-language specification prose verbatim; see [docs/I18N.md](docs/I18N.md)) | Multilingual document *data* validates identically. |
 | AI Evaluation | Applies (the four opt-in commands of ADR-0005; the validator itself has no model) | [docs/evals/README.md](docs/evals/README.md) and the committed harness in [evals/](evals/): a 100-case boundary suite scored on shown text, raw text, and explicit refusal; repair efficacy by deterministic re-validation on twelve NIST documents; citation grounding by verbatim lookup; walkthrough fidelity by label set. Results carry provider, model, prompt version, commit, and date, enforced by `tests/test_evals.py`; prompts are versioned in `oscal_validate.ai.PROMPT_VERSION`. |
 | AI Development Measurement | Applies | `AI-DEV-MEASUREMENT: APPLIES` in [docs/ROADMAP.md](docs/ROADMAP.md). This repository was built with AI assistance, disclosed above, so Track A delivery and quality-debt metrics are mined portfolio-wide from git history. Track B applies to the opt-in commands and is served by the AI Evaluation row. |

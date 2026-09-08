@@ -10,6 +10,39 @@ and this project adheres to
 
 ### Added
 
+- **`--format html`: one self-contained page for a reviewer, and the project's
+  first human-facing rendered surface.** The people who sign a package rarely
+  run a CLI, and until now the only way to hand them findings was a pasted
+  terminal dump. The page carries every finding the text report carries,
+  grouped in the fix order `walkthrough` computes, each with its JSON pointer,
+  value, message, and rule citation as a link to NIST's page with the date it
+  was retrieved. UNVERIFIABLE keeps its own section and the summary states the
+  count on the page: nothing is folded into a pass.
+
+  One file, and it fetches nothing — no script, no external stylesheet, no
+  font, no image, no `src` of any kind. No timestamp either, so two runs over
+  the same inputs are byte-identical and a difference between two reports is a
+  difference in what was read; the footer names the tool version, the OSCAL
+  release, the documents read and the SHA-256 of every vendored file the run
+  opened. OSCAL documents are untrusted input, so every value goes through
+  `html.escape` with quoting on and there is an injection test.
+
+  **This flips the Accessibility standard from N/A to Applies**, and the
+  proposal takes that on rather than deferring it.
+  `tests/test_html_report.py` parses the rendered bytes with the standard
+  library and holds every page the suite can produce to seven structural rules
+  — one `h1` with no skipped levels, `lang="en"`, a skip link whose target
+  exists, no duplicate ids, a caption and `th scope` on every table with every
+  row exactly as wide as its header, no fetching element, every control
+  labelled — and **each rule is seeded with the defect it exists to catch**, so
+  none of them is a check that has never gone red. What the mechanical checks
+  cannot judge is stated rather than implied: they are not a WCAG audit, and no
+  assistive-technology testing has been done. `docs/RESPONSIBLE-TECH-AUDITS.md`
+  gains section E saying so, and `docs/I18N.md` records why the N/A there is
+  unchanged — the page introduces no new strings, only a rendering of the ones
+  the terminal already prints, and it declares `lang="en"` so what it is is
+  stated in the markup.
+
 - **`oscal-validate rule <constraint-id | finding-code>`: the citation trail,
   offline, deterministic, and with no model in the process.** Most of what
   `explain` is worth happens before it calls a model — it gathers the constraint
@@ -51,6 +84,14 @@ and this project adheres to
   and inside what byte budget. Everything it exported is re-exported, so no
   caller moves. The corpus **files** stay at `ai/corpus/`, where ADR-0005, the
   data card and `pyproject.toml`'s package-data all say they are.
+
+- **The fix order moved out of the AI package too**, from the `TIERS` table in
+  `ai/walkthrough.py` to `oscal_validate/fixorder.py`. Two surfaces now order
+  findings by it — the model-backed walkthrough and `--format html` — and a fix
+  order that two modules state separately is one that will eventually disagree
+  with itself. `ai/walkthrough.py` imports it and keeps the `G1..Gn` labelling
+  and prompt formatting, which are only about a prompt; a test asserts the two
+  orderings are equal over a real document.
 
 ## [0.4.0] - 2026-09-07
 
