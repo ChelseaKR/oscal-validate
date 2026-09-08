@@ -21,8 +21,10 @@ between "this control reference resolves to nothing" and "this control
 reference cannot be checked from here".
 
 ``--format`` selects text (default), json (the canonical machine-readable
-report), or sarif (SARIF 2.1.0, the same findings for code-scanning viewers;
-see ``sarif.py`` for how severities map and why no result is ever a pass).
+report), sarif (SARIF 2.1.0, the same findings for code-scanning viewers; see
+``sarif.py`` for how severities map and why no result is ever a pass), or html
+(one self-contained page for a reviewer, written to stdout like the others; see
+``htmlreport.py``).
 
 ``--baseline`` reads a committed list of acknowledged findings. A finding it
 names is still printed, still counted and still an ERROR; the one thing it
@@ -46,6 +48,7 @@ from pathlib import Path
 from . import __version__, baseline
 from .document import DocumentError
 from .findings import Finding, render_findings_json, render_findings_text, stale_count
+from .htmlreport import render_findings_html
 from .report import read_report_schema
 from .rules import OSCAL_RELEASE
 from .sarif import render_findings_sarif
@@ -127,11 +130,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--format",
-        choices=("text", "json", "sarif"),
+        choices=("text", "json", "sarif", "html"),
         default="text",
         help=(
             "output format (default: text). sarif is SARIF 2.1.0 with the same findings: "
-            "ERROR and WARNING as kind fail, UNVERIFIABLE as kind open, never a pass"
+            "ERROR and WARNING as kind fail, UNVERIFIABLE as kind open, never a pass. "
+            "html is one self-contained page for a reviewer -- no script, no external "
+            "stylesheet, no timestamp -- written to stdout like the others"
         ),
     )
     parser.add_argument(
@@ -230,17 +235,40 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"oscal-validate: {exc}", file=sys.stderr)
             return 2
 
-    _render(findings, args.format, session.corpus.primary.walked.model, args.file, used)
+    _render(
+        findings,
+        args.format,
+        session.corpus.primary.walked.model,
+        args.file,
+        [str(p) for p in args.resolve],
+        used,
+    )
     return _exit_code(findings, fail_on_stale=args.fail_on_stale)
 
 
 def _render(
-    findings: list[Finding], fmt: str, model: str, document: str, baseline_path: str
+    findings: list[Finding],
+    fmt: str,
+    model: str,
+    document: str,
+    resolve: list[str],
+    baseline_path: str,
 ) -> None:
     if fmt == "json":
         print(render_findings_json(findings, __version__, model, baseline_path))
     elif fmt == "sarif":
         print(render_findings_sarif(findings, __version__, model, Path(document)))
+    elif fmt == "html":
+        print(
+            render_findings_html(
+                findings,
+                __version__,
+                model,
+                Path(document),
+                [Path(p) for p in resolve],
+            ),
+            end="",
+        )
     else:
         print(render_findings_text(findings, model, baseline_path))
 
