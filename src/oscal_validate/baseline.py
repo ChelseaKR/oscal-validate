@@ -55,6 +55,16 @@ BASELINE_VERSION = "1.0.0"
 #: What identifies one finding for the purpose of acknowledging it. Deliberately
 #: not the message: a message is prose this project edits, and an acknowledgement
 #: that fell off because a sentence was reworded would silently restore a gate.
+#:
+#: The consequence, which is real rather than theoretical: **a key does not
+#: always name exactly one finding.** ``broken_catalog.json`` reports the same
+#: duplicated identifier twice, once under each of two NIST constraints that
+#: both forbid it, and the two differ only in their message and their rule. One
+#: entry therefore acknowledges both, and that is the honest reading of what a
+#: person wrote down -- "we accept this value at this place" is a statement
+#: about the value, not about which constraint noticed it first. Both halves of
+#: the tool have to agree on that: :func:`render` writes one entry per distinct
+#: key, and :func:`apply` marks every finding a key names.
 KEY_FIELDS = ("code", "location", "property", "value")
 
 #: Every field an entry must carry. ``reason`` and ``acknowledged_on`` are as
@@ -62,7 +72,6 @@ KEY_FIELDS = ("code", "location", "property", "value")
 REQUIRED_FIELDS = (*KEY_FIELDS, "reason", "acknowledged_on")
 
 _ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
-
 
 
 class BaselineError(Exception):
@@ -202,24 +211,41 @@ def render(findings: list[Finding]) -> str:
     """A baseline document for this run, for a human to annotate.
 
     ``reason`` and ``acknowledged_on`` are written empty on purpose. The file
-    as generated is **refused** by :func:`load`, so it cannot be committed and
-    used without someone writing down why each entry is there.
+    as generated is **refused** by :func:`load` for exactly one reason -- every
+    entry needs a written reason -- so it cannot be committed and used without
+    someone writing down why each entry is there.
+
+    That "exactly one reason" is load-bearing, and the first version of this
+    function did not honour it. It wrote one entry per finding, and two
+    findings can share a key (see :data:`KEY_FIELDS`), so a generated file was
+    refused for *duplicate entries* on a document whose findings collide --
+    a refusal that blames the reader for something the generator did, and one
+    whose only obvious cure is to relax the duplicate check. One entry per
+    distinct key is what :func:`apply` matches on, so it is also the only
+    shape that describes what an acknowledgement will do.
 
     UNVERIFIABLE findings are never written: there is nothing to acknowledge in
     an answer the tool did not reach.
     """
-    entries = [
-        Entry(
-            finding_code=f.code,
-            location=f.location,
-            prop=f.prop,
-            value=f.value,
-            reason="",
-            acknowledged_on="",
+    entries: list[Entry] = []
+    written: set[Key] = set()
+    for f in findings:
+        if f.severity is Severity.UNVERIFIABLE:
+            continue
+        key = key_of(f)
+        if key in written:
+            continue
+        written.add(key)
+        entries.append(
+            Entry(
+                finding_code=f.code,
+                location=f.location,
+                prop=f.prop,
+                value=f.value,
+                reason="",
+                acknowledged_on="",
+            )
         )
-        for f in findings
-        if f.severity is not Severity.UNVERIFIABLE
-    ]
     payload = {
         "baseline_version": BASELINE_VERSION,
         "written_by": f"oscal-validate {__version__} --write-baseline",

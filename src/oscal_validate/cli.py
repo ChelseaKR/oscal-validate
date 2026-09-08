@@ -266,6 +266,7 @@ def _render(
                 model,
                 Path(document),
                 [Path(p) for p in resolve],
+                baseline_path,
             ),
             end="",
         )

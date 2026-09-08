@@ -23,6 +23,12 @@ under the fix order :mod:`oscal_validate.fixorder` computes -- the same order
 ``walkthrough`` uses, from the same module, so the two cannot place a finding
 differently. UNVERIFIABLE keeps its own section and is never folded into a
 pass, and the summary states the count on the page rather than in a footnote.
+A finding a ``--baseline`` acknowledged is on the page like any other, at its
+own severity, in the same group, with the reason and the date beside it -- and
+the summary's gating column says how many ERRORs are not gating rather than
+answering "yes" for all of them. This page is the surface a person signs off
+from, so an acknowledgement it did not show would be the machine-readable
+report and the human-readable one disagreeing about the same run.
 
 **Accessible, mechanically.** One ``h1``; heading levels that never skip;
 ``lang="en"``; a skip link that names an id that exists; a table per group with
@@ -44,7 +50,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from . import __version__
-from .findings import SEVERITY_ORDER, Finding, counts
+from .findings import SEVERITY_ORDER, Finding, acknowledged_count, counts, stale_count
 from .fixorder import UNSETTLED_TIER, CodeGroup, group_by_code
 from .rules import OSCAL_RELEASE
 from .snapshot import ALGORITHM, digests
@@ -119,16 +125,36 @@ def _rule_cell(finding: Finding) -> str:
     return f"{citation}<br>Source: {where} ({retrieved})"
 
 
+def _acknowledgement_note(finding: Finding) -> str:
+    """What a baseline said about this finding, or nothing at all.
+
+    Written into the row rather than into a column of its own, so a run with
+    no baseline produces the same table it always produced. An acknowledged
+    finding keeps its severity cell: the word in that cell is what the
+    document is, and the note beneath is what a team decided about it.
+    """
+    acknowledged = finding.acknowledged
+    if acknowledged is None:
+        return ""
+    return (
+        f'<p class="note">Acknowledged {_escape(acknowledged.acknowledged_on)} by the '
+        f"baseline: {_escape(acknowledged.reason)} &mdash; still "
+        f"{_escape(finding.severity.value)} and still counted in the summary above; it "
+        "does not gate the exit code.</p>"
+    )
+
+
 def _message_cell(finding: Finding) -> str:
     message = _escape(finding.message)
+    note = _acknowledgement_note(finding)
     if not finding.suggestions:
-        return message
+        return message + note
     items = "".join(
         f"<li>{_code(s.value)} &mdash; {_escape(s.difference)}</li>" for s in finding.suggestions
     )
     return (
         f"{message}<p>Also declared, and close to the value written "
-        f"(this is not a claim about what was meant):</p><ul>{items}</ul>"
+        f"(this is not a claim about what was meant):</p><ul>{items}</ul>{note}"
     )
 
 
@@ -167,6 +193,29 @@ def _group_section(index: int, group: CodeGroup) -> list[str]:
     return lines
 
 
+def _gates_cell(severity: str, findings: Sequence[Finding]) -> str:
+    """Whether findings at this severity gate the exit code, for this run.
+
+    Derived from :attr:`Finding.gates` rather than restated as "ERROR gates":
+    that sentence stopped being true the moment ``--baseline`` existed, and a
+    summary that answered ``yes`` over acknowledged findings would tell a
+    reviewer the run failed a gate it passes.
+    """
+    at_severity = [f for f in findings if f.severity.value == severity]
+    if not any(f.gates for f in at_severity):
+        acknowledged = sum(1 for f in at_severity if f.acknowledged is not None)
+        if acknowledged:
+            return f"no &mdash; all {acknowledged} acknowledged by the baseline"
+        return "no"
+    acknowledged = sum(1 for f in at_severity if f.acknowledged is not None)
+    if not acknowledged:
+        return "yes"
+    return (
+        f"yes for {sum(1 for f in at_severity if f.gates)}; "
+        f"{acknowledged} acknowledged by the baseline and not gating"
+    )
+
+
 def _summary_table(findings: Sequence[Finding]) -> list[str]:
     totals = counts(list(findings))
     lines = [
@@ -177,10 +226,10 @@ def _summary_table(findings: Sequence[Finding]) -> list[str]:
         "      <tbody>",
     ]
     for severity in SEVERITY_ORDER:
-        gates = "yes" if severity.value == "ERROR" else "no"
         lines.append(
             f'        <tr><th scope="row">{_escape(severity.value)}</th>'
-            f"<td>{totals[severity.value]}</td><td>{gates}</td></tr>"
+            f"<td>{totals[severity.value]}</td>"
+            f"<td>{_gates_cell(severity.value, findings)}</td></tr>"
         )
     lines.extend(["      </tbody>", "    </table>"])
     return lines
@@ -245,16 +294,40 @@ def _resolve_cell(resolve: Sequence[Path]) -> str:
     return "<br>".join(_code(str(path)) for path in resolve)
 
 
+def _baseline_note(findings: Sequence[Finding], baseline: str) -> list[str]:
+    """The paragraph a run given a ``--baseline`` carries, or no paragraph.
+
+    Absent means no baseline was given, which is not the same as a baseline
+    that acknowledged nothing: a run that was never given one makes no claim
+    either way. Both counts come off the findings on the page, so this
+    sentence cannot describe an acknowledgement the page does not show.
+    """
+    if not baseline:
+        return []
+    acknowledged = acknowledged_count(list(findings))
+    stale = stale_count(list(findings))
+    return [
+        f'    <p class="note">Baseline: {_code(baseline)}. {acknowledged} finding(s) '
+        f"acknowledged and not gating the exit code, {stale} entry(ies) that matched "
+        "nothing in this run. Acknowledged findings are still on this page, still carry "
+        "their own severity and are still counted above.</p>"
+    ]
+
+
 def render_findings_html(
     findings: list[Finding],
     version: str,
     model: str,
     document: Path,
     resolve: Sequence[Path] = (),
+    baseline: str = "",
 ) -> str:
     """The whole page, as one string. ``version`` is accepted for symmetry with
     the other renderers and is not written into the page: the provenance table
-    prints the package's own version, which is the one that produced it."""
+    prints the package's own version, which is the one that produced it.
+
+    ``baseline`` is the path a ``--baseline`` file was read from, or ``""``
+    when none was, exactly as in the JSON and text renderers."""
     groups = group_by_code(findings)
     unsettled = sum(len(g.findings) for g in groups if g.tier == UNSETTLED_TIER)
     title = f"oscal-validate report: {document.name}"
@@ -279,6 +352,7 @@ def render_findings_html(
         f'    <p class="note">{_escape(UNSETTLED_NOTE)} This run reported {unsettled} '
         "UNVERIFIABLE finding(s).</p>"
     )
+    lines.extend(_baseline_note(findings, baseline))
     lines.append("  </section>")
     lines.append("  <section>")
     lines.append('    <h2 id="findings">Findings, in fix order</h2>')

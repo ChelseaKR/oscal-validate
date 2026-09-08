@@ -270,9 +270,7 @@ def _describe_unreadable_findings(findings: list[Any]) -> str | None:
     malformed = {
         str(f.get("code"))
         for f in findings
-        if isinstance(f, dict)
-        and f.get("acknowledged") is not None
-        and acknowledged_of(f) is None
+        if isinstance(f, dict) and f.get("acknowledged") is not None and acknowledged_of(f) is None
     }
     if malformed:
         return (
