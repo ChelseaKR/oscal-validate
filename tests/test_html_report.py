@@ -176,6 +176,24 @@ def _audit(markup: str) -> list[str]:
     return parser.check()
 
 
+class _Attributes(HTMLParser):
+    """Every attribute name the parser sees, so an injected one can be named."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.names: set[str] = set()
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.names.update(name for name, _ in attrs)
+
+
+def _attribute_names(markup: str) -> set[str]:
+    parser = _Attributes()
+    parser.feed(markup)
+    parser.close()
+    return parser.names
+
+
 def _report(document: str, resolve: tuple[str, ...] = ()) -> str:
     paths = [fixture_path(name) for name in resolve]
     findings = validate_file(fixture_path(document), paths)
@@ -361,10 +379,17 @@ def test_the_provenance_footer_names_every_vendored_file_and_its_digest() -> Non
 
 
 def test_a_value_that_looks_like_markup_is_escaped_not_rendered() -> None:
-    """OSCAL documents are untrusted input. This is the injection test."""
+    """OSCAL documents are untrusted input. This is the injection test.
+
+    The rule URL carries a double quote on purpose. It is the only value this
+    renderer puts inside an attribute, so it is the only place where escaping
+    with ``quote=False`` would still look correct in element text and let a
+    value break out of the markup. A first version of this test used a URL with
+    no quote in it and stayed green under exactly that mutation.
+    """
     rule = Rule(
         citation='<img src=x onerror="alert(1)">',
-        url="https://example.invalid/?a=1&b=2",
+        url='https://example.invalid/?a=1&b=2" onmouseover="alert(1)',
         retrieved="2026-01-01",
     )
     finding = Finding(
@@ -379,9 +404,12 @@ def test_a_value_that_looks_like_markup_is_escaped_not_rendered() -> None:
     markup = render_findings_html([finding], tool_version, "catalog", Path("x.json"))
     assert "<script>" not in markup
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in markup
-    assert "onerror" not in markup or "&quot;" in markup
-    assert "https://example.invalid/?a=1&amp;b=2" in markup
+    assert "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;" in markup
+    # The attribute case: the quote in the URL must be escaped, so no attribute
+    # named onmouseover can exist anywhere on the page.
+    assert 'href="https://example.invalid/?a=1&amp;b=2&quot; onmouseover=&quot;alert(1)"' in markup
     assert _audit(markup) == []
+    assert "onmouseover" not in _attribute_names(markup)
 
 
 def test_a_suggestion_is_rendered_as_a_list_and_says_what_it_is_not() -> None:
