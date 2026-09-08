@@ -693,7 +693,7 @@ first captured from commit `6978895`, the last commit before any model-backed
 command existed.
 
 **The model-backed layer has never moved those bytes, and that is what this
-gate is for.** They have moved five times, every one for an unrelated reason.
+gate is for.** They have moved six times, every one for an unrelated reason.
 On 2026-08-29 (#35): the `CONSTRAINT_NOT_EVALUATED` finding for
 `allowed-values` carried a sentence that said something false about NIST's
 `allow-other` semantics, and correcting a sentence the report prints is a
@@ -704,12 +704,15 @@ version, so twelve lines moved, one per JSON golden, and the twelve text
 goldens did not move at all. On 2026-09-06 (#81): every JSON report gained
 `report_schema_version`, again twelve lines and no text golden. On 2026-09-07
 (#88), cutting 0.4.0: the version stamp again, twelve lines and no text
-golden. Each time the
+golden. On 2026-09-07 (#92): the report schema went to `1.1.0` for the two keys
+`--baseline` adds, so every JSON report's `report_schema_version` line moved —
+twelve lines, one per JSON golden, and no text golden, because the text format
+does not print it. Each time the
 goldens were recaptured from the same documents, each verified by SHA-256
 against the manifest that recorded them, and every other byte of the output is
-unchanged. Those five are the only recaptures since `6978895`;
+unchanged. Those six are the only recaptures since `6978895`;
 [CHANGELOG.md](CHANGELOG.md) and
-`tests/test_default_path_byte_identity.py` record all five, and
+`tests/test_default_path_byte_identity.py` record all six, and
 `tests/golden/capture.py` now refuses to write a manifest smaller than the
 committed one, so a recapture on a machine without the cached documents cannot
 quietly shrink what this compares.

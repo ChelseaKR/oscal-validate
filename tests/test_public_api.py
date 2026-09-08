@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 import oscal_validate
-from oscal_validate import Finding, Rule, Severity
+from oscal_validate import Acknowledgement, Finding, Rule, Severity
 
 ROOT = Path(__file__).resolve().parent.parent
 API_DOC = ROOT / "docs" / "API.md"
@@ -32,6 +32,7 @@ CHANGELOG = ROOT / "CHANGELOG.md"
 #: non-callable's entry is None and only its presence and type are pinned.
 PUBLIC: dict[str, str | None] = {
     "REPORT_SCHEMA_VERSION": None,
+    "Acknowledgement": None,
     "Finding": None,
     "Rule": None,
     "Severity": None,
@@ -60,7 +61,13 @@ FINDING_FIELDS = [
     ("message", "str"),
     ("rule", "Rule"),
     ("suggestions", "tuple[Suggestion, ...]"),
+    ("acknowledged", "Acknowledgement | None"),
 ]
+
+#: ``Acknowledgement``'s fields. It is public because ``Finding.acknowledged``
+#: is typed with it: a public field whose type a caller cannot import is not a
+#: promise anyone can write against.
+ACKNOWLEDGEMENT_FIELDS = [("reason", "str"), ("acknowledged_on", "str")]
 
 RULE_FIELDS = [("citation", "str"), ("url", "str"), ("retrieved", "str")]
 
@@ -88,16 +95,44 @@ def test_finding_and_rule_keep_their_fields() -> None:
     assert all(field.default is dataclasses.MISSING for field in dataclasses.fields(Rule))
 
 
-def test_only_suggestions_is_optional_on_a_finding() -> None:
+def test_only_the_two_opt_in_fields_are_optional_on_a_finding() -> None:
     """Every other field is required, so a Finding cannot be built short of
-    one and have the gap read as an empty string."""
+    one and have the gap read as an empty string.
+
+    Both optional fields are opt-in output: ``suggestions`` needs
+    ``--suggest`` and ``acknowledged`` needs ``--baseline``. Their defaults
+    are the *absence* of a claim, not a neutral value -- a Finding with
+    ``acknowledged=None`` is one nothing acknowledged, and it gates."""
     optional = [
         field.name
         for field in dataclasses.fields(Finding)
         if field.default is not dataclasses.MISSING
         or field.default_factory is not dataclasses.MISSING
     ]
-    assert optional == ["suggestions"]
+    assert optional == ["suggestions", "acknowledged"]
+
+
+def test_an_acknowledgement_keeps_its_fields_and_is_frozen() -> None:
+    assert [(f.name, f.type) for f in dataclasses.fields(Acknowledgement)] == (
+        ACKNOWLEDGEMENT_FIELDS
+    )
+    acknowledgement = Acknowledgement(reason="r", acknowledged_on="2026-01-01")
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        acknowledgement.reason = "changed"  # type: ignore[misc]
+
+
+def test_only_an_unacknowledged_error_gates() -> None:
+    """``Finding.gates`` is the one place the exit code is decided, so it is
+    part of the promise rather than an implementation detail."""
+    rule = Rule(citation="c", url="https://example.invalid/", retrieved="2026-01-01")
+    error = Finding("CODE", Severity.ERROR, "/catalog", "p", "v", "m", rule)
+    assert error.gates is True
+    assert (
+        dataclasses.replace(error, acknowledged=Acknowledgement("because", "2026-01-01")).gates
+        is False
+    )
+    for severity in (Severity.WARNING, Severity.INFO, Severity.UNVERIFIABLE):
+        assert dataclasses.replace(error, severity=severity).gates is False
 
 
 def test_finding_and_rule_are_frozen() -> None:

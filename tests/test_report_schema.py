@@ -253,7 +253,25 @@ def test_every_key_the_renderer_writes_is_declared_by_the_schema() -> None:
     consumer that would silently ignore it."""
     report = _valid()
     declared = set(SCHEMA["properties"])
-    assert set(report) == declared
+    # Every key the renderer writes is declared, and every key the schema
+    # *requires* is written. `baseline` is declared and optional, so equality
+    # would fail on a run that was given no baseline -- which is the run this
+    # fixture is. The pair of assertions below is what equality was standing in
+    # for, and it stays exact in both directions.
+    assert set(report) <= declared, set(report) - declared
+    assert set(SCHEMA["required"]) <= set(report), set(SCHEMA["required"]) - set(report)
+    optional = declared - set(SCHEMA["required"])
+    assert optional == {"baseline"}, "a new optional key needs a case here that writes it"
+    with_baseline = json.loads(
+        render_findings_json(
+            validate_file(fixture_path("broken_catalog.json")),
+            tool_version,
+            "catalog",
+            "oscal-baseline.json",
+        )
+    )
+    assert set(with_baseline) == declared
+    assert check(with_baseline, SCHEMA) == []
     finding_properties = set(SCHEMA["$defs"]["finding"]["properties"])
     for finding in report["findings"]:
         assert set(finding) <= finding_properties, set(finding) - finding_properties

@@ -194,3 +194,16 @@ OSCAL_VERSION_FIELD = Rule(
     url=SCHEMA_URL,
     retrieved=RETRIEVED,
 )
+
+BASELINE_POLICY = Rule(
+    citation=(
+        "oscal-validate policy: a --baseline entry acknowledges one finding, by code, "
+        "location, property and value, with a written reason and the date it was "
+        "acknowledged. An entry that matches nothing in this run is reported here rather "
+        "than passed over, so a baseline cannot outlive the defect it excused. It is a "
+        "WARNING because the document may simply have been fixed; --fail-on-stale makes "
+        "it gate."
+    ),
+    url="README.md (Limits)",
+    retrieved="-",
+)
