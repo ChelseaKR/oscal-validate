@@ -267,18 +267,28 @@ def index_document(path: str, text: str) -> SourceIndex:
 def _split(location: str, documents: tuple[LoadedDocument, ...]) -> tuple[str | None, str]:
     """Which document a finding's location is in, and the pointer inside it.
 
-    ``corpus._where`` writes a finding in a supplied document as
+    ``build_corpus`` writes a finding in a supplied document as
     ``<path>#<pointer>`` and one in the primary document as the bare pointer.
     A path is matched by exact prefix against the documents this run actually
-    read, never by splitting on the first ``#``: a path may contain one, and a
-    guess here would attach a position from the wrong file.
+    read, never by splitting on the first ``#``: a JSON Pointer token may
+    contain a ``#``, and a guess here would attach a position from the wrong
+    file.
+
+    **The known paths are tried first, and the order is the whole function.**
+    A bare pointer begins with ``/`` -- and so does an absolute path, which is
+    what a document supplied as ``--resolve /some/where/catalog.json`` is
+    written as. Testing for ``/`` first therefore read every finding in every
+    absolutely-pathed supporting document as a pointer into the primary
+    document, found nothing there, and reported no position at all. Measured
+    on a two-level profile chain in a temporary directory: one finding of
+    seven, and it was silent.
     """
-    if location.startswith("/"):
-        return None, location
     for document in documents:
         prefix = f"{document.path}#"
         if location.startswith(prefix):
             return document.path, location[len(prefix) :]
+    if location.startswith("/"):
+        return None, location
     return None, ""
 
 

@@ -155,11 +155,18 @@ def test_the_scanner_refuses_text_it_cannot_read_rather_than_indexing_half_of_it
 
     The reader only ever sees text ``json.loads`` already accepted, so this
     cannot happen in a run; it is here so that if it ever does, it is loud.
+    One case per refusal in the module, so a refusal cannot go unexercised.
     """
     path = tmp_path / "broken.json"
-    for source in ('{"a": 1', '{"a" 1}', '{"a": 1} trailing', "{,}"):
+    for source in ("", '{"a": 1', '{"a" 1}', '{"a": }', '{"a": 1} trailing', "{,}", '{"a" }'):
         with pytest.raises(PositionError):
             index_document(str(path), source)
+
+
+def test_a_position_renders_as_the_matcher_and_the_editor_read_it(tmp_path: Path) -> None:
+    """``file:line:column``, the one spelling both the text report and
+    ``.github/problem-matcher.json`` are written against."""
+    assert Position(file="a/b.json", line=12, column=5).render() == "a/b.json:12:5"
 
 
 def test_a_position_is_one_based_in_both_axes(tmp_path: Path) -> None:
@@ -265,19 +272,67 @@ def test_a_pointer_the_source_does_not_carry_reports_nothing_at_all() -> None:
     assert index.position("/catalog/there-is-no-such-property") is None
 
 
-def test_a_finding_in_a_resolved_document_is_located_in_that_document() -> None:
-    """``<path>#<pointer>`` locates in the supplied file, not in the primary one."""
-    catalog = fixture_path("clean_catalog.json")
-    findings = validate_file(fixture_path("clean_profile.json"), [catalog], locations=True)
-    qualified = [f for f in findings if f.location.startswith(f"{catalog}#")]
-    for finding in qualified:
-        assert finding.position is not None
-        assert finding.position.file == str(catalog)
-    assert all(
-        f.position is None or f.position.file == str(fixture_path("clean_profile.json"))
-        for f in findings
-        if not f.location.startswith(f"{catalog}#")
+def _chain(tmp_path: Path) -> tuple[Path, list[Path]]:
+    """A profile importing a profile importing a catalog, in absolute paths.
+
+    Two levels, because a finding is qualified with a file name only when it
+    is in a document that is not the primary one, and the middle profile's own
+    import is the finding that gets one.
+    """
+    top = {
+        "profile": {
+            "uuid": "9c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f",
+            "metadata": {
+                "title": "Synthetic Top Profile",
+                "last-modified": "2026-08-14T00:00:00Z",
+                "version": "1.0.0",
+                "oscal-version": "1.2.3",
+            },
+            "imports": [
+                {"href": "clean_profile.json", "include-controls": [{"with-ids": ["ex-1"]}]}
+            ],
+        }
+    }
+    middle = write(tmp_path, "clean_profile.json", load_fixture("clean_profile.json"))
+    catalog = write(tmp_path, "clean_catalog.json", load_fixture("clean_catalog.json"))
+    return write(tmp_path, "top.json", top), [middle, catalog]
+
+
+def test_a_finding_in_a_resolved_document_is_located_in_that_document(tmp_path: Path) -> None:
+    """``<path>#<pointer>`` locates in the supplied file, not in the primary one.
+
+    The count is asserted before the contents. The first version of this test
+    filtered for qualified findings and looped over the result, and the fixture
+    it used produced none -- so it passed over a real defect: an absolute
+    supporting path begins with ``/`` exactly as a bare pointer does, and
+    ``_split`` tested for that first, reading every such finding as a pointer
+    into the primary document and reporting no position for any of them.
+    """
+    primary, resolve = _chain(tmp_path)
+    findings = validate_file(primary, resolve, locations=True)
+    qualified = [f for f in findings if "#" in f.location]
+    assert len(qualified) == 1, (
+        f"{len(qualified)} of {len(findings)} findings are in a supplied document; this test "
+        "is about that population and cannot be satisfied by an empty one"
     )
+    for finding in qualified:
+        document, _, pointer = finding.location.partition("#")
+        assert finding.position is not None, finding.location
+        assert finding.position.file == document
+        expected = index_document(document, Path(document).read_text(encoding="utf-8"))
+        assert finding.position == expected.position(pointer)
+    for finding in findings:
+        if finding not in qualified:
+            assert finding.position is not None
+            assert finding.position.file == str(primary)
+
+
+def test_a_location_naming_a_document_this_run_did_not_read_has_no_position() -> None:
+    """The last line of ``_split``, which is the one that must not guess."""
+    from oscal_validate.positions import _split  # noqa: PLC0415
+
+    assert _split("elsewhere/other.json#/catalog/uuid", ()) == (None, "")
+    assert _split("/catalog/uuid", ()) == (None, "/catalog/uuid")
 
 
 # -- the renderings ----------------------------------------------------------
