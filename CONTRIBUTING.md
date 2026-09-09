@@ -129,6 +129,15 @@ Open a PR against `main`. The short version of the checklist:
 - [`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` is updated for user-visible
   changes.
 
+## Commercial solicitation
+
+Issues here are not open to bids. They are design records — written so a decision is
+reconstructable later — not scope documents for outside quoting, and unsolicited offers to
+implement one for a fee will be declined.
+
+Contributions through the normal fork-and-PR process are welcome, and `good first issue` is the
+place to start.
+
 ## License
 
 By contributing, you agree that your contributions are licensed under the
