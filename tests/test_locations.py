@@ -29,7 +29,7 @@ from typing import Any
 import pytest
 
 from oscal_validate import Position, validate_file
-from oscal_validate.baseline import BASELINE_VERSION
+from oscal_validate.baseline import BASELINE_VERSION, Baseline, Entry, apply
 from oscal_validate.findings import NO_POSITION, render_findings_json, render_findings_text
 from oscal_validate.positions import PositionError, SourceIndex, index_document
 
@@ -370,14 +370,36 @@ def _baseline_for(tmp_path: Path, finding_code: str) -> Path:
     return path
 
 
-def test_an_acknowledged_finding_keeps_the_position_it_had(tmp_path: Path) -> None:
-    """``baseline._acknowledged_copy`` names every field it copies.
+def test_baseline_apply_carries_the_position_onto_the_acknowledged_copy() -> None:
+    """``baseline._acknowledged_copy`` names every field it copies, one by one.
 
-    A field left off that list is not inherited from anywhere: the copy loses
-    it silently, and the acknowledged finding is the one row of a
-    ``--locations`` report with no line for a reason that has nothing to do
-    with the document.
+    A field left off that list is not inherited from anywhere; the copy loses
+    it silently. This is asserted against ``baseline.apply`` directly rather
+    than through the CLI, and the reason is a control that did not fire: the
+    CLI re-attaches positions after a baseline is applied (it has to, for
+    ``BASELINE_STALE``), so deleting the field from the copy leaves every
+    end-to-end assertion green while the library function quietly drops it for
+    any caller that does not re-attach.
     """
+    findings = validate_file(fixture_path(BROKEN), locations=True)
+    match = next(f for f in findings if f.code == "REQUIRED_PROPERTY_MISSING")
+    assert match.position is not None
+    entry = Entry(
+        finding_code=match.code,
+        location=match.location,
+        prop=match.prop,
+        value=match.value,
+        reason="recorded so this test has something to acknowledge",
+        acknowledged_on="2026-09-09",
+    )
+    applied = apply(findings, Baseline(path=Path("baseline.json"), entries=(entry,)))
+    acknowledged = [f for f in applied if f.acknowledged is not None]
+    assert len(acknowledged) == 1
+    assert acknowledged[0].position == match.position
+
+
+def test_an_acknowledged_finding_keeps_the_position_it_had(tmp_path: Path) -> None:
+    """The same claim end to end, through the CLI."""
     path = _baseline_for(tmp_path, "REQUIRED_PROPERTY_MISSING")
     completed = _run(
         str(fixture_path(BROKEN)), "--locations", "--baseline", str(path), "--format", "json"
