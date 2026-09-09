@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 import oscal_validate
-from oscal_validate import Acknowledgement, Finding, Rule, Severity
+from oscal_validate import Acknowledgement, Finding, Position, Rule, Severity
 
 ROOT = Path(__file__).resolve().parent.parent
 API_DOC = ROOT / "docs" / "API.md"
@@ -34,18 +34,19 @@ PUBLIC: dict[str, str | None] = {
     "REPORT_SCHEMA_VERSION": None,
     "Acknowledgement": None,
     "Finding": None,
+    "Position": None,
     "Rule": None,
     "Severity": None,
     "__version__": None,
     "build_session": (
-        "(document: 'Path', resolve: 'list[Path] | None' = None, *, suggest: 'bool' = False)"
-        " -> 'Session'"
+        "(document: 'Path', resolve: 'list[Path] | None' = None, *, suggest: 'bool' = False,"
+        " locations: 'bool' = False) -> 'Session'"
     ),
     "read_report_schema": "() -> 'str'",
     "validate": "(session: 'Session') -> 'list[Finding]'",
     "validate_file": (
-        "(document: 'Path', resolve: 'list[Path] | None' = None, *, suggest: 'bool' = False)"
-        " -> 'list[Finding]'"
+        "(document: 'Path', resolve: 'list[Path] | None' = None, *, suggest: 'bool' = False,"
+        " locations: 'bool' = False) -> 'list[Finding]'"
     ),
 }
 
@@ -62,6 +63,7 @@ FINDING_FIELDS = [
     ("rule", "Rule"),
     ("suggestions", "tuple[Suggestion, ...]"),
     ("acknowledged", "Acknowledgement | None"),
+    ("position", "Position | None"),
 ]
 
 #: ``Acknowledgement``'s fields. It is public because ``Finding.acknowledged``
@@ -70,6 +72,10 @@ FINDING_FIELDS = [
 ACKNOWLEDGEMENT_FIELDS = [("reason", "str"), ("acknowledged_on", "str")]
 
 RULE_FIELDS = [("citation", "str"), ("url", "str"), ("retrieved", "str")]
+
+#: ``Position``'s fields. Public for the same reason ``Acknowledgement`` is:
+#: ``Finding.position`` is typed with it.
+POSITION_FIELDS = [("file", "str"), ("line", "int"), ("column", "int")]
 
 
 def test_all_is_exactly_the_documented_surface() -> None:
@@ -95,21 +101,31 @@ def test_finding_and_rule_keep_their_fields() -> None:
     assert all(field.default is dataclasses.MISSING for field in dataclasses.fields(Rule))
 
 
-def test_only_the_two_opt_in_fields_are_optional_on_a_finding() -> None:
+def test_only_the_three_opt_in_fields_are_optional_on_a_finding() -> None:
     """Every other field is required, so a Finding cannot be built short of
     one and have the gap read as an empty string.
 
-    Both optional fields are opt-in output: ``suggestions`` needs
-    ``--suggest`` and ``acknowledged`` needs ``--baseline``. Their defaults
-    are the *absence* of a claim, not a neutral value -- a Finding with
-    ``acknowledged=None`` is one nothing acknowledged, and it gates."""
+    All three optional fields are opt-in output: ``suggestions`` needs
+    ``--suggest``, ``acknowledged`` needs ``--baseline`` and ``position``
+    needs ``--locations``. Their defaults are the *absence* of a claim, not a
+    neutral value -- a Finding with ``acknowledged=None`` is one nothing
+    acknowledged, and it gates; a Finding with ``position=None`` is one this
+    run has no source position for, and the report says so in words rather
+    than printing a line 0."""
     optional = [
         field.name
         for field in dataclasses.fields(Finding)
         if field.default is not dataclasses.MISSING
         or field.default_factory is not dataclasses.MISSING
     ]
-    assert optional == ["suggestions", "acknowledged"]
+    assert optional == ["suggestions", "acknowledged", "position"]
+
+
+def test_a_position_keeps_its_fields_and_is_frozen() -> None:
+    assert [(f.name, f.type) for f in dataclasses.fields(Position)] == POSITION_FIELDS
+    position = Position(file="doc.json", line=1, column=1)
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        position.line = 2  # type: ignore[misc]
 
 
 def test_an_acknowledgement_keeps_its_fields_and_is_frozen() -> None:

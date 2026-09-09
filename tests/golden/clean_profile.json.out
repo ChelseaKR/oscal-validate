@@ -121,7 +121,7 @@
       "value": "ex-1_prm_1"
     }
   ],
-  "report_schema_version": "1.1.0",
+  "report_schema_version": "1.2.0",
   "summary": {
     "ERROR": 0,
     "INFO": 1,

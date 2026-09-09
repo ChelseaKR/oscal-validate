@@ -1,0 +1,64 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "oscal-validate-error",
+      "severity": "error",
+      "pattern": [
+        {
+          "regexp": "^ERROR\\s+(\\S+)\\s+at=(\\S+)\\s+(.+):(\\d+):(\\d+)$",
+          "code": 1,
+          "file": 3,
+          "line": 4,
+          "column": 5
+        },
+        {
+          "regexp": "^ {4}\\S.*$"
+        },
+        {
+          "regexp": "^ {4}(\\S.*)$",
+          "message": 1
+        }
+      ]
+    },
+    {
+      "owner": "oscal-validate-warning",
+      "severity": "warning",
+      "pattern": [
+        {
+          "regexp": "^WARNING\\s+(\\S+)\\s+at=(\\S+)\\s+(.+):(\\d+):(\\d+)$",
+          "code": 1,
+          "file": 3,
+          "line": 4,
+          "column": 5
+        },
+        {
+          "regexp": "^ {4}\\S.*$"
+        },
+        {
+          "regexp": "^ {4}(\\S.*)$",
+          "message": 1
+        }
+      ]
+    },
+    {
+      "owner": "oscal-validate-notice",
+      "severity": "notice",
+      "pattern": [
+        {
+          "regexp": "^(?:INFO|UNVERIFIABLE)\\s+(\\S+)\\s+at=(\\S+)\\s+(.+):(\\d+):(\\d+)$",
+          "code": 1,
+          "file": 3,
+          "line": 4,
+          "column": 5
+        },
+        {
+          "regexp": "^ {4}\\S.*$"
+        },
+        {
+          "regexp": "^ {4}(\\S.*)$",
+          "message": 1
+        }
+      ]
+    }
+  ]
+}

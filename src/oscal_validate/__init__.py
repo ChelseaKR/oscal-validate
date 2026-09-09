@@ -12,6 +12,7 @@ from __future__ import annotations
 __version__ = "0.4.0"
 
 from .findings import Acknowledgement, Finding, Rule, Severity
+from .positions import Position
 from .report import REPORT_SCHEMA_VERSION, read_report_schema
 from .validator import build_session, validate, validate_file
 
@@ -23,6 +24,7 @@ __all__ = [
     "REPORT_SCHEMA_VERSION",
     "Acknowledgement",
     "Finding",
+    "Position",
     "Rule",
     "Severity",
     "__version__",

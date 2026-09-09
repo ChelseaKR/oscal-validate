@@ -99,10 +99,32 @@ def escape_property(text: str) -> str:
     return escape(text).replace(":", "%3A").replace(",", "%2C")
 
 
-def annotate(level: str, message: str, *, file: str = "", title: str = "") -> None:
+def annotate(
+    level: str,
+    message: str,
+    *,
+    file: str = "",
+    title: str = "",
+    line: int | None = None,
+    column: int | None = None,
+) -> None:
+    """Emit one workflow command.
+
+    ``line`` and ``column`` are omitted when the report has no position for a
+    finding, which is what ``--locations`` writes as ``null``. They are never
+    defaulted to a number: GitHub anchors an annotation on whatever line it is
+    given, so a fabricated ``1`` would put a finding on the first line of the
+    file and read exactly like a measured one. ``col`` without ``line`` means
+    nothing to GitHub, so a column is emitted only alongside a line.
+    """
+    positional = []
+    if line is not None:
+        positional.append(("line", str(line)))
+        if column is not None:
+            positional.append(("col", str(column)))
     properties = [
         f"{key}={escape_property(value)}"
-        for key, value in (("file", file), ("title", title))
+        for key, value in (("file", file), *positional, ("title", title))
         if value
     ]
     joined = " " + ",".join(properties) if properties else ""
@@ -130,9 +152,13 @@ def run_cli(
     resolve: Sequence[str],
     report_format: str = "json",
     baseline: str = "",
+    *,
+    locations: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     """Run the CLI over one document, as a child process of this interpreter."""
     command = [sys.executable, "-m", MODULE, str(document), "--format", report_format]
+    if locations:
+        command.append("--locations")
     for extra in resolve:
         command += ["--resolve", extra]
     if baseline:
@@ -164,6 +190,27 @@ def acknowledged_of(finding: dict[str, Any]) -> dict[str, str] | None:
     return None
 
 
+def position_of(finding: dict[str, Any]) -> tuple[int | None, int | None]:
+    """The 1-based line and column a finding carries, or ``(None, None)``.
+
+    Three inputs, three answers, and the middle one is the one that has to be
+    kept apart from the others. The keys are absent when the report was not
+    asked for positions; they are ``null`` when it was asked and there is no
+    position for that pointer; and they are integers otherwise. All three mean
+    "annotate the file, not a line" except the last, and none of them may be
+    read as line 1. A value that is not a positive integer -- 0, a float, a
+    string -- is refused here rather than passed to GitHub, because GitHub
+    would anchor the annotation somewhere on the strength of it.
+    """
+    line = finding.get("line")
+    column = finding.get("column")
+    if not isinstance(line, int) or isinstance(line, bool) or line < 1:
+        return None, None
+    if not isinstance(column, int) or isinstance(column, bool) or column < 1:
+        return line, None
+    return line, column
+
+
 def report_findings(document: Path, findings: list[dict[str, Any]]) -> None:
     for finding in findings:
         severity = str(finding["severity"])
@@ -174,11 +221,14 @@ def report_findings(document: Path, findings: list[dict[str, Any]]) -> None:
                 f"{where} [ACKNOWLEDGED {acknowledged['acknowledged_on']}, not gating: "
                 f"{acknowledged['reason']}]"
             )
+        line, column = position_of(finding)
         annotate(
             LEVELS.get(severity, UNKNOWN_SEVERITY_LEVEL),
             f"{where}. {finding['message']}",
             file=str(document),
             title=f"{finding['code']} ({severity})",
+            line=line,
+            column=column,
         )
 
 
@@ -345,7 +395,12 @@ def validate_one(
     a failure too -- see the module docstring for why a partial SARIF file is
     worse than none.
     """
-    completed = run_cli(document, resolve, baseline=baseline)
+    # --locations, always. The pointer is what a report is keyed on and it is
+    # unchanged; the position is what lets an annotation land on the line a
+    # reviewer is reading rather than on the file. A finding the tool has no
+    # position for still annotates the file, which is what this did for every
+    # finding before.
+    completed = run_cli(document, resolve, baseline=baseline, locations=True)
     if completed.returncode not in (EXIT_CLEAN, EXIT_FINDINGS):
         detail = completed.stderr.strip() or f"{TOOL} exited {completed.returncode}"
         annotate("error", detail, file=str(document))
