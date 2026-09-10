@@ -97,6 +97,33 @@ and this project adheres to
   given: a run never given one makes no claim either way.
 
 ### Fixed
+- **`diff`'s text report showed nothing for a finding whose message changed.**
+  `compare.IDENTITY` leaves value and message out on purpose, so a finding
+  whose sentence was corrected is reported as `changed`. The entry printed the
+  new finding — which carries no message — over `was: <value> / <severity>`,
+  so both halves were identical on every byte shown: the heading said a
+  finding had changed and the block under it showed nothing that had. The JSON
+  rendering was unaffected, because it carries both findings whole, which is
+  why the suite was green over it.
+
+  Not hypothetical. Two of the seven golden re-captures recorded in
+  `tests/test_default_path_byte_identity.py` are exactly this shape: a
+  finding's sentence was corrected and its value did not move.
+
+  Every field that differs is now named on both sides — value, severity,
+  message, rule source, acknowledgement — and a pair that differs in none of
+  them says so and points at `--format json`, rather than printing an empty
+  block under a heading that claims a change.
+
+  Found by reading the uncovered-lines column of the module that shipped most
+  recently, not by the suite: `render_text`'s `changed` and `moved` loop
+  bodies, its `ambiguous_moves` line, and the "vendored OSCAL snapshot
+  differs" note had **never executed**. All four now have tests, including the
+  snapshot note, which cannot fire through the CLI today — `load_side` gives a
+  validated side the vendored release and a saved report `UNRECORDED`, so two
+  known-and-different snapshots need a report format that records one. A
+  sentence that has never run is not one anybody can rely on arriving correct
+  when the data finally reaches it. `diff.py` goes from 89% to 98%.
 
 - **`--write-baseline` generated a file `--baseline` refused.** Two findings can
   share a baseline key — the same duplicated identifier reported under two
