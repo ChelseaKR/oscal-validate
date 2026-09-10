@@ -10,6 +10,53 @@ and this project adheres to
 
 ### Added
 
+- **`--locations`: the line and column, beside the pointer.** A finding's
+  location is an RFC 6901 JSON Pointer, which is exact and is not where anyone's
+  editor is. Under `--locations` the text report appends
+  `<file>:<line>:<column>` to a finding's first line and `--format json` gains
+  `line` and `column` on every finding. The pointer is unchanged and remains the
+  identity of a finding: `--baseline`, `diff` and `tests/golden/` all key on it,
+  and a test reformats a fixture at indent 4 to assert that every line moves and
+  no pointer does.
+
+  The keys are three-valued and the third value is the point of them. Absent
+  means the flag was not given and the run makes no claim. An integer is the
+  1-based position where the pointed-at value begins. `null` means the flag was
+  given and this run has no position for that pointer — a value the walk
+  synthesised, or a document whose source it did not index. It is never `0`,
+  because there is no line 0 and a consumer must never have to decide whether a
+  zero is a position or an absence. The text report writes that case as
+  `(no source position)` rather than as a number, and `tools/action_runner.py`
+  refuses any line that is not a positive integer rather than handing it to
+  GitHub, which would anchor an annotation on it.
+
+  The index is built only when the flag asks for it, so the default path pays
+  nothing: `build_session(..., locations=True)` is what builds it, and without
+  it every `LoadedDocument.source` is `None`. It is a reader over the source
+  text rather than a hook into `json`'s scanner, and where the two could
+  disagree it defers — string escaping goes through the standard library's own
+  `scanstring`, and a duplicate key records the last position, which is the
+  value `json.loads` keeps. `tests/test_locations.py` walks the decoded
+  document independently and asserts the two pointer sets are equal in both
+  directions, so the scanner is measured against `json.loads` rather than
+  against its own output.
+
+  The GitHub Action asks for positions on every run, so a finding annotates the
+  line a reviewer is reading rather than the file; a finding with no position
+  annotates the file, which is what every finding did before.
+  `.github/problem-matcher.json` does the same for a workflow that runs the CLI
+  itself. Its three matchers map the tool's four severities onto GitHub's three
+  annotation levels using the same table the Action uses, and a test holds the
+  two together. What the suite proves is that the patterns match the bytes this
+  tool prints and capture the right file, line and column — not that GitHub
+  applies them, which nothing in a workflow can read back.
+
+  `Finding` gains an optional `position` field and `Position` joins the public
+  API; `docs/API.md` records both. The report schema goes to **1.2.0** for the
+  two optional keys, so every JSON golden's `report_schema_version` line moved
+  and nothing else did — the seventh recapture, recorded in
+  `tests/test_default_path_byte_identity.py` with the rest.
+
 - **`--baseline`: acknowledge a finding without hiding it.** NIST's own
   SP 800-53 rev 5 catalog carries an ERROR this tool reports, and a team that
   imports that catalog cannot edit NIST's file. Their options were to ignore

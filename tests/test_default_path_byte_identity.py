@@ -7,7 +7,7 @@ the last commit before any model-backed command existed. Every later commit has
 to reproduce those bytes. This is the proof behind the README's claim that the
 opt-in commands changed nothing about the command that was already there.
 
-Re-captured six times since. Each reason is recorded here because a golden
+Re-captured seven times since. Each reason is recorded here because a golden
 re-captured without one stops being evidence, and each entry names the pull
 request that made it so a reader can check the diff rather than take the
 description on trust. The pull request is cited rather than the commit because
@@ -61,6 +61,14 @@ diff is the version line: twelve lines, one per JSON golden, and the twelve
 text goldens are untouched because the text format does not print it. Verified
 before committing by reading the whole diff: every changed line is
 ``"report_schema_version": "1.0.0"`` becoming ``"1.1.0"``.
+
+On 2026-09-09 (#95): ``report_schema_version`` went from ``1.1.0`` to
+``1.2.0`` for the two keys ``--locations`` adds to a finding, ``line`` and
+``column``. No golden run passes ``--locations``, so no golden report carries
+either key and the whole diff is the version line: twelve lines, one per JSON
+golden, and the twelve text goldens are untouched because the text format does
+not print it. Verified before committing by reading the whole diff: every
+changed line is ``"report_schema_version": "1.1.0"`` becoming ``"1.2.0"``.
 
 Nothing enforces this list. A test that checked it against ``git log`` would
 have to name the recapture commit inside the commit that makes it, and a

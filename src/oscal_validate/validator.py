@@ -9,16 +9,21 @@ from .checks import ALL_CHECKS, Check, constraints, references
 from .corpus import build_corpus
 from .findings import Finding, finalize
 from .metaschema import load_metaschema
+from .positions import attach
 from .schema import load_schema
 from .session import Session
 
 
 def build_session(
-    document: Path, resolve: list[Path] | None = None, *, suggest: bool = False
+    document: Path,
+    resolve: list[Path] | None = None,
+    *,
+    suggest: bool = False,
+    locations: bool = False,
 ) -> Session:
     schema = load_schema()
     return Session(
-        corpus=build_corpus(document, list(resolve or []), schema),
+        corpus=build_corpus(document, list(resolve or []), schema, locations=locations),
         schema=schema,
         metaschema=load_metaschema(),
         suggest=suggest,
@@ -26,14 +31,26 @@ def build_session(
 
 
 def validate(session: Session) -> list[Finding]:
-    """Run every check. Findings come back in a deterministic order."""
-    return finalize(_deduplicate((check, check(session)) for check in ALL_CHECKS))
+    """Run every check. Findings come back in a deterministic order.
+
+    Source positions are attached *after* :func:`finalize`, so deduplication
+    and ordering are still decided on exactly the fields they were decided on
+    before positions existed. ``attach`` is a no-op unless the session was
+    built with ``locations=True``.
+    """
+    return attach(
+        finalize(_deduplicate((check, check(session)) for check in ALL_CHECKS)), session.corpus
+    )
 
 
 def validate_file(
-    document: Path, resolve: list[Path] | None = None, *, suggest: bool = False
+    document: Path,
+    resolve: list[Path] | None = None,
+    *,
+    suggest: bool = False,
+    locations: bool = False,
 ) -> list[Finding]:
-    return validate(build_session(document, resolve, suggest=suggest))
+    return validate(build_session(document, resolve, suggest=suggest, locations=locations))
 
 
 #: Two checks reach the same identifier references and both are right about

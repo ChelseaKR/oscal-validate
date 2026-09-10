@@ -18,6 +18,7 @@ import json
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from .positions import Position
 from .report import REPORT_SCHEMA_VERSION
 from .suggest import Suggestion
 
@@ -87,6 +88,14 @@ class Finding:
     #: by default, and absent from both renderings when absent, so a run
     #: without the flag emits the bytes this tool always emitted.
     acknowledged: Acknowledgement | None = field(default=None)
+    #: Where :attr:`location` points in the source bytes, set only under
+    #: ``--locations`` (issue #66) and only when the pointer names a value in
+    #: a document whose source this run indexed. Absent by default, and absent
+    #: from both renderings when the flag is off, so a run without it emits
+    #: the bytes this tool always emitted. ``None`` under the flag is a
+    #: statement -- there is no position for this pointer -- and both
+    #: renderings say so rather than printing a zero.
+    position: Position | None = field(default=None)
 
     @property
     def gates(self) -> bool:
@@ -108,7 +117,16 @@ class Finding:
             self.message,
         )
 
-    def to_dict(self) -> dict[str, object]:
+    def to_dict(self, *, locations: bool = False) -> dict[str, object]:
+        """This finding as the JSON report writes it.
+
+        ``locations`` is the ``--locations`` flag, not a property of the
+        finding, and the difference is the whole point of the parameter. Off,
+        the keys are absent and the run makes no claim about where anything
+        is. On, ``line`` and ``column`` are always present and are ``null``
+        where this run found no position -- never ``0``, which is a line
+        number no file has.
+        """
         payload: dict[str, object] = {
             "code": self.code,
             "severity": self.severity.value,
@@ -126,12 +144,26 @@ class Finding:
             payload["suggestions"] = [s.to_dict() for s in self.suggestions]
         if self.acknowledged is not None:
             payload["acknowledged"] = self.acknowledged.to_dict()
+        if locations:
+            payload["line"] = self.position.line if self.position else None
+            payload["column"] = self.position.column if self.position else None
         return payload
 
-    def render_text(self) -> str:
+    def render_text(self, *, locations: bool = False) -> str:
+        """This finding as the text report writes it. See :meth:`to_dict`.
+
+        Under ``--locations`` the position is appended to the first line, so
+        that one line carries the severity, the code, the pointer and the
+        physical position together: that is the line
+        ``.github/problem-matcher.json`` reads, and a matcher can only capture
+        from a single line.
+        """
         acknowledged = "" if self.acknowledged is None else "\n" + self.acknowledged.render_text()
+        where = ""
+        if locations:
+            where = f"  {self.position.render() if self.position else NO_POSITION}"
         return (
-            f"{self.severity.value:12} {self.code}  at={self.location}\n"
+            f"{self.severity.value:12} {self.code}  at={self.location}{where}\n"
             f"    {self.prop} = {self.value}\n"
             f"    {self.message}\n"
             f"    rule: {self.rule.citation}\n"
@@ -156,6 +188,11 @@ def counts(findings: list[Finding]) -> dict[str, int]:
         for severity in SEVERITY_ORDER
     }
 
+
+#: What the text report prints where ``--locations`` was asked for and this
+#: run has no position for the pointer. Words, not a zero: a reader has to be
+#: able to tell "nothing was found here" from "line 0", and there is no line 0.
+NO_POSITION = "(no source position)"
 
 #: The code a stale baseline entry is reported under. It lives here rather than
 #: in :mod:`oscal_validate.baseline` because both the renderers and the counts
@@ -185,7 +222,12 @@ def _baseline_block(findings: list[Finding], path: str) -> dict[str, object]:
 
 
 def render_findings_json(
-    findings: list[Finding], version: str, model: str, baseline: str = ""
+    findings: list[Finding],
+    version: str,
+    model: str,
+    baseline: str = "",
+    *,
+    locations: bool = False,
 ) -> str:
     """The canonical machine-readable report.
 
@@ -202,7 +244,7 @@ def render_findings_json(
         "report_schema_version": REPORT_SCHEMA_VERSION,
         "tool": {"name": "oscal-validate", "version": version},
         "document": {"model": model},
-        "findings": [f.to_dict() for f in findings],
+        "findings": [f.to_dict(locations=locations) for f in findings],
         "summary": counts(findings),
     }
     if baseline:
@@ -210,9 +252,11 @@ def render_findings_json(
     return json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False)
 
 
-def render_findings_text(findings: list[Finding], model: str, baseline: str = "") -> str:
+def render_findings_text(
+    findings: list[Finding], model: str, baseline: str = "", *, locations: bool = False
+) -> str:
     lines = [f"model: {model}\n"]
-    lines.extend(f.render_text() + "\n" for f in findings)
+    lines.extend(f.render_text(locations=locations) + "\n" for f in findings)
     summary = ", ".join(f"{counts(findings)[s.value]} {s.value}" for s in SEVERITY_ORDER)
     lines.append(f"{len(findings)} finding(s): {summary}")
     if baseline:

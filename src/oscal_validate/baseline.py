@@ -294,6 +294,12 @@ def _acknowledged_copy(finding: Finding, acknowledgement: Acknowledgement) -> Fi
         rule=finding.rule,
         suggestions=finding.suggestions,
         acknowledged=acknowledgement,
+        # Copied like every other field. A field left off here is not
+        # inherited from anywhere: the copy would silently lose it, and an
+        # acknowledged finding would be the one finding in a --locations
+        # report with no line number. tests/test_locations.py restores that
+        # omission on purpose and goes red on it.
+        position=finding.position,
     )
 
 

@@ -249,6 +249,21 @@ def _jobs(workflow: str) -> dict[str, str]:
     return {name: "\n".join(lines[bounds[n] : bounds[n + 1]]) for n, (_, name) in enumerate(starts)}
 
 
+def _without_comments(body: str) -> str:
+    """A job's body with its comment lines removed.
+
+    The search below is for a job that *runs* ``make verify``, and a plain
+    substring search over the raw text also matches a job whose comment
+    mentions it. That put ``action-self-test`` into this gate's universe on
+    2026-09-09 and demanded a deep checkout of a job that reads no tags --
+    the same class as a conformance check that passed because a tool was named
+    in a comment. Comments are removed rather than the search being narrowed
+    to the ``run:`` line, because a ``run:`` block is multi-line and its
+    commands are not all on that line.
+    """
+    return "\n".join(line for line in body.splitlines() if not line.lstrip().startswith("#"))
+
+
 def test_ci_fetches_the_tags_these_checks_read() -> None:
     """Otherwise the checks above skip in CI and gate nothing.
 
@@ -258,7 +273,9 @@ def test_ci_fetches_the_tags_these_checks_read() -> None:
     gate that cannot fail.
     """
     jobs = _jobs(CI_WORKFLOW.read_text(encoding="utf-8"))
-    running = {name: body for name, body in jobs.items() if "make verify" in body}
+    running = {
+        name: body for name, body in jobs.items() if "make verify" in _without_comments(body)
+    }
     assert running, ".github/workflows/ci.yml has no job that runs `make verify`"
     for name, body in running.items():
         assert "actions/checkout" in body, f"job {name!r} runs make verify without a checkout"
@@ -268,6 +285,18 @@ def test_ci_fetches_the_tags_these_checks_read() -> None:
         assert "fetch-tags: true" in body, (
             f"job {name!r} does not fetch tags, so tests/test_release_metadata.py skips there"
         )
+
+
+def test_a_job_that_only_mentions_the_gate_in_a_comment_is_not_one_that_runs_it() -> None:
+    """The comment strip above, held to what it is for.
+
+    Without it the universe is "every job whose text contains the string", and
+    a job gets a requirement because somebody explained something in it.
+    """
+    body = "    steps:\n      # this one does not run make verify\n      - run: echo hello\n"
+    assert "make verify" in body
+    assert "make verify" not in _without_comments(body)
+    assert "- run: echo hello" in _without_comments(body)
 
 
 #: A `pip install` naming this project's own distribution, in any quoting and

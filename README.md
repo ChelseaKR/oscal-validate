@@ -347,6 +347,64 @@ case, the separator character, or zero-padding come first; then anything within
 an edit distance of two, adjacent transpositions counted as one edit; ties
 broken lexically.
 
+### `--locations`: the line, beside the pointer
+
+A finding's location is a JSON Pointer such as
+`/catalog/groups/16/controls/23/id`. That is exact, it survives reformatting,
+and it is not where anyone's editor is. `--locations` adds the position in the
+source bytes **beside** the pointer, never in place of it:
+
+```console
+$ oscal-validate broken_catalog.json --locations
+ERROR        REQUIRED_PROPERTY_MISSING  at=/catalog/metadata  broken_catalog.json:4:17
+    last-modified = (absent)
+    ...
+```
+
+`--format json` gains `line` and `column` on every finding. They are
+three-valued and the third value is the one that matters:
+
+| | meaning |
+|---|---|
+| the keys are **absent** | the flag was not given, and the run makes no claim about where anything is |
+| an **integer** | the 1-based line or column where the pointed-at value begins |
+| **`null`** | the flag was given and this run has no position for that pointer |
+
+Never `0`. There is no line 0, so a consumer never has to decide whether a
+zero is a position or an absence — the same rule as the `UNVERIFIABLE`
+severity, one level down.
+
+Three more things it deliberately is not:
+
+- **Not on by default.** Without the flag the bytes are what they always were
+  and no source index is built, which is why a 26 MB catalog pays nothing for
+  a feature it was not asked for. `tests/golden/` pins those bytes.
+- **Not a new key.** The pointer stays the identity of a finding.
+  `--baseline`, `diff` and the goldens all key on it, and reformatting a file
+  moves every line without moving a single pointer —
+  `tests/test_locations.py` reformats a fixture at indent 4 and asserts
+  exactly that.
+- **Not in `sarif` or `html` yet.** Those two formats are unchanged by the
+  flag today, and a test asserts they are byte-identical with it and without
+  it, so the flag cannot look like it reached a format it did not.
+
+The [GitHub Action](#github-action) asks for positions on every run, so a
+finding annotates the line rather than the file. If you run the CLI yourself
+in a workflow, `.github/problem-matcher.json` turns the text report into
+annotations the same way:
+
+```yaml
+- run: echo "::add-matcher::${{ github.workspace }}/.github/problem-matcher.json"
+- run: oscal-validate my-ssp.json --locations
+```
+
+Its three matchers map this tool's four severities onto GitHub's three
+annotation levels using the same table `tools/action_runner.py` uses, and a
+test holds the two together. What the suite proves about the matcher is that
+its patterns match the bytes this tool prints and capture the right file, line
+and column; it does not prove GitHub applies them, because nothing in a
+workflow can read its own annotations back.
+
 ### `--baseline`: acknowledge a finding without hiding it
 
 NIST's own SP 800-53 rev 5 catalog carries an ERROR this tool reports: a link
@@ -785,7 +843,7 @@ first captured from commit `6978895`, the last commit before any model-backed
 command existed.
 
 **The model-backed layer has never moved those bytes, and that is what this
-gate is for.** They have moved six times, every one for an unrelated reason.
+gate is for.** They have moved seven times, every one for an unrelated reason.
 On 2026-08-29 (#35): the `CONSTRAINT_NOT_EVALUATED` finding for
 `allowed-values` carried a sentence that said something false about NIST's
 `allow-other` semantics, and correcting a sentence the report prints is a
@@ -799,12 +857,16 @@ goldens did not move at all. On 2026-09-06 (#81): every JSON report gained
 golden. On 2026-09-07 (#92): the report schema went to `1.1.0` for the two keys
 `--baseline` adds, so every JSON report's `report_schema_version` line moved —
 twelve lines, one per JSON golden, and no text golden, because the text format
-does not print it. Each time the
+does not print it. On 2026-09-09 (#95): the report schema went to `1.2.0` for
+the two keys `--locations` adds, `line` and `column`, neither of which any
+golden run produces, because no golden run passes the flag — so again the whole
+diff is the `report_schema_version` line, twelve lines and no text golden. Each
+time the
 goldens were recaptured from the same documents, each verified by SHA-256
 against the manifest that recorded them, and every other byte of the output is
-unchanged. Those six are the only recaptures since `6978895`;
+unchanged. Those seven are the only recaptures since `6978895`;
 [CHANGELOG.md](CHANGELOG.md) and
-`tests/test_default_path_byte_identity.py` record all six, and
+`tests/test_default_path_byte_identity.py` record all seven, and
 `tests/golden/capture.py` now refuses to write a manifest smaller than the
 committed one, so a recapture on a machine without the cached documents cannot
 quietly shrink what this compares.

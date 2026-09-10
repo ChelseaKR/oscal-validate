@@ -49,6 +49,7 @@ from . import __version__, baseline
 from .document import DocumentError
 from .findings import Finding, render_findings_json, render_findings_text, stale_count
 from .htmlreport import render_findings_html
+from .positions import attach
 from .report import read_report_schema
 from .rules import OSCAL_RELEASE
 from .sarif import render_findings_sarif
@@ -151,6 +152,19 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--locations",
+        action="store_true",
+        help=(
+            "print the line and column in the source file where each finding's pointer "
+            "points, beside the pointer and never instead of it. text gains "
+            "'<file>:<line>:<column>' on a finding's first line; json gains line and "
+            "column on every finding, null where this run has no position for that "
+            "pointer -- never 0, which is a line no file has. sarif and html are "
+            "unchanged by this flag today. Off by default: without it this command's "
+            "bytes are unchanged, and no source index is built"
+        ),
+    )
+    parser.add_argument(
         "--baseline",
         metavar="FILE",
         help=(
@@ -210,7 +224,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(arguments)
     try:
         session = build_session(
-            Path(args.file), [Path(p) for p in args.resolve], suggest=args.suggest
+            Path(args.file),
+            [Path(p) for p in args.resolve],
+            suggest=args.suggest,
+            locations=args.locations,
         )
         findings = validate(session)
     except (DocumentError, SchemaError) as exc:
@@ -234,6 +251,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         except baseline.BaselineError as exc:
             print(f"oscal-validate: {exc}", file=sys.stderr)
             return 2
+        # A BASELINE_STALE finding is made after `validate` returned, so it
+        # has no position yet. Attaching again is idempotent for every other
+        # finding and is what stops one row of a --locations report reading
+        # as positionless for a reason that has nothing to do with the file.
+        findings = attach(findings, session.corpus)
 
     _render(
         findings,
@@ -242,6 +264,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.file,
         [str(p) for p in args.resolve],
         used,
+        locations=args.locations,
     )
     return _exit_code(findings, fail_on_stale=args.fail_on_stale)
 
@@ -253,9 +276,20 @@ def _render(
     document: str,
     resolve: list[str],
     baseline_path: str,
+    *,
+    locations: bool = False,
 ) -> None:
+    """Write the report. ``locations`` reaches text and json and nothing else.
+
+    sarif and html do not carry a position today. That is a gap rather than a
+    decision, and it is stated in ``--locations``' own help text and pinned by
+    ``tests/test_locations.py`` so the flag cannot look like it did something
+    to a format it did not touch.
+    """
     if fmt == "json":
-        print(render_findings_json(findings, __version__, model, baseline_path))
+        print(
+            render_findings_json(findings, __version__, model, baseline_path, locations=locations)
+        )
     elif fmt == "sarif":
         print(render_findings_sarif(findings, __version__, model, Path(document)))
     elif fmt == "html":
@@ -271,7 +305,7 @@ def _render(
             end="",
         )
     else:
-        print(render_findings_text(findings, model, baseline_path))
+        print(render_findings_text(findings, model, baseline_path, locations=locations))
 
 
 def _exit_code(findings: list[Finding], *, fail_on_stale: bool) -> int:
