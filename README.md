@@ -102,6 +102,9 @@ oscal-validate my-ssp.json --resolve catalog.json --suggest
 
 # What changed between two runs. No model, no network, exit 0 either way.
 oscal-validate diff before.json after.json
+
+# Serve this validator to an assistant, read-only and offline (stdio, MCP).
+oscal-validate mcp --root ./packages
 ```
 
 `--resolve` takes further OSCAL documents, or a directory of them. It is how an
@@ -305,6 +308,51 @@ Four things about it:
   who will not send a document to a model can use it. The suite runs it with
   `socket` removed and, in a fresh interpreter, asserts that no module of the
   AI layer or any SDK was loaded.
+
+### `mcp`: the validator, served to an assistant read-only
+
+[ADR-0005](docs/adr/0005-ai-at-the-edges.md) puts the model at the edges and
+keeps the validator the only source of findings. `oscal-validate mcp` is the
+same boundary from the other side: instead of this tool calling a model, a
+model's host calls this tool over
+[MCP](https://modelcontextprotocol.io), and what comes back is the
+validator's own report rather than a model's account of one.
+
+```sh
+oscal-validate mcp --root ./packages
+```
+
+It speaks JSON-RPC 2.0 on stdin and stdout and offers four tools:
+
+| tool | answers |
+|---|---|
+| `validate` | one document, with optional `resolve` paths, returning **the exact bytes `--format json` writes** and the exit code that run would have produced |
+| `rule` | the citation trail for one constraint identifier or finding code — the same answer `oscal-validate rule --format json` prints |
+| `coverage` | which of NIST's published constraints this tool evaluates, with a specific reason for every one it does not, and the evaluated constraints that read an index nothing builds |
+| `limits` | what a clean run does not mean, generated from this README's [Limits](#limits) section |
+
+Four things about it:
+
+- **It takes no dependency.** Not an MCP SDK, not a transport library: the
+  protocol is newline-delimited JSON-RPC over stdio and the standard library
+  is enough. `dependencies = []` is untouched, so the no-network claim is
+  still checkable by reading the source, which is how this project checks it.
+- **Read-only and offline is the whole point.** No tool fetches, writes a
+  file, or calls a model. The suite runs every one of the four with `socket`
+  removed, and asserts in a fresh interpreter that no module of the AI layer
+  and no SDK was loaded by the server process.
+- **Every path is checked against `--root` before it is opened**, and
+  symbolic links are resolved *before* the check, so a link out of the root
+  is refused rather than followed. `--root` defaults to the working directory
+  the server was started in, because a server with no root is a file-reading
+  primitive for whatever is driving the assistant.
+- **A refusal is an answer.** An unreadable document comes back as a refusal
+  carrying exit-2 semantics, never as a report with an empty findings list —
+  an empty findings list is what a *clean* document looks like. A request for
+  a judgment this tool does not make is refused with the boundary stated, in
+  the vocabulary [`ai/guard.py`](src/oscal_validate/ai/guard.py) already uses;
+  the two lists are held together by a test rather than by an import, because
+  this server may not import that package.
 
 ### `--suggest`: the identifier that *is* declared
 
@@ -831,11 +879,15 @@ no clock, no network.
 ### No network in the validator, proved rather than promised
 
 `tests/test_offline_guarantee.py` removes `socket` and runs the validator
-anyway. A separate test asserts that no module inside the installed package
+anyway — and, since the MCP server landed, every one of that server's four
+tools with it, driven through the real request loop. A separate test asserts
+that no module inside the installed package
 outside `oscal_validate/ai/` imports `urllib.request`, `http.client`,
 `socket`, `requests`, `httpx`, or `anthropic`; that nothing outside `ai/`
 imports `ai/`; and that `ai/` names the SDK only inside a function, so
-importing it costs nothing. `tests/test_default_path_byte_identity.py` runs
+importing it costs nothing. That scan is a file set, and a file set is a
+claim about what it contains, so one more test asserts the server's own
+module is inside it. `tests/test_default_path_byte_identity.py` runs
 the default command in a fresh process and asserts it loaded neither the
 package nor the SDK, and compares its exact bytes over the fixtures and
 nine published documents against [`tests/golden/`](tests/golden/),

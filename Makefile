@@ -1,6 +1,6 @@
 # make verify reproduces the full merge-blocking gate set locally, byte for
 # byte with CI: ci.yml runs this exact target. Run it before opening a PR.
-.PHONY: verify sync lint format typecheck test audit coverage-doc rerecord-walkthrough clean
+.PHONY: verify sync lint format typecheck test audit coverage-doc limits-data rerecord-walkthrough clean
 
 verify: sync lint format typecheck test audit
 	@echo "make verify: all gates passed."
@@ -41,6 +41,12 @@ audit:
 # metaschema files. tests/test_constraint_coverage.py fails if it is stale.
 coverage-doc:
 	uv run python tools/constraint_coverage.py docs/CONSTRAINT-COVERAGE.md
+
+# Regenerate the packaged copy of the README's Limits section, which the MCP
+# server's `limits` tool serves. tests/test_mcp.py fails if it is stale, so
+# editing that section of the README means running this in the same commit.
+limits-data:
+	uv run python tools/limits_data.py src/oscal_validate/limits.json
 
 # Re-record the walkthrough cassette. This is the ONLY target here that spends
 # money and reaches the network, so it is never part of `verify` and is never

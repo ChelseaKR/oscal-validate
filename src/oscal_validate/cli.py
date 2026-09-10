@@ -10,10 +10,13 @@ default parser sees the arguments, and the package that implements them is
 imported only then; ``tests/test_default_path_byte_identity.py`` checks in a
 fresh process that a validation run never loads it.
 
-``diff`` and ``rule`` are dispatched the same way but are not among them:
-``diff`` compares two runs and ``rule`` prints the citation trail for one
-constraint identifier or finding code, and both are as deterministic and as
-offline as the default path.
+``diff``, ``rule`` and ``mcp`` are dispatched the same way but are not among
+them: ``diff`` compares two runs, ``rule`` prints the citation trail for one
+constraint identifier or finding code, and ``mcp`` serves the validator to an
+assistant over stdio. All three are as deterministic and as offline as the
+default path, and none of them calls a model -- ``mcp`` least of all, since
+the whole point of it is that a model's host calls this tool and gets the
+validator's own findings rather than a model's account of them.
 
 ``--resolve`` takes more local files or directories. It is how an imported
 catalog or profile gets into the effective data model, and it is the difference
@@ -47,7 +50,7 @@ from pathlib import Path
 
 from . import __version__, baseline
 from .document import DocumentError
-from .findings import Finding, render_findings_json, render_findings_text, stale_count
+from .findings import Finding, exit_code, render_findings_json, render_findings_text
 from .htmlreport import render_findings_html
 from .positions import attach
 from .report import read_report_schema
@@ -72,7 +75,7 @@ AI_COMMANDS = ("explain", "repair", "walkthrough", "ask")
 #: ``non-literal-import`` says so, and it is right that this is not a property
 #: worth having to save a line. ``test_every_deterministic_command_is_actually
 #: _dispatched`` holds the tuple and the branches together instead.
-DETERMINISTIC_COMMANDS = ("diff", "rule")
+DETERMINISTIC_COMMANDS = ("diff", "rule", "mcp")
 
 
 class PrintReportSchema(argparse.Action):
@@ -110,10 +113,12 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Severities: ERROR gates the exit code. UNVERIFIABLE never does; it marks "
             "what the supplied documents cannot settle, and is never a pass. "
-            f"`oscal-validate {DETERMINISTIC_COMMANDS[0]} --help` compares two runs and "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[0]} --help` compares two runs, "
             f"`oscal-validate {DETERMINISTIC_COMMANDS[1]} --help` prints the citation "
-            "trail for one constraint or finding code, both with no model and no "
-            "network, like this command. "
+            "trail for one constraint or finding code, and "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[2]} --help` serves this validator "
+            "to an assistant over stdio; all three make no model call and no network "
+            "call, like this command. "
             f"Opt-in model-backed subcommands ({', '.join(AI_COMMANDS)}) are documented by "
             "`oscal-validate explain --help`; they call a model, this command never does."
         ),
@@ -221,6 +226,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         rule_cli = importlib.import_module("oscal_validate.rule")
         trail: int = rule_cli.main(arguments)
         return trail
+    if arguments and arguments[0] == "mcp":
+        mcp_cli = importlib.import_module("oscal_validate.mcp")
+        served: int = mcp_cli.main(arguments)
+        return served
     args = build_parser().parse_args(arguments)
     try:
         session = build_session(
@@ -266,7 +275,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         used,
         locations=args.locations,
     )
-    return _exit_code(findings, fail_on_stale=args.fail_on_stale)
+    return exit_code(findings, fail_on_stale=args.fail_on_stale)
 
 
 def _render(
@@ -306,21 +315,6 @@ def _render(
         )
     else:
         print(render_findings_text(findings, model, baseline_path, locations=locations))
-
-
-def _exit_code(findings: list[Finding], *, fail_on_stale: bool) -> int:
-    """0 or 1, and the only place either is decided.
-
-    ``Finding.gates`` is what makes an acknowledged ERROR not gate; it is a
-    property of the finding rather than a filter written here, so every reader
-    of a finding gets the same answer. A stale baseline entry gates only when
-    it was asked to, because the document may simply have been fixed.
-    """
-    if any(finding.gates for finding in findings):
-        return 1
-    if fail_on_stale and stale_count(findings):
-        return 1
-    return 0
 
 
 def entrypoint() -> None:

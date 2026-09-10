@@ -274,6 +274,48 @@ class Metaschema:
     def skipped(self) -> tuple[Constraint, ...]:
         return tuple(c for c in self.constraints if not c.evaluated)
 
+    def stranded_index_lookups(self) -> tuple[tuple[Constraint, str | None], ...]:
+        """Evaluated ``index-has-key`` constraints whose index is never built.
+
+        An ``index-has-key`` is only as good as the ``index`` constraint that
+        fills the index it reads. Where that ``index`` is one this tool skips,
+        the lookup misses every key no matter what the document says, so the
+        finding is always UNVERIFIABLE. Counting those among the evaluated
+        constraints without saying so overstates coverage.
+
+        Each entry is the stranded lookup and the identifier of the skipped
+        ``index`` constraint that would have populated it, or ``None`` when
+        nothing in the vendored modules declares that index at all. The two
+        cases are different facts and the caller renders them differently;
+        collapsing them here would hand every reader the same sentence for a
+        constraint that was skipped and one that does not exist.
+
+        Lives here rather than in a caller because two readers need it --
+        ``tools/constraint_coverage.py`` writes it into the published table
+        and the MCP ``coverage`` tool serves it -- and a second, independent
+        derivation of the same set is how the two would come to disagree.
+        """
+        evaluated = self.evaluated()
+        built = {c.index_name for c in evaluated if c.kind == "index"}
+        stranded = sorted(
+            (c for c in evaluated if c.kind == "index-has-key" and c.index_name not in built),
+            key=lambda c: (c.kind, c.identifier, c.target),
+        )
+        return tuple(
+            (
+                constraint,
+                next(
+                    (
+                        c.identifier
+                        for c in self.skipped()
+                        if c.kind == "index" and c.index_name == constraint.index_name
+                    ),
+                    None,
+                ),
+            )
+            for constraint in stranded
+        )
+
 
 # -- parsing -----------------------------------------------------------------
 
