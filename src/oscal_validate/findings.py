@@ -208,6 +208,28 @@ def stale_count(findings: list[Finding]) -> int:
     return sum(1 for f in findings if f.code == BASELINE_STALE)
 
 
+def exit_code(findings: list[Finding], *, fail_on_stale: bool = False) -> int:
+    """0 or 1, and the only place either is decided.
+
+    :attr:`Finding.gates` is what makes an acknowledged ERROR not gate; it is
+    a property of the finding rather than a filter written at a call site, so
+    every reader of a finding gets the same answer. A stale baseline entry
+    gates only when it was asked to, because the document may simply have
+    been fixed.
+
+    Lives beside the severity contract rather than in the CLI because there
+    is now more than one caller -- the CLI returns it as a process exit code
+    and the MCP server reports it as the verdict of a run -- and a second
+    copy of this decision is how two front doors come to disagree about
+    whether a document passed.
+    """
+    if any(finding.gates for finding in findings):
+        return 1
+    if fail_on_stale and stale_count(findings):
+        return 1
+    return 0
+
+
 def _baseline_block(findings: list[Finding], path: str) -> dict[str, object]:
     """What a baseline did to this run, derived rather than restated.
 

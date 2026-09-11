@@ -1,0 +1,42 @@
+{
+  "limits": [
+    {
+      "text": "**It does not judge implementation.** Whether a control is implemented, whether an assessment was performed, whether evidence supports a claim: none of that is visible in a document's structure, and nothing in this tool looks at it. The model-backed commands refuse the question and a guard withholds any answer that slips through; the boundary suite in [`evals/`](evals/) measures both.",
+      "title": "It does not judge implementation."
+    },
+    {
+      "text": "**It evaluates 113 of NIST's 340 published constraints.** Every one of the other 227 is listed with its reason in [`docs/CONSTRAINT-COVERAGE.md`](docs/CONSTRAINT-COVERAGE.md), which is generated from the vendored files and checked by a test so it cannot drift, one reason per constraint rather than one per kind. In summary: of the 200 `allowed-values` sets, 60 declare `allow-other` and 140 do not, and the Metaschema specification makes the absent attribute mean the set is closed (\"no: (default) Identifies the expected value set as closed\"), so what is missing is not a judgment about openness but the applicable-set resolution that decides which values a value node permits; 11 of the 25 `matches` constraints are evaluated and the other 14 name a target this tool cannot read, a datatype the vendored schema does not define or defines without a pattern, or a regex whose meaning depends on which of two published dialects applies; 12 `expect` constraints each carry a Metapath `test` this tool does not implement, and the coverage document prints each one; and exactly one target remains outside the parsed subset \u2014 `oscal-ssp-by-component-uuid-index`, which dereferences a second document through `doc()`. The predicate and interior-descendant targets that used to block 25 constraints are parsed under the bounded grammar of [ADR-0004](docs/adr/0004-bounded-predicate-grammar.md), enumerated from the vendored files rather than the Metapath specification. The order in which the rest of that gap is intended to close, and what each step is waiting on, is [`docs/EXPANSION-PLAN.md`](docs/EXPANSION-PLAN.md). A constraint is also only applied to documents of the models its module governs, since assembly names repeat across models and a catalog's `part` is not assessment-common's.",
+      "title": "It evaluates 113 of NIST's 340 published constraints."
+    },
+    {
+      "text": "**It does not check the `TokenDatatype` pattern.** OSCAL's token pattern uses the ECMA-262 Unicode property escapes `\\p{L}` and `\\p{N}`, which Python's `re` module does not implement. Substituting a hand-written approximation would be a rule encoded from memory, which is the one thing this tool refuses to do, so those values are reported unchecked with a count.",
+      "title": "It does not check the `TokenDatatype` pattern."
+    },
+    {
+      "text": "**It parses XML with the standard library, on purpose.** The metaschema modules are vendored, hash-pinned package data that no user supplies. Both attacks the standard library's parser is criticized for need a DTD, so any vendored file carrying `<!DOCTYPE` or `<!ENTITY` is refused before it reaches the parser, and a test asserts none do. Taking a hardened third-party parser as a runtime dependency would cost the zero-dependency property that makes the no-network and no-model claims mechanically checkable.",
+      "title": "It parses XML with the standard library, on purpose."
+    },
+    {
+      "text": "**It is not a JSON Schema implementation.** The walk reads `$ref`, `properties`, `required`, `additionalProperties`, `items`, `type`, `pattern`, `minItems`, and `minimum`. It does not evaluate `enum` (except to suppress a pattern finding where the schema offers a literal as an alternative), `format`, or `contentEncoding`. `maximum`, `maxItems`, `minLength`, `maxLength`, `uniqueItems`, `const`, `if`, and `not` are absent from the vendored schema, so there is nothing there to evaluate. Where the schema combines alternatives in a form the walk does not resolve, the subtree is reported `SUBTREE_NOT_READ` rather than passed over.",
+      "title": "It is not a JSON Schema implementation."
+    },
+    {
+      "text": "**It does not resolve profiles.** A profile's `modify`, `merge`, and `insert-controls` are not applied, so it cannot check anything that is only true of the resolved catalog. Profile `by-id` and `objective-id` references, which are only resolvable after resolution, are not checked.",
+      "title": "It does not resolve profiles."
+    },
+    {
+      "text": "**It checks no referential integrity in the assessment models.** The `oscal_assessment-common`, `oscal_assessment-results`, and `oscal_poam` modules declare zero `index` and zero `index-has-key` constraints, so NIST publishes no rule tying a finding's `observation-uuid` to an observation that exists. Implementing that check here would mean inventing a rule and citing myself for it.",
+      "title": "It checks no referential integrity in the assessment models."
+    },
+    {
+      "text": "**It cannot tell you a resolved reference is the wrong one.** If a link points at a real identifier belonging to the wrong control, it resolves, and this tool passes it in silence. See Finding 1 in the survey for a live example.",
+      "title": "It cannot tell you a resolved reference is the wrong one."
+    },
+    {
+      "text": "**One stated interpretation.** The Metaschema specification says a key-field that selects nothing contributes a null to the key. Read literally, every object missing an entire key would collide with every other; NIST's own catalogs contain many properties with no `uuid` and are not treated as invalid. So an entry whose composite key is null in *every* part is left out of the index and out of the uniqueness comparison. Entries with some parts present are compared with the absent parts as nulls. This is the one place the tool chooses a reading, and it says so in the code and here.",
+      "title": "One stated interpretation."
+    }
+  ],
+  "preamble": "Everything below is a thing this tool does **not** do. If a check could not be implemented correctly it was left out and named here rather than shipped approximate.",
+  "source": "README.md, \"Limits\""
+}

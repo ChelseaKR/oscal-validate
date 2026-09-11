@@ -14,7 +14,8 @@ standards. Last reviewed: 2026-08-14 (initial).
 - **C Privacy / DPIA:** applies in a narrow form. The default command
   processes only the local files it is pointed at, entirely in process, with
   no network calls, no telemetry, and no persistence beyond its printed
-  report. The four opt-in commands of ADR-0005 send the findings, passages of
+  report. `oscal-validate mcp` reads the files a client names, only under
+  the `--root` it was started with, on the same terms. The four opt-in commands of ADR-0005 send the findings, passages of
   NIST's published text, and excerpts of the document around each finding to
   a model provider; see section H below.
 - **D Transparency:** applies and is the design center: every finding carries
@@ -89,7 +90,11 @@ NIST's own published catalogs are not spuriously invalid.
 ## C. Privacy
 
 No collection, no transmission, no retention. The DPIA-style answer is short
-because the data flow is short: files in, findings out, process ends. This
+because the data flow is short: files in, findings out, process ends. The
+MCP server is the one mode that does not end after a run, and it keeps
+nothing from a supplied document between requests: the only state that
+outlives a request is memoised reads of the vendored schema and constraint
+files. This
 matters more than usual here, because system security plans and assessment
 results describe live systems' boundaries, components, and unremediated
 weaknesses. Nothing leaves the machine the tool runs on, and there is no code
@@ -152,7 +157,11 @@ enforced by a test that removes `socket` and by a test that reads the package
 source for network imports. The residual surface is the JSON parser, the
 vendored XML parse (hash-checked input, never user-supplied), and the supply
 chain of the dev toolchain. Documents nested past 200 levels are refused rather
-than read partially.
+than read partially. `oscal-validate mcp` adds one surface: a path chosen by
+whatever drives the assistant. Every such path is resolved, symbolic links
+followed first, and checked against `--root` before it is opened, and the
+suite holds a path outside the root, a `resolve` path outside it, and a link
+out of it to a refusal.
 
 ## G. Effect on the sites the survey harness fetches
 
