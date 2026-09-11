@@ -1155,6 +1155,21 @@ OSCAL v1.2.3 release. Prose rules are quoted verbatim in
 `src/oscal_validate/rules.py` with their page URLs and the date each page said
 it was last updated. No rule is encoded from memory.
 
+A new OSCAL release is not a version bump for this tool; it is a change to what
+it can say, so the cost is made visible before it is paid.
+[`tools/revendor.py <version>`](tools/revendor.py) fetches that release through
+the same robots-first fetcher the surveys use -- or reads one already on disk
+with `--from-dir` -- refuses any file carrying `<!DOCTYPE` or `<!ENTITY`, and
+prints the difference against the vendored snapshot: constraints added,
+removed, re-levelled or re-targeted, targets outside the parsed grammar, schema
+definitions that changed, the vendored files whose bytes differ, and every
+golden that would move, with the finding codes that moved in it. The bytes
+decide whether anything changed and the inventory explains what, because the
+inventory does not record an `allowed-values` set and a release that changed
+only one would otherwise read as unchanged. It writes only with `--write`,
+after the diff, and lists what is still a person's to do. It is a development
+harness, not part of the package, and it never runs in CI.
+
 ## Development
 
 Uses [`uv`](https://docs.astral.sh/uv/) with a locked toolchain
