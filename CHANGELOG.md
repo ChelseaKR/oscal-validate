@@ -145,6 +145,17 @@ and this project adheres to
   given: a run never given one makes no claim either way.
 
 ### Fixed
+
+- **`docs/API.md` published the pre-`--locations` signatures of `build_session`
+  and `validate_file`.** #95 added `locations: bool = False` to both; the pins in
+  `tests/test_public_api.py` moved with it, and the API document went on stating
+  the old signatures with the suite green, because the only check on the document
+  asked whether each name was *mentioned*. Two of the four public functions were
+  wrong. Both rows are corrected, and a test now reads every function's row back
+  and compares it with `inspect.signature` itself, in both directions: a public
+  function with no row fails, and so does a row for a function that is not
+  public. Run against the unmodified document it fails on exactly those two.
+
 - **`diff`'s text report showed nothing for a finding whose message changed.**
   `compare.IDENTITY` leaves value and message out on purpose, so a finding
   whose sentence was corrected is reported as `changed`. The entry printed the

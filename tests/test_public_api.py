@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import inspect
+import re
 from pathlib import Path
 
 import pytest
@@ -170,6 +171,57 @@ def test_the_api_document_names_every_public_symbol() -> None:
     documented = API_DOC.read_text(encoding="utf-8")
     for name in PUBLIC:
         assert f"`{name}`" in documented, f"docs/API.md does not mention {name}"
+
+
+#: One row of docs/API.md's library table whose second cell is a signature.
+#: Types and constants carry prose there ("frozen dataclass", `str`), so only a
+#: cell that opens with ``(`` is a signature, and only those rows are read.
+_SIGNATURE_ROW = re.compile(
+    r"^\| `(?P<name>[A-Za-z_]+)` \| `(?P<signature>\([^`]*)` \|", re.MULTILINE
+)
+
+
+def _documented_signatures() -> dict[str, str]:
+    documented = API_DOC.read_text(encoding="utf-8")
+    return {
+        row["name"]: row["signature"].replace("\\|", "|")
+        for row in _SIGNATURE_ROW.finditer(documented)
+    }
+
+
+def test_the_api_document_states_every_signature_the_code_has() -> None:
+    """A name is not a signature, and the document is where a caller reads one.
+
+    ``test_the_api_document_names_every_public_symbol`` checks that each name is
+    *mentioned*. That let two rows go stale: #95 added ``locations`` to
+    ``build_session`` and ``validate_file``, the pins in ``PUBLIC`` moved with
+    it, and docs/API.md went on publishing the old signatures with the suite
+    green. So each function's row is compared with ``inspect.signature``
+    itself -- not with ``PUBLIC``, which is one more copy -- in both
+    directions: a public function with no row fails, and so does a row for a
+    function that is not public.
+    """
+    functions = {
+        name for name in oscal_validate.__all__ if inspect.isfunction(getattr(oscal_validate, name))
+    }
+    documented = _documented_signatures()
+    assert functions, "no public function found; everything below would be vacuous"
+    assert set(documented) == functions, (
+        f"rows without a public function: {sorted(set(documented) - functions)}; "
+        f"public functions without a row: {sorted(functions - set(documented))}"
+    )
+    stale = {
+        name: (
+            documented[name],
+            str(inspect.signature(getattr(oscal_validate, name))).replace("'", ""),
+        )
+        for name in sorted(functions)
+        if documented[name]
+        != str(inspect.signature(getattr(oscal_validate, name))).replace("'", "")
+    }
+    assert not stale, "docs/API.md publishes a signature the code does not have: " + "; ".join(
+        f"{name} documented {written} but is {actual}" for name, (written, actual) in stale.items()
+    )
 
 
 def test_the_api_document_states_the_stability_rule() -> None:

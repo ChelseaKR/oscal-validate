@@ -73,8 +73,8 @@ findings = oscal_validate.validate_file(Path("ssp.json"), [Path("catalog.json")]
 
 | Name | Signature | What it is |
 |---|---|---|
-| `validate_file` | `(document: Path, resolve: list[Path] \| None = None, *, suggest: bool = False) -> list[Finding]` | Build a session and validate in one call. The usual entry point. |
-| `build_session` | `(document: Path, resolve: list[Path] \| None = None, *, suggest: bool = False) -> Session` | The loaded schema, metaschema and corpus for one run. Use it when you need the effective data model as well as the findings. |
+| `validate_file` | `(document: Path, resolve: list[Path] \| None = None, *, suggest: bool = False, locations: bool = False) -> list[Finding]` | Build a session and validate in one call. The usual entry point. |
+| `build_session` | `(document: Path, resolve: list[Path] \| None = None, *, suggest: bool = False, locations: bool = False) -> Session` | The loaded schema, metaschema and corpus for one run. Use it when you need the effective data model as well as the findings. |
 | `validate` | `(session: Session) -> list[Finding]` | Run every check over a session. Findings come back deduplicated and in a deterministic order. |
 | `Finding` | frozen dataclass | One finding: `code`, `severity`, `location`, `prop`, `value`, `message`, `rule`, `suggestions`, `acknowledged`, `position`. Its `gates` property is `True` for an ERROR nothing acknowledged, and that is the only thing the exit code is derived from. |
 | `Rule` | frozen dataclass | The published rule a finding is made under: `citation`, `url`, `retrieved`. |
