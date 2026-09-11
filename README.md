@@ -105,6 +105,9 @@ oscal-validate diff before.json after.json
 
 # Serve this validator to an assistant, read-only and offline (stdio, MCP).
 oscal-validate mcp --root ./packages
+
+# Validate a directory as one deliverable, every member against every other.
+oscal-validate package ./my-package
 ```
 
 `--resolve` takes further OSCAL documents, or a directory of them. It is how an
@@ -353,6 +356,60 @@ Four things about it:
   the vocabulary [`ai/guard.py`](src/oscal_validate/ai/guard.py) already uses;
   the two lists are held together by a test rather than by an import, because
   this server may not import that package.
+
+### `package`: a directory validated as one deliverable
+
+A FedRAMP or agency package is a directory: an SSP, the profile it imports, the
+catalog behind that. Validating each file alone, with a hand-assembled
+`--resolve` list, answers a smaller question than the one a reviewer is asking.
+`oscal-validate package` takes the directory as the thing being validated.
+
+```sh
+oscal-validate package ./my-package
+oscal-validate package ./my-package --format json
+oscal-validate package --report-schema     # the shape that report conforms to
+```
+
+It is **exactly N runs of the command line, plus what only a set can show**.
+Every member is validated with every other member as its resolve set — the
+documents `oscal-validate <member> --resolve <directory>` would read — through
+the same composition function the command line reaches, so each member's report
+is byte for byte that command's, and the suite compares them in both formats.
+What it adds is what no single run can see:
+
+| section | lists |
+|---|---|
+| `import_graph` | every import each member writes itself, what it matched, and how |
+| `imports_not_in_package` | imports naming a file the directory does not contain |
+| `unreferenced` | members nothing else imports — the package's roots, not its defects |
+| `uuid_collisions` | UUIDs declared in more than one member, with every place each is declared |
+
+Five things about it:
+
+- **It fails closed.** A file in the directory that is not JSON, is not an
+  OSCAL document, or nests too deeply to walk is named on stderr with its
+  reason, and the run exits 2 and writes no report. Validating the rest would
+  report imports of that file as not supplied, about a file that was, and a
+  report with a short document list is exactly what a smaller clean package
+  looks like. An empty directory is exit 2 as well.
+- **The cross-document sections never gate.** The exit code is the command
+  line's own verdict over the members: 1 if any member has an ERROR, else 0.
+- **A UUID declared in two members is package policy, not a finding.** NIST's
+  constraint layer, and this tool, check UUID uniqueness within one document;
+  a duplicate *inside* one member is still that member's ERROR. Across members
+  it is listed with every declaration, for a reviewer to decide.
+- **There is no "ambiguous imports" section, though issue #60 asked for one.**
+  Import matching keys on a file name, then on the file name without its
+  extension, and within one directory no two `.json` files can share either —
+  so no import can resolve to more than one member here, and the section could
+  only ever print "none".
+- **The report has its own published schema,** `package_report_schema_version`
+  `1.0.0`, independent of the per-document report schema that each member's
+  embedded report conforms to. Nothing about the per-document report changed.
+
+The GitHub Action does not run this verb yet; its `path` input still validates
+each document on its own. `.pre-commit-hooks.yaml` publishes a hook that does,
+`oscal-validate-package`: set its `args` to the directory holding your package.
 
 ### `--suggest`: the identifier that *is* declared
 

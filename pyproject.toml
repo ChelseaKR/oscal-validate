@@ -51,6 +51,7 @@ oscal_validate = [
   "py.typed",
   "report.schema.json",
   "limits.json",
+  "package.schema.json",
   "vendor/SOURCES.md",
   "vendor/oscal/*",
   "ai/corpus/*",

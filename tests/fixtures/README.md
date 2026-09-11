@@ -7,3 +7,6 @@
 | `clean_mapping_collection.json` | A synthetic mapping collection proven clean by the validator, and the baseline every seeded corruption inside a mapping starts from | Written for this repository |
 | `broken_catalog.json` | `clean_catalog.json` with `metadata/last-modified` removed and the second control's `id` duplicated; three ERROR findings | Derived here, 2026-08-21 |
 | `nist_ssp_example.json` | NIST's published system security plan example | `https://raw.githubusercontent.com/usnistgov/oscal-content/main/examples/ssp/json/ssp-example.json`, retrieved 2026-08-14 by the survey harness (record in `docs/findings/2026-08-14-published-oscal-survey.json`), SHA-256 `af97587d6d14b0f1a297899b3f6a09b61675063f3279c7b7ffe16578f8859197`; a US government work in the public domain |
+| `package/catalog.json` | `clean_catalog.json` with every UUID replaced by a deterministic one, so the package declares no UUID twice | Derived here, 2026-09-11 |
+| `package/profile.json` | `clean_profile.json` with every UUID replaced the same way and its import pointed at `catalog.json` beside it | Derived here, 2026-09-11 |
+| `package/ssp.json` | A synthetic system security plan importing `profile.json` and implementing its two controls; with the other two, the package `oscal-validate package` is proven clean against | Written for this repository |

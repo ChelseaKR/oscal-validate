@@ -1,0 +1,87 @@
+{
+  "catalog": {
+    "uuid": "bf4077bb-24e2-5cd2-8859-a1a9b01b7d48",
+    "metadata": {
+      "title": "Synthetic Example Catalog",
+      "last-modified": "2026-08-14T00:00:00Z",
+      "version": "1.0.0",
+      "oscal-version": "1.2.3",
+      "roles": [
+        {
+          "id": "prepared-by",
+          "title": "Prepared By"
+        }
+      ],
+      "parties": [
+        {
+          "uuid": "b9daffed-c27f-57ab-bde4-e325de43ddfa",
+          "type": "organization",
+          "name": "Example Organization"
+        }
+      ],
+      "responsible-parties": [
+        {
+          "role-id": "prepared-by",
+          "party-uuids": [
+            "b9daffed-c27f-57ab-bde4-e325de43ddfa"
+          ]
+        }
+      ],
+      "links": [
+        {
+          "href": "#ce277d0e-bc80-528f-9715-70ebb960328e",
+          "rel": "reference"
+        }
+      ]
+    },
+    "groups": [
+      {
+        "id": "ex",
+        "title": "Example Group",
+        "controls": [
+          {
+            "id": "ex-1",
+            "title": "First Example Control",
+            "params": [
+              {
+                "id": "ex-1_prm_1",
+                "label": "an example parameter"
+              }
+            ],
+            "parts": [
+              {
+                "id": "ex-1_smt",
+                "name": "statement",
+                "prose": "The organization does the example thing."
+              }
+            ]
+          },
+          {
+            "id": "ex-2",
+            "title": "Second Example Control",
+            "parts": [
+              {
+                "id": "ex-2_smt",
+                "name": "statement",
+                "prose": "And the other one."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "back-matter": {
+      "resources": [
+        {
+          "uuid": "ce277d0e-bc80-528f-9715-70ebb960328e",
+          "title": "An Example Reference",
+          "rlinks": [
+            {
+              "href": "https://example.org/reference"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

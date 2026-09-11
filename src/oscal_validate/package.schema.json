@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ChelseaKR/oscal-validate/main/src/oscal_validate/package.schema.json",
+  "title": "oscal-validate package report",
+  "description": "The shape of `oscal-validate package <directory> --format json`. A package report exists only when every file in the directory was read: a directory holding a file that cannot be read exits 2 and writes no report, so `documents` is never empty. Every report carries `package_report_schema_version`, the version of this document, which moves independently of the per-document report schema that each embedded `report` conforms to. `additionalProperties` is false everywhere on purpose: a consumer that validates against this schema learns about a new key rather than ignoring it.",
+  "type": "object",
+  "required": [
+    "package_report_schema_version",
+    "tool",
+    "package",
+    "documents",
+    "import_graph",
+    "imports_not_in_package",
+    "unreferenced",
+    "uuid_collisions",
+    "summary",
+    "notes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "package_report_schema_version": {
+      "description": "The version of this schema the report conforms to.",
+      "const": "1.0.0"
+    },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"const": "oscal-validate"},
+        "version": {"type": "string"}
+      }
+    },
+    "package": {
+      "type": "object",
+      "required": ["root", "documents"],
+      "additionalProperties": false,
+      "properties": {
+        "root": {
+          "description": "The directory as it was given on the command line.",
+          "type": "string"
+        },
+        "documents": {
+          "description": "How many members were read and validated. Equal to the length of `documents`.",
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "documents": {
+      "description": "One entry per member, in path order.",
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/document"}
+    },
+    "import_graph": {
+      "description": "Every import each member writes itself, not the ones reached through it. An observation; it gates nothing.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/import"}
+    },
+    "imports_not_in_package": {
+      "description": "The imports in `import_graph` whose name no member answers to, not even by file name without extension.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/import"}
+    },
+    "unreferenced": {
+      "description": "Members no other member imports. A package's top-level document is always among them; this is a map of the set's roots, not a list of defects.",
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "uuid_collisions": {
+      "description": "UUIDs declared in more than one member, with every declaration. Package policy, not a finding, and never gating.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/collision"}
+    },
+    "summary": {
+      "description": "Severity totals across every member's findings, plus the size of each cross-document section. Only the severities decide the exit code, and only as the per-document command does.",
+      "type": "object",
+      "required": [
+        "ERROR",
+        "WARNING",
+        "INFO",
+        "UNVERIFIABLE",
+        "documents",
+        "imports_not_in_package",
+        "unreferenced",
+        "uuid_collisions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ERROR": {"$ref": "#/$defs/count"},
+        "WARNING": {"$ref": "#/$defs/count"},
+        "INFO": {"$ref": "#/$defs/count"},
+        "UNVERIFIABLE": {"$ref": "#/$defs/count"},
+        "documents": {"$ref": "#/$defs/count"},
+        "imports_not_in_package": {"$ref": "#/$defs/count"},
+        "unreferenced": {"$ref": "#/$defs/count"},
+        "uuid_collisions": {"$ref": "#/$defs/count"}
+      }
+    },
+    "notes": {
+      "description": "Fixed sentences stating what the cross-document sections do not mean.",
+      "type": "object",
+      "required": ["cross_document_sections", "uuid_collisions", "unreferenced"],
+      "additionalProperties": false,
+      "properties": {
+        "cross_document_sections": {"type": "string"},
+        "uuid_collisions": {"type": "string"},
+        "unreferenced": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "document": {
+      "type": "object",
+      "required": ["path", "model", "exit_code", "report"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": "string"},
+        "model": {"type": "string"},
+        "exit_code": {
+          "description": "The exit code `oscal-validate <path> --resolve <root>` returns for this member. Never 2: a member that could not be read means no report was written.",
+          "enum": [0, 1]
+        },
+        "report": {
+          "description": "The complete per-document report for this member, conforming to report.schema.json at the report_schema_version it carries. It is byte for byte the report `oscal-validate <path> --resolve <root> --format json` writes, parsed.",
+          "type": "object"
+        }
+      }
+    },
+    "import": {
+      "type": "object",
+      "required": ["from", "pointer", "href", "target_name", "resolved_to", "matched_by", "candidates"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "description": "The member the import is written in.",
+          "type": "string"
+        },
+        "pointer": {"type": "string"},
+        "href": {"type": "string"},
+        "target_name": {
+          "description": "The file name the href names, or null for a fragment this tool could not turn into one.",
+          "type": ["string", "null"]
+        },
+        "resolved_to": {
+          "description": "The member the import resolved to, or null when none answered.",
+          "type": ["string", "null"]
+        },
+        "matched_by": {
+          "description": "How the name was matched, or null when the import did not resolve.",
+          "enum": ["file name", "file name without extension", null]
+        },
+        "candidates": {
+          "description": "Every member whose name matched: empty when none did, and never more than one, because within one directory no two .json files share a file name or a file name without extension, which are the only two keys import matching uses.",
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "collision": {
+      "type": "object",
+      "required": ["uuid", "declared_at"],
+      "additionalProperties": false,
+      "properties": {
+        "uuid": {"type": "string"},
+        "declared_at": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["path", "location"],
+            "additionalProperties": false,
+            "properties": {
+              "path": {"type": "string"},
+              "location": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

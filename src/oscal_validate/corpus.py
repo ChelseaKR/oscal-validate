@@ -76,6 +76,17 @@ class ImportEdge:
     #: nothing was supplied for it, one entry when it resolved, and more than
     #: one when the name was supplied more than once by different files.
     candidates: tuple[str, ...] = ()
+    #: The path of the document this import is written in. Recorded where the
+    #: edge is made rather than recovered from :attr:`pointer` afterwards: a
+    #: pointer into a supporting document is qualified as ``<path>#<pointer>``,
+    #: and an absolute path begins with ``/`` exactly as a bare pointer does,
+    #: which is how ``positions._split`` once read every such finding as a
+    #: pointer into the primary document. Never rendered; package mode reads it.
+    source: str = ""
+    #: How the href's name was matched to :attr:`resolved_to`: ``"file name"``
+    #: or ``"file name without extension"``, the two rules :func:`_match`
+    #: applies in that order. Empty when the import did not resolve.
+    matched_by: str = ""
 
     @property
     def resolved(self) -> bool:
@@ -236,7 +247,7 @@ def _match(
     name: str | None,
     by_name: dict[str, list[LoadedDocument]],
     by_stem: dict[str, list[LoadedDocument]],
-) -> list[LoadedDocument]:
+) -> tuple[list[LoadedDocument], str]:
     """Find the supplied document an href names.
 
     Exact file name first. Failing that, the file name without its extension:
@@ -247,11 +258,11 @@ def _match(
     file an import was matched to.
     """
     if name is None:
-        return []
+        return [], ""
     exact = by_name.get(name, [])
     if exact:
-        return exact
-    return by_stem.get(Path(name).stem, [])
+        return exact, "file name"
+    return by_stem.get(Path(name).stem, []), "file name without extension"
 
 
 def _where(document: LoadedDocument, primary: LoadedDocument, pointer: str) -> str:
@@ -273,6 +284,20 @@ def build_corpus(
         for path in collect_paths(supporting_paths)
         if path.resolve() != primary.resolve()
     )
+    return compose(primary_document, supporting)
+
+
+def compose(primary_document: LoadedDocument, supporting: tuple[LoadedDocument, ...]) -> Corpus:
+    """The effective data model of one document, over documents already read.
+
+    Split from :func:`build_corpus` so that a caller holding several documents
+    can compose each one's model without reading every file once per document.
+    Package mode is that caller: it reads a directory once and composes each
+    member against the rest, and because this is the same function the command
+    line reaches through :func:`build_corpus`, a member's report cannot differ
+    from ``oscal-validate <member> --resolve <directory>``. The two paths share
+    this body rather than agreeing by coincidence.
+    """
     by_name: dict[str, list[LoadedDocument]] = {}
     by_stem: dict[str, list[LoadedDocument]] = {}
     for document in supporting:
@@ -288,7 +313,7 @@ def build_corpus(
         rlinks = back_matter_rlinks(document)
         for pointer, href in import_edges(document):
             name = file_name_of(href, rlinks)
-            matches = _match(name, by_name, by_stem)
+            matches, how = _match(name, by_name, by_stem)
             target = matches[0] if len(matches) == 1 else None
             edges.append(
                 ImportEdge(
@@ -299,6 +324,8 @@ def build_corpus(
                     target_name=name,
                     resolved_to=target.path if target is not None else None,
                     candidates=tuple(match.path for match in matches),
+                    source=document.path,
+                    matched_by=how if target is not None else "",
                 )
             )
             if target is not None and target.path not in seen:
@@ -322,6 +349,7 @@ __all__ = [
     "LoadedDocument",
     "back_matter_rlinks",
     "build_corpus",
+    "compose",
     "collect_paths",
     "file_name_of",
     "import_edges",

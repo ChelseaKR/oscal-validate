@@ -10,11 +10,12 @@ default parser sees the arguments, and the package that implements them is
 imported only then; ``tests/test_default_path_byte_identity.py`` checks in a
 fresh process that a validation run never loads it.
 
-``diff``, ``rule`` and ``mcp`` are dispatched the same way but are not among
-them: ``diff`` compares two runs, ``rule`` prints the citation trail for one
-constraint identifier or finding code, and ``mcp`` serves the validator to an
-assistant over stdio. All three are as deterministic and as offline as the
-default path, and none of them calls a model -- ``mcp`` least of all, since
+``diff``, ``rule``, ``mcp`` and ``package`` are dispatched the same way but
+are not among them: ``diff`` compares two runs, ``rule`` prints the citation
+trail for one constraint identifier or finding code, ``mcp`` serves the
+validator to an assistant over stdio, and ``package`` validates a directory as
+one deliverable. All four are as deterministic and as offline as the default
+path, and none of them calls a model -- ``mcp`` least of all, since
 the whole point of it is that a model's host calls this tool and gets the
 validator's own findings rather than a model's account of them.
 
@@ -75,7 +76,7 @@ AI_COMMANDS = ("explain", "repair", "walkthrough", "ask")
 #: ``non-literal-import`` says so, and it is right that this is not a property
 #: worth having to save a line. ``test_every_deterministic_command_is_actually
 #: _dispatched`` holds the tuple and the branches together instead.
-DETERMINISTIC_COMMANDS = ("diff", "rule", "mcp")
+DETERMINISTIC_COMMANDS = ("diff", "rule", "mcp", "package")
 
 
 class PrintReportSchema(argparse.Action):
@@ -115,10 +116,12 @@ def build_parser() -> argparse.ArgumentParser:
             "what the supplied documents cannot settle, and is never a pass. "
             f"`oscal-validate {DETERMINISTIC_COMMANDS[0]} --help` compares two runs, "
             f"`oscal-validate {DETERMINISTIC_COMMANDS[1]} --help` prints the citation "
-            "trail for one constraint or finding code, and "
+            "trail for one constraint or finding code, "
             f"`oscal-validate {DETERMINISTIC_COMMANDS[2]} --help` serves this validator "
-            "to an assistant over stdio; all three make no model call and no network "
-            "call, like this command. "
+            "to an assistant over stdio, and "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[3]} --help` validates a directory "
+            "as one deliverable; all four make no model call and no network call, like "
+            "this command. "
             f"Opt-in model-backed subcommands ({', '.join(AI_COMMANDS)}) are documented by "
             "`oscal-validate explain --help`; they call a model, this command never does."
         ),
@@ -212,24 +215,41 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _deterministic(arguments: list[str]) -> int | None:
+    """Run the deterministic verb the first argument names, or return None.
+
+    Its own function so that ``main`` stays inside the complexity limit as
+    verbs are added -- the fourth one pushed it over -- without giving up the
+    one property the branches exist for: every module is imported by a
+    **literal** path, never by interpolating the command line into
+    ``import_module``. ``None`` means the first argument is not a verb, and the
+    default parser reads it as a file, which is what a word that merely looks
+    like a verb must still be.
+    """
+    verb = arguments[0] if arguments else ""
+    if verb == "diff":
+        module = importlib.import_module("oscal_validate.diff")
+    elif verb == "rule":
+        module = importlib.import_module("oscal_validate.rule")
+    elif verb == "mcp":
+        module = importlib.import_module("oscal_validate.mcp")
+    elif verb == "package":
+        module = importlib.import_module("oscal_validate.package")
+    else:
+        return None
+    result: int = module.main(arguments)
+    return result
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
     if arguments and arguments[0] in AI_COMMANDS:
         ai_cli = importlib.import_module("oscal_validate.ai.cli")
         result: int = ai_cli.main(arguments)
         return result
-    if arguments and arguments[0] == "diff":
-        diff_cli = importlib.import_module("oscal_validate.diff")
-        verdict: int = diff_cli.main(arguments)
-        return verdict
-    if arguments and arguments[0] == "rule":
-        rule_cli = importlib.import_module("oscal_validate.rule")
-        trail: int = rule_cli.main(arguments)
-        return trail
-    if arguments and arguments[0] == "mcp":
-        mcp_cli = importlib.import_module("oscal_validate.mcp")
-        served: int = mcp_cli.main(arguments)
-        return served
+    handled = _deterministic(arguments)
+    if handled is not None:
+        return handled
     args = build_parser().parse_args(arguments)
     try:
         session = build_session(
