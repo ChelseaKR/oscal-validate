@@ -146,6 +146,19 @@ and this project adheres to
 
 ### Fixed
 
+- **No test had ever validated a `--locations` report against the report schema,
+  because the schema checker could not read one.** `report.schema.json` declares
+  `line` and `column` as `["integer", "null"]` (#95), and `tests/schema_check.py`
+  raised `TypeError` on its first union type, so the published "null, never 0"
+  contract for a position was held by no schema validation in the suite. Measured:
+  a `--locations` report over `broken_catalog.json` carries a position on 8 of 8
+  findings, and the unmodified checker raised on it. The checker now implements
+  union types by checking each listed type with the single-type rule, so a
+  boolean is still not an integer inside a union; every JSON fixture is validated
+  with `--locations` on; and one test admits `null` and `1` and refuses `0`,
+  `"3"` and `true`. Against the unmodified checker all six new tests errored; a
+  union that admitted everything reddened exactly the refusal test.
+
 - **`docs/API.md` published the pre-`--locations` signatures of `build_session`
   and `validate_file`.** #95 added `locations: bool = False` to both; the pins in
   `tests/test_public_api.py` moved with it, and the API document went on stating
