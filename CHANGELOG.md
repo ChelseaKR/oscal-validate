@@ -10,6 +10,35 @@ and this project adheres to
 
 ### Added
 
+- **`tools/revendor.py`: what a new OSCAL release would change, before it is paid for.**
+  Every check in this tool reads the vendored files, so a release is not a version
+  bump; it is a change to what the tool can say. The harness fetches NIST's release
+  through the robots-first fetcher, or reads one with `--from-dir`, refuses any file
+  carrying `<!DOCTYPE` or `<!ENTITY`, and prints the cost before anything is written:
+  constraints added, removed, re-levelled, re-targeted, newly evaluated or newly
+  skipped; targets outside the parsed grammar; schema definitions that changed; the
+  files whose bytes differ; and every golden that would move, with the finding codes
+  that moved in it. It writes only with `--write`, after the diff, and lists what is
+  still a person's to do. Run against NIST's own v1.2.3 it reports an empty diff: 340 to 340 constraints, 113 to 113 evaluated, 0 files differing and 0 of 12 goldens moved.
+
+  The inventory is taken by the package's own reader, in a copy of the package with
+  the candidate bytes swapped in, in a subprocess that refuses to answer unless it
+  imported that copy -- the editable install is importable from the same interpreter,
+  so without that check the candidate's inventory could silently be the installed
+  package describing itself. The bytes decide whether anything changed and the
+  inventory explains what: it does not record an `allowed-values` set, and a release
+  that changed only one would otherwise read as unchanged.
+
+  Measured on the way. Keyed by identifier, NIST's 340 constraints folded into 324
+  keys, because NIST reuses ids across kinds and contexts; the key now leaves out
+  exactly the fields whose change it reports. No golden carries a finding from an
+  evaluated constraint (0 of 138), so a level change moves no golden; and every
+  report restates a release-wide count of unevaluated constraints, so a change in
+  which constraints are evaluated moves every golden by that one finding. The harness
+  says both. `tests/golden/capture.py`'s runner takes an optional package path, so the
+  goldens are run through the candidate copy by the same code that captured them; its
+  default call is unchanged. Eleven of twelve negative controls turned the suite red from a green baseline; the twelfth, counting from the keyed dict, is redundant given the collision-free key and is reported rather than dropped.
+
 - **`oscal-validate package`: a directory validated as one deliverable.** A
   FedRAMP or agency package is a directory, and validating each file alone with a
   hand-assembled `--resolve` list answers a smaller question than the one a
