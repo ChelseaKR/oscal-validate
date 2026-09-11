@@ -57,6 +57,8 @@ def _resolve(reference: str, root: dict[str, Any]) -> dict[str, Any]:
 
 def _type_error(schema: dict[str, Any], instance: Any, where: str) -> list[str]:
     declared = schema["type"]
+    if isinstance(declared, list):
+        return _union_type_error(declared, instance, where)
     expected = TYPES.get(declared)
     if expected is None:
         raise UnsupportedKeyword(f"type {declared!r}")
@@ -66,6 +68,22 @@ def _type_error(schema: dict[str, Any], instance: Any, where: str) -> list[str]:
     if not isinstance(instance, expected):
         return [f"{where}: expected {declared}, got {type(instance).__name__}"]
     return []
+
+
+def _union_type_error(declared: list[Any], instance: Any, where: str) -> list[str]:
+    """``"type": ["integer", "null"]``: the instance must be one of the listed types.
+
+    ``report.schema.json`` declares ``line`` and ``column`` this way. Until this
+    branch existed the checker raised on them, which is why no test had ever
+    validated a ``--locations`` report against the schema: it could not. Each
+    listed type is checked by the single-type branch, so the rule that a boolean
+    is not an integer holds inside a union too.
+    """
+    if not declared or not all(isinstance(name, str) and name in TYPES for name in declared):
+        raise UnsupportedKeyword(f"type {declared!r}")
+    if any(not _type_error({"type": name}, instance, where) for name in declared):
+        return []
+    return [f"{where}: expected one of {declared}, got {type(instance).__name__}"]
 
 
 def _check_scalar(instance: Any, schema: dict[str, Any], where: str) -> list[str]:

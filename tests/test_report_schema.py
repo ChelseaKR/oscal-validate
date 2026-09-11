@@ -292,3 +292,51 @@ def test_the_shipped_schema_is_byte_stable() -> None:
 
 def test_a_deep_copy_of_a_report_is_still_a_report() -> None:
     assert check(copy.deepcopy(_valid()), SCHEMA) == []
+
+
+# -- --locations: the keys the schema declared and nothing had checked --------
+
+#: Every JSON fixture, read from the directory rather than listed here.
+LOCATED = sorted((ROOT / "tests" / "fixtures").glob("*.json"))
+
+
+@pytest.mark.parametrize("document", LOCATED, ids=lambda path: path.name)
+def test_a_locations_report_conforms_to_the_schema(
+    document: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """``line`` and ``column`` were published before anything checked them.
+
+    #95 declared both as ``["integer", "null"]`` with a minimum of 1. This
+    file's checker raised on its first union type, so a ``--locations`` report
+    had never been validated against the schema: the tests that validate
+    reports never passed the flag, and could not have. Every fixture now goes
+    through it with the flag on, as the command line prints it.
+    """
+    from oscal_validate.cli import main
+
+    main([str(document), "--format", "json", "--locations"])
+    report = json.loads(capsys.readouterr().out)
+    assert report["findings"], f"{document.name} has no findings; no position was checked"
+    assert all("line" in f and "column" in f for f in report["findings"])
+    assert check(report, SCHEMA) == []
+
+
+def test_a_position_may_be_null_or_positive_and_nothing_else(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Both halves in one test, because a union that admits everything passes the first.
+
+    ``null`` is the schema's word for "this run has no position for that
+    pointer". ``0`` is the value it exists to exclude, a string is not a
+    number, and JSON Schema does not count a boolean as an integer even though
+    Python does.
+    """
+    from oscal_validate.cli import main
+
+    main([str(fixture_path("broken_catalog.json")), "--format", "json", "--locations"])
+    report = json.loads(capsys.readouterr().out)
+    for value, admitted in ((None, True), (1, True), (0, False), ("3", False), (True, False)):
+        mutated = copy.deepcopy(report)
+        mutated["findings"][0]["line"] = value
+        errors = check(mutated, SCHEMA)
+        assert (errors == []) is admitted, (value, errors)
