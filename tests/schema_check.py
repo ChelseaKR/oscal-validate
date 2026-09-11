@@ -3,7 +3,7 @@
 The report schema is validated on the default path, where this project has no
 runtime dependency and the test suite adds none for it. So the check is
 written here, over the subset of draft 2020-12 that ``report.schema.json``
-actually uses.
+and ``package.schema.json`` actually use.
 
 The dangerous way to write this is the obvious way: walk the schema, handle
 the keywords you recognise, and skip the rest. That checker reports no error
@@ -26,7 +26,17 @@ ANNOTATIONS = frozenset({"$schema", "$id", "title", "description", "$defs", "exa
 
 #: Keywords this checker implements.
 IMPLEMENTED = frozenset(
-    {"type", "required", "properties", "additionalProperties", "items", "enum", "const", "minimum"}
+    {
+        "type",
+        "required",
+        "properties",
+        "additionalProperties",
+        "items",
+        "minItems",
+        "enum",
+        "const",
+        "minimum",
+    }
 )
 
 TYPES: dict[str, type | tuple[type, ...]] = {
@@ -144,6 +154,8 @@ def check(
     errors = _check_scalar(instance, schema, where)
     if isinstance(instance, dict):
         errors += _check_object(instance, schema, root, where)
+    if isinstance(instance, list) and "minItems" in schema and len(instance) < schema["minItems"]:
+        errors.append(f"{where}: {len(instance)} item(s), fewer than minItems {schema['minItems']}")
     if isinstance(instance, list) and "items" in schema:
         for index, item in enumerate(instance):
             errors += check(item, schema["items"], root, f"{where}[{index}]")

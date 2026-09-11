@@ -100,6 +100,35 @@ def test_the_offline_source_scan_reaches_the_mcp_server() -> None:
 
 
 @pytest.mark.usefixtures("no_network")
+def test_package_mode_validates_a_whole_directory_with_no_socket(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Every member against every other, and the one place a fetch could hide.
+
+    Package mode resolves imports across a directory. A tool that fetched an
+    import it could not find locally would do it here, so the run is made with
+    the socket gone and must still produce the cross-document section.
+    """
+    assert main(["package", str(fixture_path("package"))]) == 0
+    assert "== across the package ==" in capsys.readouterr().out
+
+
+def test_every_dispatched_verb_s_module_is_inside_the_offline_scan() -> None:
+    """Derived from the dispatch tuple, so the next verb is covered without anyone remembering.
+
+    Each deterministic verb is imported as ``oscal_validate.<verb>``. The scan
+    below is what proves a module dials nothing, and it is a file set; a verb
+    whose module the set does not contain is a claim nothing checks.
+    """
+    from oscal_validate.cli import DETERMINISTIC_COMMANDS
+
+    assert DETERMINISTIC_COMMANDS, "no verbs to check; vacuous"
+    scanned = _validator_sources()
+    for verb in DETERMINISTIC_COMMANDS:
+        assert SOURCE_ROOT / f"{verb}.py" in scanned, verb
+
+
+@pytest.mark.usefixtures("no_network")
 def test_an_unresolved_import_is_never_a_fetch(capsys: pytest.CaptureFixture[str]) -> None:
     # The profile names a catalog it was not given. A tool that fetched would
     # fetch here; this one reports UNVERIFIABLE instead.

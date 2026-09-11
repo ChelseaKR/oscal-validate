@@ -10,6 +10,44 @@ and this project adheres to
 
 ### Added
 
+- **`oscal-validate package`: a directory validated as one deliverable.** A
+  FedRAMP or agency package is a directory, and validating each file alone with a
+  hand-assembled `--resolve` list answers a smaller question than the one a
+  reviewer asks. The verb is exactly N runs of
+  `oscal-validate <member> --resolve <dir>` -- through the same composition
+  function, `corpus.compose`, split out of `build_corpus` for it, so a member's
+  report is that command's byte for byte, compared in the suite in both formats
+  and both settings of `--locations` -- plus what only a set shows: each member's
+  own imports and how they matched, imports naming a file the directory lacks,
+  members nothing imports, and UUIDs declared in more than one member. Those four
+  sections never gate. UUID collisions are package policy; a duplicate *inside*
+  one member stays that member's `UUID_NOT_UNIQUE` ERROR.
+
+  It fails closed. A member that is not JSON, not OSCAL, or too deep to walk is
+  named on stderr and the run exits 2 with nothing on stdout, because validating
+  the rest would call a supplied file "not supplied", and a report with a short
+  document list is what a smaller clean package looks like. An empty directory
+  is exit 2 too. There is no "ambiguous imports" section, though #60 asked for
+  one: within one directory no two `.json` files share a name or a stem, so it
+  could only ever print "none".
+
+  The report has its own schema, `package.schema.json` at
+  `package_report_schema_version` **1.0.0**, printed by
+  `oscal-validate package --report-schema`. `report.schema.json` is untouched, so
+  nothing pinned to `1.2.0` breaks, and no golden moved. `tests/schema_check.py`
+  gains `minItems`, implemented rather than listed. `.pre-commit-hooks.yaml`
+  publishes an `oscal-validate-package` hook; the GitHub Action does not run the
+  verb yet (#101), and a test fails when `action.yml` gains a `mode` input while
+  the help still says it has none.
+
+  Found on the way: a member that decodes but recurses in the constraint layer's
+  descendant walk escaped as a traceback with exit 1, the code this tool reserves
+  for an ERROR it found. `json.loads` reads 4,000 levels; what recursed was
+  `metaschema._walk_descendants`. It is now named, exit 2, at 4,000 and 100,000
+  levels. And `cli.main` passed the complexity limit with a fourth verb, so
+  dispatch moved into a helper that keeps every import a literal path. Twelve
+  negative controls each turned the suite red from a green baseline.
+
 - **`oscal-validate mcp`: the validator served to an assistant, read-only and
   offline.** ADR-0005 put the model at the edges and kept the validator the
   only source of findings. This is the same boundary from the other side: a

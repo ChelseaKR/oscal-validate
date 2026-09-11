@@ -1,0 +1,20 @@
+# pre-commit hooks this repository publishes, for other repositories to use.
+#
+# oscal-validate-package validates a directory as one deliverable, exactly as
+# `oscal-validate package <directory>` does: every member against every other,
+# offline, with no model call. It takes a directory rather than the files that
+# changed, so pass_filenames is false and the directory is the hook's argument.
+# Set `args` to the directory that holds your package.
+#
+# The hook fails when the package cannot be read as a whole (exit 2 -- a file in
+# the directory that is not an OSCAL document is named, and no member is
+# validated against a set that lost one) and when any member has an ERROR.
+# UNVERIFIABLE findings never fail it, as they never gate the command.
+-   id: oscal-validate-package
+    name: oscal-validate package
+    description: Validate a directory of OSCAL JSON documents as one deliverable, with imports resolved against each other. Offline; no model call.
+    entry: oscal-validate package
+    language: python
+    pass_filenames: false
+    files: \.json$
+    args: ["."]
