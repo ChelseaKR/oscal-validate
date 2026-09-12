@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -46,18 +47,27 @@ CACHED: list[tuple[str, str]] = [
 ]
 
 
-def run(document: Path, resolve: list[Path], fmt: str) -> bytes:
+def run(document: Path, resolve: list[Path], fmt: str, *, package: Path | None = None) -> bytes:
     """The default path's exact bytes, plus its exit code, with one substitution.
 
     An IMPORT_RESOLVED finding names the resolved absolute path of the file an
     import matched, so the bytes carry the checkout's location. That one
     string is replaced by a placeholder on both sides of the comparison; no
     other byte is touched.
+
+    ``package`` is a directory to put first on ``PYTHONPATH`` -- a copy of the
+    package holding a different vendored snapshot, which is how
+    ``tools/revendor.py`` asks what a new OSCAL release would do to these
+    goldens. It is a parameter here rather than a second runner there, because
+    two copies of this function's formatting could only ever disagree about
+    whether a golden moved. Omitted, the run is exactly the one the goldens
+    were captured with.
     """
     command = [sys.executable, "-m", "oscal_validate", str(document), "--format", fmt]
     for path in resolve:
         command += ["--resolve", str(path)]
-    result = subprocess.run(command, capture_output=True, check=False, cwd=ROOT)
+    env = None if package is None else {**os.environ, "PYTHONPATH": str(package)}
+    result = subprocess.run(command, capture_output=True, check=False, cwd=ROOT, env=env)
     output = result.stdout + f"\n[exit {result.returncode}]\n".encode()
     return output.replace(str(ROOT).encode(), b"<ROOT>")
 

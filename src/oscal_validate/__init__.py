@@ -11,7 +11,8 @@ from __future__ import annotations
 #: PYTHONPATH with nothing installed, and there is no distribution to ask.
 __version__ = "0.4.0"
 
-from .findings import Finding, Rule, Severity
+from .findings import Acknowledgement, Finding, Rule, Severity
+from .positions import Position
 from .report import REPORT_SCHEMA_VERSION, read_report_schema
 from .validator import build_session, validate, validate_file
 
@@ -21,7 +22,9 @@ from .validator import build_session, validate, validate_file
 #: signatures, so widening or narrowing this list is a deliberate act.
 __all__ = [
     "REPORT_SCHEMA_VERSION",
+    "Acknowledgement",
     "Finding",
+    "Position",
     "Rule",
     "Severity",
     "__version__",

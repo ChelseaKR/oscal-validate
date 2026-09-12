@@ -8,7 +8,361 @@ and this project adheres to
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **`tools/revendor.py`: what a new OSCAL release would change, before it is paid for.**
+  Every check in this tool reads the vendored files, so a release is not a version
+  bump; it is a change to what the tool can say. The harness fetches NIST's release
+  through the robots-first fetcher, or reads one with `--from-dir`, refuses any file
+  carrying `<!DOCTYPE` or `<!ENTITY`, and prints the cost before anything is written:
+  constraints added, removed, re-levelled, re-targeted, newly evaluated or newly
+  skipped; targets outside the parsed grammar; schema definitions that changed; the
+  files whose bytes differ; and every golden that would move, with the finding codes
+  that moved in it. It writes only with `--write`, after the diff, and lists what is
+  still a person's to do. Run against NIST's own v1.2.3 it reports an empty diff: 340 to 340 constraints, 113 to 113 evaluated, 0 files differing and 0 of 12 goldens moved.
+
+  The inventory is taken by the package's own reader, in a copy of the package with
+  the candidate bytes swapped in, in a subprocess that refuses to answer unless it
+  imported that copy -- the editable install is importable from the same interpreter,
+  so without that check the candidate's inventory could silently be the installed
+  package describing itself. The bytes decide whether anything changed and the
+  inventory explains what: it does not record an `allowed-values` set, and a release
+  that changed only one would otherwise read as unchanged.
+
+  Measured on the way. Keyed by identifier, NIST's 340 constraints folded into 324
+  keys, because NIST reuses ids across kinds and contexts; the key now leaves out
+  exactly the fields whose change it reports. No golden carries a finding from an
+  evaluated constraint (0 of 138), so a level change moves no golden; and every
+  report restates a release-wide count of unevaluated constraints, so a change in
+  which constraints are evaluated moves every golden by that one finding. The harness
+  says both. `tests/golden/capture.py`'s runner takes an optional package path, so the
+  goldens are run through the candidate copy by the same code that captured them; its
+  default call is unchanged. Eleven of twelve negative controls turned the suite red from a green baseline; the twelfth, counting from the keyed dict, is redundant given the collision-free key and is reported rather than dropped.
+
+- **`oscal-validate package`: a directory validated as one deliverable.** A
+  FedRAMP or agency package is a directory, and validating each file alone with a
+  hand-assembled `--resolve` list answers a smaller question than the one a
+  reviewer asks. The verb is exactly N runs of
+  `oscal-validate <member> --resolve <dir>` -- through the same composition
+  function, `corpus.compose`, split out of `build_corpus` for it, so a member's
+  report is that command's byte for byte, compared in the suite in both formats
+  and both settings of `--locations` -- plus what only a set shows: each member's
+  own imports and how they matched, imports naming a file the directory lacks,
+  members nothing imports, and UUIDs declared in more than one member. Those four
+  sections never gate. UUID collisions are package policy; a duplicate *inside*
+  one member stays that member's `UUID_NOT_UNIQUE` ERROR.
+
+  It fails closed. A member that is not JSON, not OSCAL, or too deep to walk is
+  named on stderr and the run exits 2 with nothing on stdout, because validating
+  the rest would call a supplied file "not supplied", and a report with a short
+  document list is what a smaller clean package looks like. An empty directory
+  is exit 2 too. There is no "ambiguous imports" section, though #60 asked for
+  one: within one directory no two `.json` files share a name or a stem, so it
+  could only ever print "none".
+
+  The report has its own schema, `package.schema.json` at
+  `package_report_schema_version` **1.0.0**, printed by
+  `oscal-validate package --report-schema`. `report.schema.json` is untouched, so
+  nothing pinned to `1.2.0` breaks, and no golden moved. `tests/schema_check.py`
+  gains `minItems`, implemented rather than listed. `.pre-commit-hooks.yaml`
+  publishes an `oscal-validate-package` hook; the GitHub Action does not run the
+  verb yet (#101), and a test fails when `action.yml` gains a `mode` input while
+  the help still says it has none.
+
+  Found on the way: a member that decodes but recurses in the constraint layer's
+  descendant walk escaped as a traceback with exit 1, the code this tool reserves
+  for an ERROR it found. `json.loads` reads 4,000 levels; what recursed was
+  `metaschema._walk_descendants`. It is now named, exit 2, at 4,000 and 100,000
+  levels. And `cli.main` passed the complexity limit with a fourth verb, so
+  dispatch moved into a helper that keeps every import a literal path. Twelve
+  negative controls each turned the suite red from a green baseline.
+
+- **`oscal-validate mcp`: the validator served to an assistant, read-only and
+  offline.** ADR-0005 put the model at the edges and kept the validator the
+  only source of findings. This is the same boundary from the other side: a
+  model's host calls this tool over MCP and gets the validator's own report
+  rather than a model's account of one. `validate` returns the exact bytes
+  `--format json` writes — compared byte for byte in the suite, over every
+  fixture and both settings of `--locations` — together with the exit code
+  that run would have produced. `rule` returns the same answer
+  `oscal-validate rule --format json` prints. `coverage` publishes which of
+  NIST's constraints are evaluated, the specific reason for every one that is
+  not, and the evaluated constraints that read an index nothing builds.
+  `limits` publishes what a clean run does not mean.
+
+  It takes **no new dependency**: JSON-RPC 2.0 over stdio is newline-delimited
+  JSON, so the standard library is enough and `dependencies = []` is
+  untouched. That matters beyond tidiness — the no-network claim is checked by
+  reading the source, and a protocol library would have put an unread
+  transport inside the boundary.
+
+  Every path a tool is given is resolved and checked against `--root` before
+  it is opened, symbolic links included, so a link out of the root is refused
+  rather than followed; `--root` defaults to the working directory the server
+  was started in. A document that cannot be read comes back as a refusal
+  carrying exit-2 semantics, never as a report with an empty findings list. A
+  request for a judgment this tool does not make is refused with the boundary
+  stated, in the vocabulary `ai/guard.py` already uses — held to it by a test
+  rather than by an import, because the server may not import that package,
+  and deliberately no wider than it, since a word this server refuses and that
+  guard admits would be two boundaries where the project claims one.
+
+  `tests/test_offline_guarantee.py` now runs all four tools with `socket`
+  removed and asserts the server's own module is inside the import scan that
+  proves it dials nothing; a fresh-interpreter test drives all four and
+  asserts no module of the AI layer or any SDK was loaded.
+
+  Two things moved to make one measurement serve two readers rather than two
+  derivations disagree: the exit-code decision now lives in
+  `oscal_validate.findings.exit_code`, called by both the CLI and the server,
+  and the stranded-index-lookup set in `Metaschema.stranded_index_lookups`,
+  read by both `tools/constraint_coverage.py` and the `coverage` tool.
+  `docs/CONSTRAINT-COVERAGE.md` is byte-identical across that change.
+
+  The README's Limits section is now also shipped as package data,
+  `src/oscal_validate/limits.json`, generated by `make limits-data` and held
+  to the README by a staleness test, so the disclosure an assistant is handed
+  cannot be shorter than the one the project publishes. The default output
+  path is untouched and no golden moved.
+
+- **`--locations`: the line and column, beside the pointer.** A finding's
+  location is an RFC 6901 JSON Pointer, which is exact and is not where anyone's
+  editor is. Under `--locations` the text report appends
+  `<file>:<line>:<column>` to a finding's first line and `--format json` gains
+  `line` and `column` on every finding. The pointer is unchanged and remains the
+  identity of a finding: `--baseline`, `diff` and `tests/golden/` all key on it,
+  and a test reformats a fixture at indent 4 to assert that every line moves and
+  no pointer does.
+
+  The keys are three-valued and the third value is the point of them. Absent
+  means the flag was not given and the run makes no claim. An integer is the
+  1-based position where the pointed-at value begins. `null` means the flag was
+  given and this run has no position for that pointer — a value the walk
+  synthesised, or a document whose source it did not index. It is never `0`,
+  because there is no line 0 and a consumer must never have to decide whether a
+  zero is a position or an absence. The text report writes that case as
+  `(no source position)` rather than as a number, and `tools/action_runner.py`
+  refuses any line that is not a positive integer rather than handing it to
+  GitHub, which would anchor an annotation on it.
+
+  The index is built only when the flag asks for it, so the default path pays
+  nothing: `build_session(..., locations=True)` is what builds it, and without
+  it every `LoadedDocument.source` is `None`. It is a reader over the source
+  text rather than a hook into `json`'s scanner, and where the two could
+  disagree it defers — string escaping goes through the standard library's own
+  `scanstring`, and a duplicate key records the last position, which is the
+  value `json.loads` keeps. `tests/test_locations.py` walks the decoded
+  document independently and asserts the two pointer sets are equal in both
+  directions, so the scanner is measured against `json.loads` rather than
+  against its own output.
+
+  The GitHub Action asks for positions on every run, so a finding annotates the
+  line a reviewer is reading rather than the file; a finding with no position
+  annotates the file, which is what every finding did before.
+  `.github/problem-matcher.json` does the same for a workflow that runs the CLI
+  itself. Its three matchers map the tool's four severities onto GitHub's three
+  annotation levels using the same table the Action uses, and a test holds the
+  two together. What the suite proves is that the patterns match the bytes this
+  tool prints and capture the right file, line and column — not that GitHub
+  applies them, which nothing in a workflow can read back.
+
+  `Finding` gains an optional `position` field and `Position` joins the public
+  API; `docs/API.md` records both. The report schema goes to **1.2.0** for the
+  two optional keys, so every JSON golden's `report_schema_version` line moved
+  and nothing else did — the seventh recapture, recorded in
+  `tests/test_default_path_byte_identity.py` with the rest.
+
+- **`--baseline`: acknowledge a finding without hiding it.** NIST's own
+  SP 800-53 rev 5 catalog carries an ERROR this tool reports, and a team that
+  imports that catalog cannot edit NIST's file. Their options were to ignore
+  the exit code or to switch the gate off; both end with nobody reading the
+  report. A baseline names findings that have been looked at and accepted, each
+  with a written reason and the date it was written.
+
+  An acknowledged finding is still printed, still keeps its severity, and is
+  still counted in every summary, in every format. The single thing an
+  acknowledgement changes is whether the finding gates the exit code, and
+  `Finding.gates` is the one place that is decided, so no renderer can disagree
+  with the exit code. Four refusals keep it from becoming a suppression list: an
+  entry with no written reason is refused at exit 2; an entry naming an
+  UNVERIFIABLE finding is refused, because there is nothing to acknowledge in an
+  answer the tool did not reach; an entry that matches nothing this run found is
+  reported as `BASELINE_STALE` at WARNING, quoting its own reason, with
+  `--fail-on-stale` to make it gate; and `acknowledged_on` is validated as a
+  calendar date and never compared against today, so no verdict here depends on
+  when it runs.
+
+  `--write-baseline` generates the document, to stdout, with every reason empty
+  — so the file as generated is refused by `--baseline`, and cannot be committed
+  and used without someone writing down why each entry is there. It never offers
+  an UNVERIFIABLE finding, because the generator must not produce what the
+  reader will refuse.
+
+  The GitHub Action takes `baseline` and `fail-on-stale` inputs and publishes
+  `acknowledged-count` and `stale-baseline-count`. `acknowledged-count` is
+  deliberately not subtracted from `error-count`: an acknowledged ERROR is still
+  an ERROR. The action refuses a report whose `acknowledged` block it cannot
+  parse rather than reading it as absent, because absent is what makes a finding
+  gate.
+
+  The report schema goes to **1.1.0** for two optional keys — a `baseline` block
+  and an `acknowledged` object on a finding. Both counts in that block are
+  derived from the findings the report carries, so a report cannot claim an
+  acknowledgement it does not show, and the key is absent when no baseline was
+  given: a run never given one makes no claim either way.
+
+### Fixed
+
+- **No test had ever validated a `--locations` report against the report schema,
+  because the schema checker could not read one.** `report.schema.json` declares
+  `line` and `column` as `["integer", "null"]` (#95), and `tests/schema_check.py`
+  raised `TypeError` on its first union type, so the published "null, never 0"
+  contract for a position was held by no schema validation in the suite. Measured:
+  a `--locations` report over `broken_catalog.json` carries a position on 8 of 8
+  findings, and the unmodified checker raised on it. The checker now implements
+  union types by checking each listed type with the single-type rule, so a
+  boolean is still not an integer inside a union; every JSON fixture is validated
+  with `--locations` on; and one test admits `null` and `1` and refuses `0`,
+  `"3"` and `true`. Against the unmodified checker all six new tests errored; a
+  union that admitted everything reddened exactly the refusal test.
+
+- **`docs/API.md` published the pre-`--locations` signatures of `build_session`
+  and `validate_file`.** #95 added `locations: bool = False` to both; the pins in
+  `tests/test_public_api.py` moved with it, and the API document went on stating
+  the old signatures with the suite green, because the only check on the document
+  asked whether each name was *mentioned*. Two of the four public functions were
+  wrong. Both rows are corrected, and a test now reads every function's row back
+  and compares it with `inspect.signature` itself, in both directions: a public
+  function with no row fails, and so does a row for a function that is not
+  public. Run against the unmodified document it fails on exactly those two.
+
+- **`diff`'s text report showed nothing for a finding whose message changed.**
+  `compare.IDENTITY` leaves value and message out on purpose, so a finding
+  whose sentence was corrected is reported as `changed`. The entry printed the
+  new finding — which carries no message — over `was: <value> / <severity>`,
+  so both halves were identical on every byte shown: the heading said a
+  finding had changed and the block under it showed nothing that had. The JSON
+  rendering was unaffected, because it carries both findings whole, which is
+  why the suite was green over it.
+
+  Not hypothetical. Two of the seven golden re-captures recorded in
+  `tests/test_default_path_byte_identity.py` are exactly this shape: a
+  finding's sentence was corrected and its value did not move.
+
+  Every field that differs is now named on both sides — value, severity,
+  message, rule source, acknowledgement — and a pair that differs in none of
+  them says so and points at `--format json`, rather than printing an empty
+  block under a heading that claims a change.
+
+  Found by reading the uncovered-lines column of the module that shipped most
+  recently, not by the suite: `render_text`'s `changed` and `moved` loop
+  bodies, its `ambiguous_moves` line, and the "vendored OSCAL snapshot
+  differs" note had **never executed**. All four now have tests, including the
+  snapshot note, which cannot fire through the CLI today — `load_side` gives a
+  validated side the vendored release and a saved report `UNRECORDED`, so two
+  known-and-different snapshots need a report format that records one. A
+  sentence that has never run is not one anybody can rely on arriving correct
+  when the data finally reaches it. `diff.py` goes from 89% to 98%.
+
+- **`--write-baseline` generated a file `--baseline` refused.** Two findings can
+  share a baseline key — the same duplicated identifier reported under two
+  different NIST constraints, differing only in message and rule — and the
+  generator wrote one entry per finding. The result was refused as *duplicated*,
+  a refusal that blames the reader for something the generator did and whose
+  only obvious cure is to weaken the duplicate check. It now writes one entry
+  per distinct key, which is what `apply` matches on and therefore the only
+  shape that describes what an acknowledgement will do.
+
+- **The HTML report told a reviewer an acknowledged ERROR gates the exit code.**
+  Its summary answered `yes` in the "Gates the exit code" column for ERROR
+  unconditionally — true until `--baseline` existed. The page a person signs off
+  from now derives that cell from `Finding.gates`, names the acknowledgement, the
+  reason and the date on the finding's own row, and states the baseline path with
+  its acknowledged and stale counts. The defect class is a disclosure corrected
+  in the machine-readable formats and left wrong in the one a person reads.
+
+- **`--format html`: one self-contained page for a reviewer, and the project's
+  first human-facing rendered surface.** The people who sign a package rarely
+  run a CLI, and until now the only way to hand them findings was a pasted
+  terminal dump. The page carries every finding the text report carries,
+  grouped in the fix order `walkthrough` computes, each with its JSON pointer,
+  value, message, and rule citation as a link to NIST's page with the date it
+  was retrieved. UNVERIFIABLE keeps its own section and the summary states the
+  count on the page: nothing is folded into a pass.
+
+  One file, and it fetches nothing — no script, no external stylesheet, no
+  font, no image, no `src` of any kind. No timestamp either, so two runs over
+  the same inputs are byte-identical and a difference between two reports is a
+  difference in what was read; the footer names the tool version, the OSCAL
+  release, the documents read and the SHA-256 of every vendored file the run
+  opened. OSCAL documents are untrusted input, so every value goes through
+  `html.escape` with quoting on and there is an injection test.
+
+  **This flips the Accessibility standard from N/A to Applies**, and the
+  proposal takes that on rather than deferring it.
+  `tests/test_html_report.py` parses the rendered bytes with the standard
+  library and holds every page the suite can produce to seven structural rules
+  — one `h1` with no skipped levels, `lang="en"`, a skip link whose target
+  exists, no duplicate ids, a caption and `th scope` on every table with every
+  row exactly as wide as its header, no fetching element, every control
+  labelled — and **each rule is seeded with the defect it exists to catch**, so
+  none of them is a check that has never gone red. What the mechanical checks
+  cannot judge is stated rather than implied: they are not a WCAG audit, and no
+  assistive-technology testing has been done. `docs/RESPONSIBLE-TECH-AUDITS.md`
+  gains section E saying so, and `docs/I18N.md` records why the N/A there is
+  unchanged — the page introduces no new strings, only a rendering of the ones
+  the terminal already prints, and it declares `lang="en"` so what it is is
+  stated in the markup.
+
+- **`oscal-validate rule <constraint-id | finding-code>`: the citation trail,
+  offline, deterministic, and with no model in the process.** Most of what
+  `explain` is worth happens before it calls a model — it gathers the constraint
+  as NIST declared it, the level NIST published, the target expression and
+  whether this tool parses it, and the Metaschema specification's section for
+  that constraint kind. That gathering is deterministic, so it is now a verb of
+  its own, available to a user who will not send a document to a model, to the
+  GitHub Action, which never runs a model-backed command, and to anyone with no
+  optional dependency installed.
+
+  Every quotation is verbatim from a hash-pinned file and is printed beside the
+  SHA-256 of the bytes **this run read** — computed, not copied out of a
+  manifest, for the reason `snapshot.py` already gives. For a constraint this
+  tool does not evaluate it prints that constraint's *own* reason rather than
+  its kind's summary, which turns "why did this not fire" into one command.
+  For a finding code it prints every rule that can produce it: the fixed ones
+  quoted verbatim, the ones composed per finding named as such rather than
+  rendered with invented arguments, and the constraint-layer ones pointed at
+  `docs/CONSTRAINT-COVERAGE.md`. An identifier that is neither is exit 2 with
+  nothing printed.
+
+  The map from finding code to rule is hand-written and held to the source by
+  an AST walk that pairs each `code=` with the `rule=` beside it in the same
+  `Finding(...)` call — branch by branch where both are conditional
+  expressions, and refusing to pair them at all unless the two conditions are
+  the same expression. Its key set must equal the roster the finding-code
+  census already takes from the package, so a new code cannot arrive without an
+  entry. Negative control: pointing one entry at a rule its check does not cite
+  turns that walk red and names the code.
+
+### Changed
+
+- **The source layer moved out of the AI package**, from
+  `oscal_validate/ai/sources.py` to `oscal_validate/sources.py`. Loading NIST's
+  published text, splitting it into sections, quoting it verbatim and hashing
+  the bytes that were read is evidence for every command, not only the
+  model-backed ones; `ai/sources.py` now imports it and keeps only what is about
+  a prompt — which passages answer one finding or one question, in what order,
+  and inside what byte budget. Everything it exported is re-exported, so no
+  caller moves. The corpus **files** stay at `ai/corpus/`, where ADR-0005, the
+  data card and `pyproject.toml`'s package-data all say they are.
+
+- **The fix order moved out of the AI package too**, from the `TIERS` table in
+  `ai/walkthrough.py` to `oscal_validate/fixorder.py`. Two surfaces now order
+  findings by it — the model-backed walkthrough and `--format html` — and a fix
+  order that two modules state separately is one that will eventually disagree
+  with itself. `ai/walkthrough.py` imports it and keeps the `G1..Gn` labelling
+  and prompt formatting, which are only about a prompt; a test asserts the two
+  orderings are equal over a real document.
 
 ## [0.4.0] - 2026-09-07
 
@@ -132,9 +486,10 @@ Nothing yet.
 
 - **`VERSION_SKEW_SUSPECTED`: which of this report's ERRORs were not checked
   against the release the document declares** (closes #8), in
-  `src/oscal_validate/checks/versions.py`, `rules.py`, `validator.py`,
-  `ai/walkthrough.py`, `tests/test_finding_code_census.py`, two golden cases,
-  `README.md`, `docs/ROADMAP.md`, `docs/RESPONSIBLE-TECH-AUDITS.md` and
+  `src/oscal_validate/checks/versions.py`, `rules.py`, `rule.py`,
+  `validator.py`, `fixorder.py`, `sarif.py`, `limits.json`,
+  `tests/test_finding_code_census.py`, two golden cases, `README.md`,
+  `docs/ROADMAP.md`, `docs/RESPONSIBLE-TECH-AUDITS.md` and
   [ADR-0008](docs/adr/0008-version-skew-is-flagged-not-resolved.md).
 
   Everything is validated against the vendored OSCAL 1.2.3 schema, and

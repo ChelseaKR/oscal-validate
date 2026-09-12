@@ -79,9 +79,9 @@ declares a non-vendored release and carries an ERROR gains one INFO finding.
 Nothing else moves: no severity changes, no ERROR is added or removed, and the
 exit code is unchanged, since only ERROR findings make the CLI exit nonzero. Of
 the twelve cases pinned in `tests/golden/`, two are in that class and each
-gains exactly one line per format. That is the third recorded re-capture of the
-byte-identity goldens and the reason is written into
-`tests/test_default_path_byte_identity.py` beside the other two.
+gains exactly one line per format. That is the eighth recorded re-capture of
+the byte-identity goldens and the reason is written into
+`tests/test_default_path_byte_identity.py` beside the other seven.
 
 **INFO rather than UNVERIFIABLE.** UNVERIFIABLE means the validator did not
 decide the question it was asked, and is never counted as a pass or a fail.
@@ -108,8 +108,8 @@ non-emissions directly, so the witness for the code cannot pass for the wrong
 half of its condition.
 
 **One sentence deliberately still cites the issue rather than this ADR.** The
-walkthrough's "Declared version" tier says "(issue #8)", and that tier's prose
-is part of the walkthrough prompt, which is hashed to key
+"Declared version" tier in `src/oscal_validate/fixorder.py` says "(issue #8)",
+and that tier's prose is carried into the walkthrough prompt, which is hashed to key
 `tests/cassettes/walkthrough-nist-ssp.json`. Rewording it invalidates a
 recording that only a billed, networked re-record can replace, which is not a
 price worth paying for a citation. The new code is added to that tier's code

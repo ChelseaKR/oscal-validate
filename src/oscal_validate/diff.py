@@ -23,7 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -129,6 +129,66 @@ def _line(finding: Finding) -> str:
     )
 
 
+#: Everything a ``changed`` pair can differ in, and how each reads.
+#:
+#: ``compare.IDENTITY`` holds the code, the location, the property and the rule
+#: citation fixed, and ``compare`` puts a pair in ``changed`` when the two
+#: findings are unequal as values. So the difference is in one of these, and
+#: which one is the only thing the entry is there to say.
+_COMPARABLE: tuple[tuple[str, Callable[[Finding], str]], ...] = (
+    ("value", lambda f: f.value),
+    ("severity", lambda f: f.severity.value),
+    ("message", lambda f: f.message),
+    ("rule source", lambda f: f"{f.rule.url} (retrieved {f.rule.retrieved})"),
+    (
+        "acknowledgement",
+        lambda f: (
+            "none"
+            if f.acknowledged is None
+            else f"{f.acknowledged.acknowledged_on}: {f.acknowledged.reason}"
+        ),
+    ),
+)
+
+
+def changed_lines(old: Finding, new: Finding) -> list[str]:
+    """What differs between the two halves of a ``changed`` pair.
+
+    This printed one line, ``was: <value> / <severity>``, and ``_line`` above
+    prints the *new* value and no message at all. So a pair that differed only
+    in its message rendered as an entry whose two halves were identical on
+    every byte shown: the heading said a finding had changed and the block
+    under it showed nothing that had. The JSON rendering was unaffected — it
+    carries both findings whole — which is why the suite was green over it, and
+    it is the shape this project already names elsewhere: a data model that
+    keeps two facts apart and a renderer that collapses them.
+
+    Message-only changes are not hypothetical here. Two of the seven golden
+    re-captures recorded in ``tests/test_default_path_byte_identity.py`` are
+    exactly that: a finding's sentence was corrected and its value did not
+    move.
+
+    Every differing field is named, and a pair that differs in none of them
+    says so rather than printing an empty block — an entry with no evidence
+    under it is the thing being fixed, and silently printing nothing is the
+    same defect one level down.
+    """
+    differing = [
+        (name, read(old), read(new)) for name, read in _COMPARABLE if read(old) != read(new)
+    ]
+    if not differing:
+        fields = ", ".join(name for name, _ in _COMPARABLE)
+        return [
+            f"      reported as changed, and {fields} are all equal: the difference is in a "
+            "field this report does not show. --format json carries both findings whole."
+        ]
+    lines: list[str] = []
+    for name, was, now in differing:
+        lines.append(f"      {name} was: {was}")
+        lines.append(f"      {name} now: {now}")
+    return lines
+
+
 def render_text(before: Side, after: Side, result: Comparison) -> str:
     lines = [f"before: {before.label}", f"after:  {after.label}"]
     lines += [f"note: {note}" for note in provenance_notes(before, after)]
@@ -143,7 +203,7 @@ def render_text(before: Side, after: Side, result: Comparison) -> str:
     lines.append(f"changed: same finding, different value or message ({len(result.changed)})")
     for old, new in result.changed:
         lines.append(_line(new))
-        lines.append(f"      was: {old.value} / {old.severity.value}")
+        lines += changed_lines(old, new)
     if not result.changed:
         lines.append("  (none)")
     lines.append("")

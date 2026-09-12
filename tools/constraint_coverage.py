@@ -30,6 +30,11 @@ This file exists because "no findings" and "every published constraint passed"
 are different claims, and only the first one is ever true here. Every
 constraint NIST publishes is listed below with whether this tool runs it, and
 where it does not, the reason.
+
+For one constraint rather than all of them, `oscal-validate rule <constraint-id>`
+prints the same facts plus the declaring element verbatim from the vendored
+module and the Metaschema specification's section for that kind, each beside
+the SHA-256 of the bytes it was read from. It reaches no model and no network.
 """
 
 
@@ -91,13 +96,13 @@ def _reads_an_unbuilt_index(metaschema: Metaschema) -> list[str]:
     always UNVERIFIABLE. Counting those among the evaluated constraints without
     saying so would overstate coverage, which is the one thing this file exists
     to prevent.
+
+    The set itself is computed by ``Metaschema.stranded_index_lookups``, not
+    here: the MCP ``coverage`` tool publishes the same fact, and two
+    derivations of one set is how two published answers come to disagree.
+    This function is the rendering of it.
     """
-    evaluated = metaschema.evaluated()
-    built = {c.index_name for c in evaluated if c.kind == "index"}
-    stranded = sorted(
-        (c for c in evaluated if c.kind == "index-has-key" and c.index_name not in built),
-        key=_sort_key,
-    )
+    stranded = metaschema.stranded_index_lookups()
     lines = ["## Evaluated, but reading an index that is never built", ""]
     lines.append(
         "These constraints are parsed and run, and they can never produce a definite "
@@ -109,15 +114,8 @@ def _reads_an_unbuilt_index(metaschema: Metaschema) -> list[str]:
     lines.append("")
     lines.append("| Constraint | Declared on | Reads index | Populated by |")
     lines.append("|---|---|---|---|")
-    for constraint in stranded:
-        source = next(
-            (
-                c.identifier
-                for c in metaschema.skipped()
-                if c.kind == "index" and c.index_name == constraint.index_name
-            ),
-            "(nothing declares it)",
-        )
+    for constraint, populated_by in stranded:
+        source = populated_by or "(nothing declares it)"
         lines.append(
             f"| `{constraint.identifier}` | `{constraint.context}` | "
             f"`{constraint.index_name}` | `{source}`, skipped |"

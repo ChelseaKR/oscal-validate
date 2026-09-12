@@ -28,6 +28,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from .document import DocumentError, Scalar, Walked, walk_document
+from .positions import SourceIndex, index_document
 from .schema import SchemaIndex
 
 #: Pointer segments under which an ``href`` names another OSCAL document.
@@ -53,6 +54,12 @@ class LoadedDocument:
     path: str
     name: str
     walked: Walked
+    #: Where every JSON Pointer in this document's source text begins, built
+    #: only when ``--locations`` asked for it (issue #66). ``None`` means the
+    #: run never indexed this document, which is not the same as a document
+    #: with no positions in it, and :func:`oscal_validate.positions.attach`
+    #: keeps the two apart.
+    source: SourceIndex | None = None
 
 
 @dataclass(frozen=True)
@@ -69,6 +76,17 @@ class ImportEdge:
     #: nothing was supplied for it, one entry when it resolved, and more than
     #: one when the name was supplied more than once by different files.
     candidates: tuple[str, ...] = ()
+    #: The path of the document this import is written in. Recorded where the
+    #: edge is made rather than recovered from :attr:`pointer` afterwards: a
+    #: pointer into a supporting document is qualified as ``<path>#<pointer>``,
+    #: and an absolute path begins with ``/`` exactly as a bare pointer does,
+    #: which is how ``positions._split`` once read every such finding as a
+    #: pointer into the primary document. Never rendered; package mode reads it.
+    source: str = ""
+    #: How the href's name was matched to :attr:`resolved_to`: ``"file name"``
+    #: or ``"file name without extension"``, the two rules :func:`_match`
+    #: applies in that order. Empty when the import did not resolve.
+    matched_by: str = ""
 
     @property
     def resolved(self) -> bool:
@@ -122,7 +140,13 @@ class Corpus:
         return out
 
 
-def load_document(path: Path, schema: SchemaIndex) -> LoadedDocument:
+def load_document(path: Path, schema: SchemaIndex, *, locations: bool = False) -> LoadedDocument:
+    """Read, decode and walk one document, indexing its source only if asked.
+
+    The source index is built from the same text ``json.loads`` was given, and
+    after the walk, so a document too deep or too malformed to read is refused
+    in the walk's own words rather than in the indexer's.
+    """
     try:
         raw = path.read_text(encoding="utf-8")
     except OSError as exc:
@@ -131,7 +155,13 @@ def load_document(path: Path, schema: SchemaIndex) -> LoadedDocument:
         data: Any = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise DocumentError(f"{path} is not valid JSON: {exc}") from exc
-    return LoadedDocument(path=str(path), name=path.name, walked=walk_document(data, schema))
+    walked = walk_document(data, schema)
+    return LoadedDocument(
+        path=str(path),
+        name=path.name,
+        walked=walked,
+        source=index_document(str(path), raw) if locations else None,
+    )
 
 
 def collect_paths(paths: list[Path]) -> list[Path]:
@@ -217,7 +247,7 @@ def _match(
     name: str | None,
     by_name: dict[str, list[LoadedDocument]],
     by_stem: dict[str, list[LoadedDocument]],
-) -> list[LoadedDocument]:
+) -> tuple[list[LoadedDocument], str]:
     """Find the supplied document an href names.
 
     Exact file name first. Failing that, the file name without its extension:
@@ -228,11 +258,11 @@ def _match(
     file an import was matched to.
     """
     if name is None:
-        return []
+        return [], ""
     exact = by_name.get(name, [])
     if exact:
-        return exact
-    return by_stem.get(Path(name).stem, [])
+        return exact, "file name"
+    return by_stem.get(Path(name).stem, []), "file name without extension"
 
 
 def _where(document: LoadedDocument, primary: LoadedDocument, pointer: str) -> str:
@@ -240,14 +270,34 @@ def _where(document: LoadedDocument, primary: LoadedDocument, pointer: str) -> s
     return pointer if document is primary else f"{document.path}#{pointer}"
 
 
-def build_corpus(primary: Path, supporting_paths: list[Path], schema: SchemaIndex) -> Corpus:
+def build_corpus(
+    primary: Path,
+    supporting_paths: list[Path],
+    schema: SchemaIndex,
+    *,
+    locations: bool = False,
+) -> Corpus:
     """Load the primary document and every document supplied to resolve against."""
-    primary_document = load_document(primary, schema)
+    primary_document = load_document(primary, schema, locations=locations)
     supporting = tuple(
-        load_document(path, schema)
+        load_document(path, schema, locations=locations)
         for path in collect_paths(supporting_paths)
         if path.resolve() != primary.resolve()
     )
+    return compose(primary_document, supporting)
+
+
+def compose(primary_document: LoadedDocument, supporting: tuple[LoadedDocument, ...]) -> Corpus:
+    """The effective data model of one document, over documents already read.
+
+    Split from :func:`build_corpus` so that a caller holding several documents
+    can compose each one's model without reading every file once per document.
+    Package mode is that caller: it reads a directory once and composes each
+    member against the rest, and because this is the same function the command
+    line reaches through :func:`build_corpus`, a member's report cannot differ
+    from ``oscal-validate <member> --resolve <directory>``. The two paths share
+    this body rather than agreeing by coincidence.
+    """
     by_name: dict[str, list[LoadedDocument]] = {}
     by_stem: dict[str, list[LoadedDocument]] = {}
     for document in supporting:
@@ -263,7 +313,7 @@ def build_corpus(primary: Path, supporting_paths: list[Path], schema: SchemaInde
         rlinks = back_matter_rlinks(document)
         for pointer, href in import_edges(document):
             name = file_name_of(href, rlinks)
-            matches = _match(name, by_name, by_stem)
+            matches, how = _match(name, by_name, by_stem)
             target = matches[0] if len(matches) == 1 else None
             edges.append(
                 ImportEdge(
@@ -274,6 +324,8 @@ def build_corpus(primary: Path, supporting_paths: list[Path], schema: SchemaInde
                     target_name=name,
                     resolved_to=target.path if target is not None else None,
                     candidates=tuple(match.path for match in matches),
+                    source=document.path,
+                    matched_by=how if target is not None else "",
                 )
             )
             if target is not None and target.path not in seen:
@@ -297,6 +349,7 @@ __all__ = [
     "LoadedDocument",
     "back_matter_rlinks",
     "build_corpus",
+    "compose",
     "collect_paths",
     "file_name_of",
     "import_edges",

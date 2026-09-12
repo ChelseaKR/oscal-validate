@@ -9,16 +9,21 @@ from .checks import ALL_CHECKS, Check, constraints, references, versions
 from .corpus import build_corpus
 from .findings import Finding, finalize
 from .metaschema import load_metaschema
+from .positions import attach
 from .schema import load_schema
 from .session import Session
 
 
 def build_session(
-    document: Path, resolve: list[Path] | None = None, *, suggest: bool = False
+    document: Path,
+    resolve: list[Path] | None = None,
+    *,
+    suggest: bool = False,
+    locations: bool = False,
 ) -> Session:
     schema = load_schema()
     return Session(
-        corpus=build_corpus(document, list(resolve or []), schema),
+        corpus=build_corpus(document, list(resolve or []), schema, locations=locations),
         schema=schema,
         metaschema=load_metaschema(),
         suggest=suggest,
@@ -34,15 +39,26 @@ def validate(session: Session) -> list[Finding]:
     against a release this document does not declare, so a reader is not left
     to work that out for themselves or, as happened, to have it worked out by
     hand in a write-up they may never see.
+
+    Source positions are attached *after* :func:`finalize`, so deduplication
+    and ordering are still decided on exactly the fields they were decided on
+    before positions existed. ``attach`` is a no-op unless the session was
+    built with ``locations=True``. It runs last, over the skew flag as well,
+    so that finding is not the one line in a ``--locations`` report with no
+    position for a reason that has nothing to do with the document.
     """
     findings = finalize(_deduplicate((check, check(session)) for check in ALL_CHECKS))
-    return finalize(findings + versions.skew_flags(session, findings))
+    return attach(finalize(findings + versions.skew_flags(session, findings)), session.corpus)
 
 
 def validate_file(
-    document: Path, resolve: list[Path] | None = None, *, suggest: bool = False
+    document: Path,
+    resolve: list[Path] | None = None,
+    *,
+    suggest: bool = False,
+    locations: bool = False,
 ) -> list[Finding]:
-    return validate(build_session(document, resolve, suggest=suggest))
+    return validate(build_session(document, resolve, suggest=suggest, locations=locations))
 
 
 #: Two checks reach the same identifier references and both are right about

@@ -9,6 +9,7 @@ decided, and that the verb reaches no model and no socket.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import subprocess
 import sys
@@ -20,7 +21,9 @@ import pytest
 from oscal_validate import compare as compare_module
 from oscal_validate.cli import DETERMINISTIC_COMMANDS, main
 from oscal_validate.compare import ReportError, compare, findings_from_report
+from oscal_validate.diff import Side, provenance_notes, render_text
 from oscal_validate.findings import Finding, Rule, Severity
+from oscal_validate.positions import Position
 from oscal_validate.validator import validate_file
 
 from .conftest import FIXTURES, fixture_path, load_fixture, write
@@ -46,6 +49,18 @@ def _report(tmp_path: Path, name: str, document: Path, version: str = "9.9.9") -
     path = tmp_path / name
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return path
+
+
+def _side(*findings: Finding) -> Side:
+    """A `Side` built here rather than loaded, so `render_text` can be reached
+    without a file for every shape the comparison can produce."""
+    return Side(
+        path=Path("side.json"),
+        findings=list(findings),
+        origin="document",
+        tool_version="9.9.9",
+        snapshot="1.2.3",
+    )
 
 
 def _finding(location: str, value: str = "x", code: str = "REFERENCE_UNRESOLVED") -> Finding:
@@ -256,6 +271,128 @@ def test_two_validated_sides_carry_the_snapshot_and_raise_no_note(
     assert payload["notes"] == []
     assert payload["before"]["oscal_snapshot"] == payload["after"]["oscal_snapshot"] != ""
     assert payload["before"]["origin"] == "document"
+
+
+# -- what a `changed` entry shows -------------------------------------------
+#
+# Found by the coverage misses rather than by the suite. `render_text`'s
+# `changed` and `moved` loop bodies and its `ambiguous_moves` line had never
+# executed: every test above reads the comparison or the JSON, and the text
+# report's own words for those three were unproven. One of them was wrong.
+
+
+def test_a_message_only_change_shows_the_message(capsys: pytest.CaptureFixture[str]) -> None:
+    """The defect. Reproduced on unmodified `main` before it was fixed.
+
+    `IDENTITY` deliberately leaves value and message out, so a finding whose
+    sentence was corrected is `changed`. The entry printed `_line(new)` --
+    which carries no message -- and `was: <value> / <severity>`, so both
+    halves of the entry were identical on every byte shown. The heading said a
+    finding had changed and the block under it showed nothing that had.
+
+    Not hypothetical: two of the eight golden re-captures in
+    `tests/test_default_path_byte_identity.py` are message-only changes.
+    """
+    before = _finding("/a")
+    after = dataclasses.replace(before, message="a different sentence about the same defect")
+    rendered = render_text(_side(before), _side(after), compare([before], [after]))
+
+    assert "changed: same finding, different value or message (1)" in rendered
+    assert "message was: m" in rendered
+    assert "message now: a different sentence about the same defect" in rendered
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "expected"),
+    [
+        ("value", "two", ("value was: x", "value now: two")),
+        ("severity", Severity.WARNING, ("severity was: ERROR", "severity now: WARNING")),
+        ("message", "n", ("message was: m", "message now: n")),
+    ],
+)
+def test_every_field_that_differs_is_named_on_both_sides(
+    field: str, value: Any, expected: tuple[str, str]
+) -> None:
+    before = _finding("/a")
+    after = dataclasses.replace(before, **{field: value})
+    rendered = render_text(_side(before), _side(after), compare([before], [after]))
+    for line in expected:
+        assert line in rendered
+    # And only the field that moved: a block naming three differences where
+    # one exists is as unreadable as a block naming none.
+    named = {line.split(" was:")[0].strip() for line in rendered.splitlines() if " was:" in line}
+    assert named == {field}
+
+
+def test_a_rule_that_was_re_retrieved_is_named_as_the_difference() -> None:
+    """`Rule` carries the date its source was read, and that is outside
+    `IDENTITY` on purpose -- so a re-retrieval makes a `changed` pair whose
+    finding text is word for word what it was."""
+    before = _finding("/a")
+    after = dataclasses.replace(before, rule=Rule(citation="c", url="u", retrieved="2026-09-10"))
+    rendered = render_text(_side(before), _side(after), compare([before], [after]))
+    assert "rule source was: u (retrieved -)" in rendered
+    assert "rule source now: u (retrieved 2026-09-10)" in rendered
+
+
+def test_a_change_in_a_field_the_report_does_not_show_says_so() -> None:
+    """The floor. `compare` pairs on inequality as values, so a pair can differ
+    in a field this renderer has no line for -- `suggestions`, or the source
+    position `--locations` attaches. Printing an empty block under a heading
+    that says something changed is the same defect one level down, so the
+    entry states which fields it compared and points at the format that
+    carries both findings whole."""
+    before = _finding("/a")
+    after = dataclasses.replace(before, position=Position(file="f.json", line=3, column=1))
+
+    result = compare([before], [after])
+    assert len(result.changed) == 1, "the pair must reach `changed` or this proves nothing"
+
+    rendered = render_text(_side(before), _side(after), result)
+    assert "reported as changed, and value, severity, message" in rendered
+    assert "--format json carries both findings whole" in rendered
+    assert " was:" not in rendered
+
+
+# -- the other two loop bodies, and the note that cannot fire yet ------------
+
+
+def test_a_moved_finding_names_where_it_was(capsys: pytest.CaptureFixture[str]) -> None:
+    rendered = render_text(
+        _side(_finding("/links/0")),
+        _side(_finding("/links/1")),
+        compare([_finding("/links/0")], [_finding("/links/1")]),
+    )
+    assert "moved: same code, property, value and rule at a different location (1)" in rendered
+    assert "was at: /links/0" in rendered
+    assert "at=/links/1" in rendered
+
+
+def test_an_undecidable_move_is_declined_in_the_text_report_too() -> None:
+    """`test_an_undecidable_move_is_declined_and_said_so` holds the data model.
+    This holds the sentence a reader actually sees, which had never run."""
+    before = [_finding("/links/0"), _finding("/links/1")]
+    after = [_finding("/links/5"), _finding("/links/6")]
+    rendered = render_text(_side(*before), _side(*after), compare(before, after))
+    assert "not paired: several findings removed and several added for" in rendered
+    assert "which moved where is not decidable" in rendered
+    assert "counted above as removed and added" in rendered
+
+
+def test_two_different_known_snapshots_are_reported_as_differing() -> None:
+    """This branch cannot fire through the CLI today and is tested anyway.
+
+    `load_side` gives a validated side `OSCAL_RELEASE` and a saved report
+    `UNRECORDED`, so two sides with two *known* and different snapshots need a
+    report format that records one. The sentence is written for that day; a
+    sentence that has never executed is not one anybody can rely on arriving
+    correct when the data finally reaches it.
+    """
+    before = dataclasses.replace(_side(_finding("/a")), snapshot="1.2.2")
+    after = dataclasses.replace(_side(_finding("/a")), snapshot="1.2.3")
+    assert provenance_notes(before, after) == ["vendored OSCAL snapshot differs: 1.2.2 -> 1.2.3."]
+    # And it must not fire when they agree, or it says nothing.
+    assert provenance_notes(before, before) == []
 
 
 # -- exit codes --------------------------------------------------------------

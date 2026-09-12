@@ -95,12 +95,19 @@ oscal-validate tests/fixtures/broken_catalog.json   # 3 ERROR, exit 1
 
 oscal-validate <file.json> --format json
 oscal-validate <file.json> --format sarif
+oscal-validate <file.json> --format html > review.html   # one self-contained page
 oscal-validate --report-schema                      # the shape that report conforms to
 oscal-validate my-ssp.json --resolve baseline-profile.json --resolve catalog.json
 oscal-validate my-ssp.json --resolve catalog.json --suggest
 
 # What changed between two runs. No model, no network, exit 0 either way.
 oscal-validate diff before.json after.json
+
+# Serve this validator to an assistant, read-only and offline (stdio, MCP).
+oscal-validate mcp --root ./packages
+
+# Validate a directory as one deliverable, every member against every other.
+oscal-validate package ./my-package
 ```
 
 `--resolve` takes further OSCAL documents, or a directory of them. It is how an
@@ -129,6 +136,37 @@ Non-`fail` results carry `level: note` rather than the specification's
 `none`, and an UNVERIFIABLE finding that disappears there would be an absence
 rendered as a pass (the reasoning is in `src/oscal_validate/sarif.py`). The
 output validates offline against the OASIS schema vendored in `tests/sarif/`.
+
+`html` is one self-contained page for the people who sign packages and do not
+run a CLI, written to stdout like the others:
+
+```sh
+oscal-validate my-ssp.json --resolve catalog.json --format html > review.html
+```
+
+It carries every finding the text report carries, grouped in the fix order
+`walkthrough` computes — from the same module, so a reviewer's page and the
+narrative cannot place a finding differently — with the JSON pointer, the
+value, the message, and the rule citation as a link to NIST's page with the
+date that page was retrieved. UNVERIFIABLE keeps its own section and the
+summary states the count on the page; nothing is folded into a pass.
+
+Four properties, each checked rather than asserted by
+`tests/test_html_report.py`:
+
+- **Self-contained.** One file. No script, no external stylesheet, no font, no
+  image, no `src` of any kind. It opens with the network off and requests
+  nothing; the only external URLs are the citation links a reader may follow on
+  purpose.
+- **Deterministic.** No timestamp and nothing else that moves between two runs
+  over the same inputs. The footer names the tool version, the OSCAL release,
+  the documents read, and the SHA-256 of every vendored file this run opened.
+- **Accessible, mechanically.** See the Accessibility row in
+  [Standards Conformance](#standards-conformance) for the seven rules and how
+  each is proved able to fail.
+- **Escaped.** OSCAL documents are untrusted input, so every value from the
+  document goes through `html.escape` with quoting on. There is an injection
+  test.
 
 ### The JSON report is a published contract
 
@@ -199,6 +237,180 @@ Two things it deliberately does not say:
 The comparison is `oscal_validate.compare`, which is also what `repair --draft`
 runs, so the verb and the draft cannot disagree about what "introduced" means.
 
+### `rule`: the citation trail, with no model and no network
+
+A finding names a rule. `rule` is how you read that rule without taking anyone's
+word for it, and without an SDK, an API key, or a document:
+
+```console
+$ oscal-validate rule oscal-catalog-controls
+constraint: oscal-catalog-controls
+
+kind: index
+level: ERROR
+declared on: catalog
+target: //control
+applies to: catalog
+key fields: @id
+index: catalog-controls
+evaluated: yes
+
+declaration: vendor:oscal_catalog_metaschema_RESOLVED.xml
+    source: https://github.com/usnistgov/OSCAL/releases/tag/v1.2.3 (retrieved 2026-08-14)
+    sha256: 775f8326e3dac336be17c4f7eefa89661053230fb1e8538364186c927ee062b1
+
+    <index id="oscal-catalog-controls"
+                     name="catalog-controls"
+                     target="//control">
+                <key-field target="@id"/>
+             </index>
+
+specification: metaschema-constraints, section Constraints/Constraint Types/index Constraints
+    source: https://pages.nist.gov/metaschema/specification/syntax/constraints/ (retrieved 2026-08-21)
+    sha256: c51a84834e17d51a5abbc1f2cab0db0653305de54522314d2c65aa7e2a3abc6b
+
+    The <index> constraint is a type of Metaschema constraint that defines an index
+    of document instance nodes addressable by key.
+    ...
+```
+
+It takes either a NIST constraint identifier or one of this tool's finding
+codes. For a finding code it prints every rule that can produce it, quoting the
+fixed ones verbatim and saying plainly which are composed per finding:
+
+```console
+$ oscal-validate rule CONSTRAINT_NOT_EVALUATED
+finding code: CONSTRAINT_NOT_EVALUATED
+reports: one report per constraint kind this tool did not evaluate, ...
+...
+constraint kinds this tool does not evaluate:
+
+  allowed-values: 200 published, not evaluated
+     because which values a value node permits is decided by the applicable set of
+     constraints sharing its target, and this tool does not resolve that set
+...
+```
+
+`--format json` for machine use; an identifier that is neither a constraint nor
+a finding code is exit 2 with nothing printed, because a partial answer about
+provenance is worse than none.
+
+Four things about it:
+
+- **It is the evidence `explain` gathers, before `explain` calls anything.**
+  Both read one source layer, `oscal_validate.sources`, so the offline answer
+  and the model-backed one cannot cite different bytes.
+- **Nothing is paraphrased.** Every passage is verbatim from a hash-pinned file,
+  printed beside the SHA-256 of the bytes this run read and the date they were
+  retrieved. The hash is computed from the file, not copied from a manifest.
+- **For a constraint this tool does not evaluate, it prints that constraint's
+  own reason** — not its kind's summary — which is the answer to "why did this
+  not fire", in one command instead of a search through
+  [docs/CONSTRAINT-COVERAGE.md](docs/CONSTRAINT-COVERAGE.md).
+- **It reaches no model and opens no socket**, so the GitHub Action and anyone
+  who will not send a document to a model can use it. The suite runs it with
+  `socket` removed and, in a fresh interpreter, asserts that no module of the
+  AI layer or any SDK was loaded.
+
+### `mcp`: the validator, served to an assistant read-only
+
+[ADR-0005](docs/adr/0005-ai-at-the-edges.md) puts the model at the edges and
+keeps the validator the only source of findings. `oscal-validate mcp` is the
+same boundary from the other side: instead of this tool calling a model, a
+model's host calls this tool over
+[MCP](https://modelcontextprotocol.io), and what comes back is the
+validator's own report rather than a model's account of one.
+
+```sh
+oscal-validate mcp --root ./packages
+```
+
+It speaks JSON-RPC 2.0 on stdin and stdout and offers four tools:
+
+| tool | answers |
+|---|---|
+| `validate` | one document, with optional `resolve` paths, returning **the exact bytes `--format json` writes** and the exit code that run would have produced |
+| `rule` | the citation trail for one constraint identifier or finding code — the same answer `oscal-validate rule --format json` prints |
+| `coverage` | which of NIST's published constraints this tool evaluates, with a specific reason for every one it does not, and the evaluated constraints that read an index nothing builds |
+| `limits` | what a clean run does not mean, generated from this README's [Limits](#limits) section |
+
+Four things about it:
+
+- **It takes no dependency.** Not an MCP SDK, not a transport library: the
+  protocol is newline-delimited JSON-RPC over stdio and the standard library
+  is enough. `dependencies = []` is untouched, so the no-network claim is
+  still checkable by reading the source, which is how this project checks it.
+- **Read-only and offline is the whole point.** No tool fetches, writes a
+  file, or calls a model. The suite runs every one of the four with `socket`
+  removed, and asserts in a fresh interpreter that no module of the AI layer
+  and no SDK was loaded by the server process.
+- **Every path is checked against `--root` before it is opened**, and
+  symbolic links are resolved *before* the check, so a link out of the root
+  is refused rather than followed. `--root` defaults to the working directory
+  the server was started in, because a server with no root is a file-reading
+  primitive for whatever is driving the assistant.
+- **A refusal is an answer.** An unreadable document comes back as a refusal
+  carrying exit-2 semantics, never as a report with an empty findings list —
+  an empty findings list is what a *clean* document looks like. A request for
+  a judgment this tool does not make is refused with the boundary stated, in
+  the vocabulary [`ai/guard.py`](src/oscal_validate/ai/guard.py) already uses;
+  the two lists are held together by a test rather than by an import, because
+  this server may not import that package.
+
+### `package`: a directory validated as one deliverable
+
+A FedRAMP or agency package is a directory: an SSP, the profile it imports, the
+catalog behind that. Validating each file alone, with a hand-assembled
+`--resolve` list, answers a smaller question than the one a reviewer is asking.
+`oscal-validate package` takes the directory as the thing being validated.
+
+```sh
+oscal-validate package ./my-package
+oscal-validate package ./my-package --format json
+oscal-validate package --report-schema     # the shape that report conforms to
+```
+
+It is **exactly N runs of the command line, plus what only a set can show**.
+Every member is validated with every other member as its resolve set — the
+documents `oscal-validate <member> --resolve <directory>` would read — through
+the same composition function the command line reaches, so each member's report
+is byte for byte that command's, and the suite compares them in both formats.
+What it adds is what no single run can see:
+
+| section | lists |
+|---|---|
+| `import_graph` | every import each member writes itself, what it matched, and how |
+| `imports_not_in_package` | imports naming a file the directory does not contain |
+| `unreferenced` | members nothing else imports — the package's roots, not its defects |
+| `uuid_collisions` | UUIDs declared in more than one member, with every place each is declared |
+
+Five things about it:
+
+- **It fails closed.** A file in the directory that is not JSON, is not an
+  OSCAL document, or nests too deeply to walk is named on stderr with its
+  reason, and the run exits 2 and writes no report. Validating the rest would
+  report imports of that file as not supplied, about a file that was, and a
+  report with a short document list is exactly what a smaller clean package
+  looks like. An empty directory is exit 2 as well.
+- **The cross-document sections never gate.** The exit code is the command
+  line's own verdict over the members: 1 if any member has an ERROR, else 0.
+- **A UUID declared in two members is package policy, not a finding.** NIST's
+  constraint layer, and this tool, check UUID uniqueness within one document;
+  a duplicate *inside* one member is still that member's ERROR. Across members
+  it is listed with every declaration, for a reviewer to decide.
+- **There is no "ambiguous imports" section, though issue #60 asked for one.**
+  Import matching keys on a file name, then on the file name without its
+  extension, and within one directory no two `.json` files can share either —
+  so no import can resolve to more than one member here, and the section could
+  only ever print "none".
+- **The report has its own published schema,** `package_report_schema_version`
+  `1.0.0`, independent of the per-document report schema that each member's
+  embedded report conforms to. Nothing about the per-document report changed.
+
+The GitHub Action does not run this verb yet; its `path` input still validates
+each document on its own. `.pre-commit-hooks.yaml` publishes a hook that does,
+`oscal-validate-package`: set its `args` to the directory holding your package.
+
 ### `--suggest`: the identifier that *is* declared
 
 A reference that resolves to nothing is a true statement and not the sentence
@@ -239,6 +451,112 @@ Ranking is fixed and documented: identifiers differing only by a leading `#`,
 case, the separator character, or zero-padding come first; then anything within
 an edit distance of two, adjacent transpositions counted as one edit; ties
 broken lexically.
+
+### `--locations`: the line, beside the pointer
+
+A finding's location is a JSON Pointer such as
+`/catalog/groups/16/controls/23/id`. That is exact, it survives reformatting,
+and it is not where anyone's editor is. `--locations` adds the position in the
+source bytes **beside** the pointer, never in place of it:
+
+```console
+$ oscal-validate broken_catalog.json --locations
+ERROR        REQUIRED_PROPERTY_MISSING  at=/catalog/metadata  broken_catalog.json:4:17
+    last-modified = (absent)
+    ...
+```
+
+`--format json` gains `line` and `column` on every finding. They are
+three-valued and the third value is the one that matters:
+
+| | meaning |
+|---|---|
+| the keys are **absent** | the flag was not given, and the run makes no claim about where anything is |
+| an **integer** | the 1-based line or column where the pointed-at value begins |
+| **`null`** | the flag was given and this run has no position for that pointer |
+
+Never `0`. There is no line 0, so a consumer never has to decide whether a
+zero is a position or an absence — the same rule as the `UNVERIFIABLE`
+severity, one level down.
+
+Three more things it deliberately is not:
+
+- **Not on by default.** Without the flag the bytes are what they always were
+  and no source index is built, which is why a 26 MB catalog pays nothing for
+  a feature it was not asked for. `tests/golden/` pins those bytes.
+- **Not a new key.** The pointer stays the identity of a finding.
+  `--baseline`, `diff` and the goldens all key on it, and reformatting a file
+  moves every line without moving a single pointer —
+  `tests/test_locations.py` reformats a fixture at indent 4 and asserts
+  exactly that.
+- **Not in `sarif` or `html` yet.** Those two formats are unchanged by the
+  flag today, and a test asserts they are byte-identical with it and without
+  it, so the flag cannot look like it reached a format it did not.
+
+The [GitHub Action](#github-action) asks for positions on every run, so a
+finding annotates the line rather than the file. If you run the CLI yourself
+in a workflow, `.github/problem-matcher.json` turns the text report into
+annotations the same way:
+
+```yaml
+- run: echo "::add-matcher::${{ github.workspace }}/.github/problem-matcher.json"
+- run: oscal-validate my-ssp.json --locations
+```
+
+Its three matchers map this tool's four severities onto GitHub's three
+annotation levels using the same table `tools/action_runner.py` uses, and a
+test holds the two together. What the suite proves about the matcher is that
+its patterns match the bytes this tool prints and capture the right file, line
+and column; it does not prove GitHub applies them, because nothing in a
+workflow can read its own annotations back.
+
+### `--baseline`: acknowledge a finding without hiding it
+
+NIST's own SP 800-53 rev 5 catalog carries an ERROR this tool reports: a link
+naming a statement that does not exist. A team that imports that catalog cannot
+edit NIST's file, so today their options are to ignore the exit code or to turn
+the gate off, and both end with nobody reading the report.
+
+```sh
+oscal-validate my-ssp.json --write-baseline > oscal-baseline.json
+# write a reason and a date into every entry, then commit the file
+oscal-validate my-ssp.json --baseline oscal-baseline.json
+```
+
+**An acknowledged finding is still a finding.** It is printed, it keeps its
+severity, it is counted in the summary, and it appears in the JSON report, the
+SARIF log and the HTML page exactly as it did — with the reason and the date
+beside it. The single thing an acknowledgement changes is whether the finding
+gates the exit code. A report that showed three ERRORs and a summary saying
+zero would be the failure this tool exists to prevent.
+
+Four refusals keep it from becoming a suppression list:
+
+- **A written reason is required.** An entry with none, or with an empty one,
+  is refused at exit 2 — not defaulted and not warned about. This is also why
+  `--write-baseline` writes to stdout with every `reason` empty: the generated
+  file is refused as generated, so it cannot be committed and pointed at
+  without someone saying why each entry is there.
+- **A baseline cannot outlive the defect it excused.** An entry that matches
+  nothing in this run is reported as `BASELINE_STALE` at WARNING, quoting the
+  reason that was written for it, and `--fail-on-stale` makes that gate. It is
+  a WARNING by default because the document may simply have been fixed.
+- **UNVERIFIABLE cannot be baselined.** There is nothing to acknowledge in an
+  answer the tool did not reach; acknowledging one would turn "this could not
+  be settled" into "this was decided to be acceptable". Refused at exit 2, and
+  `--write-baseline` never offers one.
+- **Nothing reads the clock.** `acknowledged_on` is checked for being a real
+  `YYYY-MM-DD` calendar date and is never compared against today. A gate that
+  goes red on a calendar rather than on a commit stops every unrelated change
+  in a repository.
+
+An entry names a finding by code, JSON Pointer, property and value — never by
+its message, which is prose this project edits and whose rewording would
+silently restore a gate. One consequence is worth knowing before you write a
+reason: **a key does not always name exactly one finding.** The same duplicated
+identifier can be reported under two different NIST constraints, differing only
+in message and rule, and one entry acknowledges both. `--write-baseline` writes
+one entry per key for that reason.
 
 ## What it checks
 
@@ -328,7 +646,7 @@ jobs:
 ```
 
 `path` takes one document, a directory (searched recursively for `*.json`), or
-a glob such as `oscal/**/*.json`. Three further inputs, all optional:
+a glob such as `oscal/**/*.json`. Five further inputs, all optional:
 
 - `resolve`: space-separated documents or directories to resolve imports and
   references against, passed through as repeated `--resolve`. Same rules as
@@ -342,6 +660,14 @@ a glob such as `oscal/**/*.json`. Three further inputs, all optional:
 - `sarif-file`: a path to write SARIF 2.1.0 to, for
   `github/codeql-action/upload-sarif`. Empty by default, which writes nothing.
   See [below](#code-scanning).
+- `baseline`: a committed baseline file, as described
+  [above](#--baseline-acknowledge-a-finding-without-hiding-it). Findings it
+  names are still annotated at their own severity and still counted in
+  `error-count`; they no longer count towards `fail-on`. An entry with no
+  written reason fails the job rather than being skipped.
+- `fail-on-stale`: `"true"` to fail the job when a baseline entry matched
+  nothing in this run. Setting it without a `baseline` fails the job rather
+  than passing silently.
 
 ```yaml
       - uses: ChelseaKR/oscal-validate@v0.2.0
@@ -354,9 +680,13 @@ a glob such as `oscal/**/*.json`. Three further inputs, all optional:
 ```
 
 The counts are published as outputs: `error-count`, `warning-count`,
-`info-count`, `unverifiable-count`, and `files-validated`. Watch the
-unverifiable count: a run of a large package with imports withheld can be
-green and still have settled very little, and the number is how you see that.
+`info-count`, `unverifiable-count`, `acknowledged-count`,
+`stale-baseline-count`, and `files-validated`. Watch the unverifiable count: a
+run of a large package with imports withheld can be green and still have
+settled very little, and the number is how you see that. Watch
+`acknowledged-count` for the same reason in the other direction: it is how many
+of those findings a baseline is holding open, and it is deliberately *not*
+subtracted from `error-count`.
 
 ### Code scanning
 
@@ -607,11 +937,15 @@ no clock, no network.
 ### No network in the validator, proved rather than promised
 
 `tests/test_offline_guarantee.py` removes `socket` and runs the validator
-anyway. A separate test asserts that no module inside the installed package
+anyway — and, since the MCP server landed, every one of that server's four
+tools with it, driven through the real request loop. A separate test asserts
+that no module inside the installed package
 outside `oscal_validate/ai/` imports `urllib.request`, `http.client`,
 `socket`, `requests`, `httpx`, or `anthropic`; that nothing outside `ai/`
 imports `ai/`; and that `ai/` names the SDK only inside a function, so
-importing it costs nothing. `tests/test_default_path_byte_identity.py` runs
+importing it costs nothing. That scan is a file set, and a file set is a
+claim about what it contains, so one more test asserts the server's own
+module is inside it. `tests/test_default_path_byte_identity.py` runs
 the default command in a fresh process and asserts it loaded neither the
 package nor the SDK, and compares its exact bytes over the fixtures and
 nine published documents against [`tests/golden/`](tests/golden/),
@@ -619,7 +953,7 @@ first captured from commit `6978895`, the last commit before any model-backed
 command existed.
 
 **The model-backed layer has never moved those bytes, and that is what this
-gate is for.** They have moved six times, every one for an unrelated reason.
+gate is for.** They have moved eight times, every one for an unrelated reason.
 On 2026-08-29 (#35): the `CONSTRAINT_NOT_EVALUATED` finding for
 `allowed-values` carried a sentence that said something false about NIST's
 `allow-other` semantics, and correcting a sentence the report prints is a
@@ -630,15 +964,21 @@ version, so twelve lines moved, one per JSON golden, and the twelve text
 goldens did not move at all. On 2026-09-06 (#81): every JSON report gained
 `report_schema_version`, again twelve lines and no text golden. On 2026-09-07
 (#88), cutting 0.4.0: the version stamp again, twelve lines and no text
-golden. On 2026-09-07 (#77): a document that declares a non-vendored release
-*and* carries an ERROR gains one `VERSION_SKEW_SUSPECTED` INFO finding, which
-two of the twelve cases do; the other ten are untouched and no ERROR count or
-exit code moves. Each time the goldens were recaptured from the same documents,
-each verified by SHA-256 against the manifest that recorded them, and every
-other byte of the output is unchanged. Those six are the only recaptures since
-`6978895`;
+golden. On 2026-09-07 (#92): the report schema went to `1.1.0` for the two keys
+`--baseline` adds, so every JSON report's `report_schema_version` line moved —
+twelve lines, one per JSON golden, and no text golden, because the text format
+does not print it. On 2026-09-09 (#95): the report schema went to `1.2.0` for
+the two keys `--locations` adds, `line` and `column`, neither of which any
+golden run produces, because no golden run passes the flag — so again the whole
+diff is the `report_schema_version` line, twelve lines and no text golden. On 2026-09-12 (#77): a document that declares a non-vendored
+release *and* carries an ERROR gains one `VERSION_SKEW_SUSPECTED` INFO
+finding, which two of the twelve cases do; the other ten are untouched and no
+ERROR count or exit code moves. Each time the
+goldens were recaptured from the same documents, each verified by SHA-256
+against the manifest that recorded them, and every other byte of the output is
+unchanged. Those eight are the only recaptures since `6978895`;
 [CHANGELOG.md](CHANGELOG.md) and
-`tests/test_default_path_byte_identity.py` record all six, and
+`tests/test_default_path_byte_identity.py` record all eight, and
 `tests/golden/capture.py` now refuses to write a manifest smaller than the
 committed one, so a recapture on a machine without the cached documents cannot
 quietly shrink what this compares.
@@ -757,8 +1097,8 @@ rest of that gap is intended to close, and what each step is waiting on, is
 only applied to documents of the models its module governs, since assembly
 names repeat across models and a catalog's `part` is not assessment-common's.
 
-**It vendors one OSCAL schema and cannot tell a defect from a release
-difference.** Everything is checked against the vendored 1.2.3 release,
+**It vendors one OSCAL schema and cannot tell a defect from a release difference.**
+Everything is checked against the vendored 1.2.3 release,
 whatever release a document declares. Where a document declares a different one
 *and* carries an ERROR, the report says so in its own terms — a
 `VERSION_SKEW_SUSPECTED` INFO finding naming how many ERRORs there are, under
@@ -829,6 +1169,21 @@ source URLs, retrieval dates, and SHA-256 hashes recorded in
 OSCAL v1.2.3 release. Prose rules are quoted verbatim in
 `src/oscal_validate/rules.py` with their page URLs and the date each page said
 it was last updated. No rule is encoded from memory.
+
+A new OSCAL release is not a version bump for this tool; it is a change to what
+it can say, so the cost is made visible before it is paid.
+[`tools/revendor.py <version>`](tools/revendor.py) fetches that release through
+the same robots-first fetcher the surveys use -- or reads one already on disk
+with `--from-dir` -- refuses any file carrying `<!DOCTYPE` or `<!ENTITY`, and
+prints the difference against the vendored snapshot: constraints added,
+removed, re-levelled or re-targeted, targets outside the parsed grammar, schema
+definitions that changed, the vendored files whose bytes differ, and every
+golden that would move, with the finding codes that moved in it. The bytes
+decide whether anything changed and the inventory explains what, because the
+inventory does not record an `allowed-values` set and a release that changed
+only one would otherwise read as unchanged. It writes only with `--write`,
+after the diff, and lists what is still a person's to do. It is a development
+harness, not part of the package, and it never runs in CI.
 
 ## Development
 
@@ -920,8 +1275,8 @@ checked, and it is not a claim that any registry agrees with it yet.
 | Security & Supply-Chain | Applies | [SECURITY.md](SECURITY.md); SHA-pinned Actions; Semgrep and full-history TruffleHog in CI; pip-audit in `make verify`; Dependabot; gitleaks in pre-commit. |
 | CI/CD | Applies | `ci.yml` runs the same `make verify` gate as local development. |
 | Observability | Applies (Tier C, library/CLI) | Declared in [docs/ROADMAP.md](docs/ROADMAP.md#observability). Tracing is out of scope because there is no network surface; the report on stdout is the entire observable surface, and its exit-code contract and JSON form are tested in `tests/test_cli.py`. Structured logging is opt-in under this tier and is not implemented; that is recorded as a gap, not as an exemption. |
-| Performance | N/A (pure library/CLI with no hosted route and no shipped HTML, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. |
-| Accessibility | N/A (no graphical or web surface; plain-text terminal output plus `--format json` and `--format sarif`) | Revisit if any web or GUI surface is added. |
+| Performance | N/A (pure library/CLI with no hosted route, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. `--format html` writes a file to stdout: it is not served, it loads nothing, and it carries no script, so there is no route to time and no bundle to size. |
+| Accessibility | Applies (since `--format html`, the first human-facing rendered surface) | `tests/test_html_report.py` parses the rendered page with the standard library and holds it to seven structural rules: one `h1` and no skipped heading level, `lang="en"`, a skip link whose target exists, no duplicate ids, a caption and `th scope` on every table with every row exactly as wide as its header, no element that fetches anything, and every form control labelled. Each rule is seeded with the defect it exists to catch, so none of them is a check that has never gone red. Severity is carried by the word, never by colour. The mechanical checks are not a full WCAG audit and the file says so: they cannot judge prose or rendered contrast. |
 | Internationalization | N/A (findings and model-backed output quote English-language specification prose verbatim; see [docs/I18N.md](docs/I18N.md)) | Multilingual document *data* validates identically. |
 | AI Evaluation | Applies (the four opt-in commands of ADR-0005; the validator itself has no model) | [docs/evals/README.md](docs/evals/README.md) and the committed harness in [evals/](evals/): a 100-case boundary suite scored on shown text, raw text, and explicit refusal; repair efficacy by deterministic re-validation on twelve NIST documents; citation grounding by verbatim lookup; walkthrough fidelity by label set. Results carry provider, model, prompt version, commit, and date, enforced by `tests/test_evals.py`; prompts are versioned in `oscal_validate.ai.PROMPT_VERSION`. |
 | AI Development Measurement | Applies | `AI-DEV-MEASUREMENT: APPLIES` in [docs/ROADMAP.md](docs/ROADMAP.md). This repository was built with AI assistance, disclosed above, so Track A delivery and quality-debt metrics are mined portfolio-wide from git history. Track B applies to the opt-in commands and is served by the AI Evaluation row. |

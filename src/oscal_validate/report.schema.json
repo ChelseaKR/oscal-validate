@@ -16,7 +16,7 @@
     "report_schema_version": {
       "description": "The version of this schema that the report conforms to. Semantic: the major part changes when a consumer that reads the old shape would break.",
       "type": "string",
-      "const": "1.0.0"
+      "const": "1.2.0"
     },
     "tool": {
       "description": "What produced the report.",
@@ -82,12 +82,41 @@
           "$ref": "#/$defs/count"
         }
       }
+    },
+    "baseline": {
+      "description": "Present only when --baseline was given. Absent is not the same as a baseline that acknowledged nothing: a run that was never given one makes no claim either way. `path` is the file as it was named on the command line. `acknowledged` is how many findings in this report an entry matched -- they are still in `findings`, still carry their own severity, and are still counted in `summary`. `stale` is how many BASELINE_STALE findings this report carries, one per entry that matched nothing in this run. Both counts are derived from the findings this report carries, so a report cannot claim an acknowledgement it does not show.",
+      "type": "object",
+      "required": [
+        "path",
+        "acknowledged",
+        "stale"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "acknowledged": {
+          "$ref": "#/$defs/count"
+        },
+        "stale": {
+          "$ref": "#/$defs/count"
+        }
+      }
     }
   },
   "$defs": {
     "count": {
       "type": "integer",
       "minimum": 0
+    },
+    "source-line": {
+      "description": "A 1-based line or column in the source file the finding's pointer points into, present on every finding only when --locations was given. Null means this run found no position for that pointer -- a value the walk synthesised, or a document whose source was not indexed. Never 0: there is no line 0 and no column 0, so a consumer never has to read a zero as either a position or an absence. Columns count characters, not UTF-8 bytes. Absent, as opposed to null, means --locations was not given and the run makes no claim either way.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
     },
     "severity": {
       "description": "ERROR gates the exit code. UNVERIFIABLE never does; it marks what the supplied documents cannot settle, and it is never a pass.",
@@ -184,6 +213,34 @@
           "items": {
             "$ref": "#/$defs/suggestion"
           }
+        },
+        "acknowledged": {
+          "$ref": "#/$defs/acknowledgement"
+        },
+        "line": {
+          "$ref": "#/$defs/source-line"
+        },
+        "column": {
+          "$ref": "#/$defs/source-line"
+        }
+      }
+    },
+    "acknowledgement": {
+      "description": "Why a finding was accepted and when, copied from the matching --baseline entry. Absent unless a baseline matched this finding, and its presence is the only thing that distinguishes an ERROR that gates the exit code from one that does not. It changes nothing else: the severity, the message and the counts are untouched.",
+      "type": "object",
+      "required": [
+        "reason",
+        "acknowledged_on"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "description": "The written reason. A baseline entry without one is refused.",
+          "type": "string"
+        },
+        "acknowledged_on": {
+          "description": "The date the entry was written, YYYY-MM-DD. Never compared against today: this tool does not read the clock.",
+          "type": "string"
         }
       }
     }

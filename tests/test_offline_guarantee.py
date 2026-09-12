@@ -15,6 +15,8 @@ proves that last part in a fresh process).
 
 from __future__ import annotations
 
+import io
+import json
 import socket
 from pathlib import Path
 from typing import Any, NoReturn
@@ -40,6 +42,90 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_validation_opens_no_socket(capsys: pytest.CaptureFixture[str]) -> None:
     assert main([str(fixture_path("clean_catalog.json"))]) == 0
     assert "finding(s)" in capsys.readouterr().out
+
+
+@pytest.mark.usefixtures("no_network")
+def test_the_rule_verb_opens_no_socket(capsys: pytest.CaptureFixture[str]) -> None:
+    """``rule`` quotes NIST's pages and never fetches one.
+
+    Everything it prints is already on disk, hash-pinned, with the date it was
+    retrieved recorded beside it. A verb that reached for a URL when a section
+    were missing would be the opposite of what it exists to prove.
+    """
+    assert main(["rule", "oscal-catalog-controls"]) == 0
+    out = capsys.readouterr().out
+    assert "sha256: " in out
+    assert "https://pages.nist.gov/" in out
+
+
+@pytest.mark.usefixtures("no_network")
+def test_the_mcp_server_answers_every_tool_with_no_socket() -> None:
+    """The server's whole claim is read-only and offline; this is the offline half.
+
+    All four tools, driven through the real request loop, because a boundary
+    proved on the one tool a test happened to pick says nothing about the
+    other three -- and the tool most likely to reach for the network is
+    ``validate``, which is handed a profile naming a catalog it was not
+    given. A server that fetched would fetch there.
+    """
+    from oscal_validate.mcp import HANDLERS, serve
+
+    requests = [
+        {"name": "validate", "arguments": {"path": "clean_profile.json"}},
+        {"name": "rule", "arguments": {"identifier": "REFERENCE_UNVERIFIABLE"}},
+        {"name": "coverage", "arguments": {}},
+        {"name": "limits", "arguments": {}},
+    ]
+    assert {call["name"] for call in requests} == set(HANDLERS), "a tool goes unexercised here"
+    lines = "\n".join(
+        json.dumps({"jsonrpc": "2.0", "id": n, "method": "tools/call", "params": params})
+        for n, params in enumerate(requests, start=1)
+    )
+    sink = io.StringIO()
+    assert serve(fixture_path("clean_profile.json").parent, io.StringIO(lines + "\n"), sink) == 0
+    answers = [json.loads(line) for line in sink.getvalue().splitlines()]
+    assert [answer["id"] for answer in answers] == [1, 2, 3, 4]
+    assert all("result" in answer for answer in answers), answers
+    served = json.loads(answers[0]["result"]["content"][0]["text"])
+    assert "IMPORT_NOT_SUPPLIED" in {f["code"] for f in served["report"]["findings"]}
+
+
+def test_the_offline_source_scan_reaches_the_mcp_server() -> None:
+    """The scan below is what proves the server imports nothing that dials out.
+
+    A file-set the scan does not contain is a claim nothing checks, and this
+    module is the newest thing inside it.
+    """
+    assert SOURCE_ROOT / "mcp.py" in _validator_sources()
+
+
+@pytest.mark.usefixtures("no_network")
+def test_package_mode_validates_a_whole_directory_with_no_socket(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Every member against every other, and the one place a fetch could hide.
+
+    Package mode resolves imports across a directory. A tool that fetched an
+    import it could not find locally would do it here, so the run is made with
+    the socket gone and must still produce the cross-document section.
+    """
+    assert main(["package", str(fixture_path("package"))]) == 0
+    assert "== across the package ==" in capsys.readouterr().out
+
+
+def test_every_dispatched_verb_s_module_is_inside_the_offline_scan() -> None:
+    """Derived from the dispatch tuple, so the next verb is covered without anyone remembering.
+
+    Each deterministic verb is imported as ``oscal_validate.<verb>``. The scan
+    below is what proves a module dials nothing, and it is a file set; a verb
+    whose module the set does not contain is a claim nothing checks.
+    """
+    from oscal_validate.cli import DETERMINISTIC_COMMANDS
+
+    assert DETERMINISTIC_COMMANDS, "no verbs to check; vacuous"
+    scanned = _validator_sources()
+    for verb in DETERMINISTIC_COMMANDS:
+        assert SOURCE_ROOT / f"{verb}.py" in scanned, verb
 
 
 @pytest.mark.usefixtures("no_network")

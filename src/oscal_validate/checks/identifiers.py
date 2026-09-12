@@ -15,21 +15,37 @@ elsewhere.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 from .. import rules
+from ..document import Scalar, Walked
 from ..findings import Finding, Severity
 from ..session import Session
 
 UUID_DATATYPE = "UUIDDatatype"
 
 
+def uuid_definitions(walked: Walked) -> Iterator[Scalar]:
+    """Every position in a document that *declares* a UUID, in walk order.
+
+    The one definition of the question, because two callers ask it: this check
+    compares declarations within one document, and package mode compares them
+    across documents. Two copies of the predicate is how "a UUID definition"
+    comes to mean one thing inside a file and another across a directory.
+    """
+    for scalar in walked.scalars:
+        if (
+            scalar.datatype == UUID_DATATYPE
+            and scalar.name == "uuid"
+            and isinstance(scalar.value, str)
+        ):
+            yield scalar
+
+
 def check(session: Session) -> list[Finding]:
     seen: dict[str, str] = {}
     findings: list[Finding] = []
-    for scalar in session.corpus.primary.walked.scalars:
-        if scalar.datatype != UUID_DATATYPE or scalar.name != "uuid":
-            continue
-        if not isinstance(scalar.value, str):
-            continue
+    for scalar in uuid_definitions(session.corpus.primary.walked):
         first = seen.setdefault(scalar.value, scalar.pointer)
         if first == scalar.pointer:
             continue

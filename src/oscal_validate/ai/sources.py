@@ -1,91 +1,70 @@
-"""NIST's published text, as the only evidence a model may quote.
+"""Choosing which published passages a model is shown, and how much of them.
 
-Two kinds of source live here. ``corpus/`` holds text extracted from NIST's
-pages by ``tools/corpus_fetch.py``, each with its URL, retrieval date, and
-hashes in ``corpus/MANIFEST.json``. The vendored schema and metaschema files
-under ``vendor/`` are sources too, under ids of the form ``vendor:<file>``,
-with the hashes ``vendor/SOURCES.md`` already enforces.
+The sources themselves -- loading them, splitting them into sections, quoting
+them verbatim, and hashing the bytes that were read -- live in
+:mod:`oscal_validate.sources`, outside this package, because
+``oscal-validate rule`` prints the same evidence with no model in the process.
+This module is the part that is only about a prompt: which sections answer one
+finding or one question, in what order, and inside what byte budget.
 
-Three things are built on top of the raw text. Sections: each corpus page is
-split at its headings, and a reference page's nested headings are the JSON
-names of the model, so a finding's location pointer maps to the section that
-describes that element. Passages: a small, budgeted set of sections chosen
-for one finding or one question, which is what the model is shown. And the
-verifier's substrate: ``contains`` says whether a quote occurs verbatim in a
-named source, after one normalization (whitespace collapsed, typographic
-quotes straightened) that is applied to both sides.
+Everything the old module exported is re-exported here, so a caller that
+imported it from ``oscal_validate.ai.sources`` still works and
+``tests/test_ai_sources.py`` still reaches it under that name.
 """
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass
-from functools import cache
-from pathlib import Path
 
 from ..findings import Finding
-from ..rules import IDENTIFIER_USE_URL, SCHEMA_URL, URI_USE_URL
+from ..rules import SCHEMA_URL
+from ..sources import (
+    CONCEPT_FOR_MODEL,
+    CORPUS_DIR,
+    MIN_QUOTE_CHARS,
+    REFERENCE_FOR_MODEL,
+    SOURCE_FOR_URL,
+    VENDOR_DIR,
+    VENDOR_RELEASE_URL,
+    VENDOR_RETRIEVED,
+    Section,
+    Source,
+    constraint_snippet,
+    contains,
+    load,
+    locate,
+    manifest,
+    normalize,
+    reference_section,
+    sections,
+    source_ids,
+)
 
-CORPUS_DIR = Path(__file__).resolve().parent / "corpus"
-VENDOR_DIR = Path(__file__).resolve().parent.parent / "vendor" / "oscal"
-VENDOR_RELEASE_URL = "https://github.com/usnistgov/OSCAL/releases/tag/v1.2.3"
-VENDOR_RETRIEVED = "2026-08-14"
-
-#: A quote shorter than this proves nothing and is not accepted.
-MIN_QUOTE_CHARS = 20
-
-#: Which reference page describes which model root.
-REFERENCE_FOR_MODEL = {
-    "catalog": "reference-catalog",
-    "profile": "reference-profile",
-    "component-definition": "reference-component-definition",
-    "system-security-plan": "reference-system-security-plan",
-    "assessment-plan": "reference-assessment-plan",
-    "assessment-results": "reference-assessment-results",
-    "plan-of-action-and-milestones": "reference-plan-of-action-and-milestones",
-}
-
-CONCEPT_FOR_MODEL = {
-    "catalog": "model-catalog",
-    "profile": "model-profile",
-    "component-definition": "model-component-definition",
-    "system-security-plan": "model-ssp",
-    "assessment-plan": "model-assessment-plan",
-    "assessment-results": "model-assessment-results",
-    "plan-of-action-and-milestones": "model-poam",
-}
-
-#: Rule URLs in ``rules.py`` -> the corpus page that text came from.
-SOURCE_FOR_URL = {
-    IDENTIFIER_USE_URL: "identifier-use",
-    URI_USE_URL: "uri-use",
-}
-
-
-@dataclass(frozen=True)
-class Source:
-    identifier: str
-    url: str
-    title: str
-    retrieved: str
-    text: str
-
-    @property
-    def normalized(self) -> str:
-        return normalize(self.text)
-
-
-@dataclass(frozen=True)
-class Section:
-    source: str
-    path: tuple[str, ...]
-    heading: str
-    text: str
-
-    @property
-    def label(self) -> str:
-        return "/".join(self.path) if self.path else self.heading
+__all__ = [
+    "CONCEPT_FOR_MODEL",
+    "CORPUS_DIR",
+    "MIN_QUOTE_CHARS",
+    "REFERENCE_FOR_MODEL",
+    "SOURCE_FOR_URL",
+    "VENDOR_DIR",
+    "VENDOR_RELEASE_URL",
+    "VENDOR_RETRIEVED",
+    "Passage",
+    "Section",
+    "Source",
+    "constraint_snippet",
+    "contains",
+    "load",
+    "locate",
+    "manifest",
+    "normalize",
+    "passages_for_finding",
+    "passages_for_question",
+    "reference_section",
+    "sections",
+    "source_ids",
+]
 
 
 @dataclass(frozen=True)
@@ -98,145 +77,9 @@ class Passage:
     why: str
 
 
-_QUOTES = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"'})
-
-
-def normalize(text: str) -> str:
-    return re.sub(r"\s+", " ", text.translate(_QUOTES)).strip()
-
-
-@cache
-def manifest() -> dict[str, dict[str, str]]:
-    payload = json.loads((CORPUS_DIR / "MANIFEST.json").read_text(encoding="utf-8"))
-    sources: dict[str, dict[str, str]] = payload["sources"]
-    return sources
-
-
-@cache
-def load(identifier: str) -> Source | None:
-    """A source by id, or None when no such source exists. Never a guess."""
-    if identifier.startswith("vendor:"):
-        path = VENDOR_DIR / identifier.removeprefix("vendor:")
-        if not path.is_file() or path.parent != VENDOR_DIR:
-            return None
-        return Source(
-            identifier=identifier,
-            url=VENDOR_RELEASE_URL,
-            title=path.name,
-            retrieved=VENDOR_RETRIEVED,
-            text=path.read_text(encoding="utf-8"),
-        )
-    entry = manifest().get(identifier)
-    if entry is None:
-        return None
-    return Source(
-        identifier=identifier,
-        url=entry["url"],
-        title=entry["title"],
-        retrieved=entry["retrieved"],
-        text=(CORPUS_DIR / f"{identifier}.txt").read_text(encoding="utf-8"),
-    )
-
-
-def source_ids() -> list[str]:
-    vendored = sorted(f"vendor:{p.name}" for p in VENDOR_DIR.iterdir() if p.is_file())
-    return sorted(manifest()) + vendored
-
-
-def contains(identifier: str, quote: str) -> bool:
-    """True when the quote occurs verbatim (after normalization) in that source."""
-    source = load(identifier)
-    if source is None:
-        return False
-    needle = normalize(quote)
-    return len(needle) >= MIN_QUOTE_CHARS and needle in source.normalized
-
-
-def locate(quote: str) -> list[str]:
-    """Every source the quote occurs in. Empty means nowhere."""
-    return [identifier for identifier in source_ids() if contains(identifier, quote)]
-
-
-# -- sections ---------------------------------------------------------------
-
-_HEADING = re.compile(r"^(#{1,6}) (.+)$")
-
-
-@cache
-def sections(identifier: str) -> tuple[Section, ...]:
-    source = load(identifier)
-    if source is None:
-        return ()
-    out: list[Section] = []
-    stack: list[str] = []
-    heading = "(preamble)"
-    path: tuple[str, ...] = ()
-    body: list[str] = []
-
-    def flush() -> None:
-        text = "\n".join(body).strip()
-        if text:
-            out.append(Section(source=identifier, path=path, heading=heading, text=text))
-
-    for line in source.text.split("\n"):
-        match = _HEADING.match(line)
-        if match is None:
-            body.append(line)
-            continue
-        flush()
-        level = len(match.group(1))
-        heading = match.group(2).strip()
-        del stack[level - 1 :]
-        stack.append(heading)
-        path = tuple(stack)
-        body = []
-    flush()
-    return tuple(out)
-
-
-def _pointer_path(location: str) -> tuple[str, ...]:
-    """``/catalog/groups/16/controls/23/id`` -> ``('catalog','groups','controls','id')``."""
-    return tuple(
-        segment.replace("~1", "/").replace("~0", "~")
-        for segment in location.strip("/").split("/")
-        if segment and not segment.isdigit()
-    )
-
-
-def reference_section(model: str, location: str) -> Section | None:
-    """The reference page's section for a location, or the nearest ancestor's."""
-    page = REFERENCE_FOR_MODEL.get(model)
-    if page is None:
-        return None
-    by_path = {section.path: section for section in sections(page)}
-    path = _pointer_path(location)
-    while path:
-        found = by_path.get(path)
-        if found is not None:
-            return found
-        path = path[:-1]
-    return None
-
-
-# -- the vendored constraint layer ------------------------------------------
-
 _CONSTRAINT_ID = re.compile(r"NIST OSCAL constraint (\S+) \(")
 _MODULE = re.compile(r"in (oscal_[\w-]+_metaschema_RESOLVED\.xml)")
 _DATATYPE = re.compile(r"^(\w+Datatype) in the vendored")
-
-
-def constraint_snippet(identifier: str, module: str) -> str | None:
-    """The XML element declaring one constraint, verbatim from the vendored file."""
-    source = load(f"vendor:{module}")
-    if source is None:
-        return None
-    match = re.search(
-        rf"<(is-unique|index|index-has-key|has-cardinality|matches|expect|allowed-values)"
-        rf"\b[^>]*\bid=\"{re.escape(identifier)}\"[^>]*(?:/>|>.*?</\1>)",
-        source.text,
-        re.DOTALL,
-    )
-    return match.group(0) if match else None
 
 
 def _constraint_passages(finding: Finding) -> list[Passage]:

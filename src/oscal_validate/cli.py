@@ -10,8 +10,14 @@ default parser sees the arguments, and the package that implements them is
 imported only then; ``tests/test_default_path_byte_identity.py`` checks in a
 fresh process that a validation run never loads it.
 
-``diff`` is dispatched the same way but is not one of them: it compares two
-runs and is as deterministic and as offline as the default path.
+``diff``, ``rule``, ``mcp`` and ``package`` are dispatched the same way but
+are not among them: ``diff`` compares two runs, ``rule`` prints the citation
+trail for one constraint identifier or finding code, ``mcp`` serves the
+validator to an assistant over stdio, and ``package`` validates a directory as
+one deliverable. All four are as deterministic and as offline as the default
+path, and none of them calls a model -- ``mcp`` least of all, since
+the whole point of it is that a model's host calls this tool and gets the
+validator's own findings rather than a model's account of them.
 
 ``--resolve`` takes more local files or directories. It is how an imported
 catalog or profile gets into the effective data model, and it is the difference
@@ -19,11 +25,20 @@ between "this control reference resolves to nothing" and "this control
 reference cannot be checked from here".
 
 ``--format`` selects text (default), json (the canonical machine-readable
-report), or sarif (SARIF 2.1.0, the same findings for code-scanning viewers;
-see ``sarif.py`` for how severities map and why no result is ever a pass).
+report), sarif (SARIF 2.1.0, the same findings for code-scanning viewers; see
+``sarif.py`` for how severities map and why no result is ever a pass), or html
+(one self-contained page for a reviewer, written to stdout like the others; see
+``htmlreport.py``).
 
-Exit codes: 0 = no ERROR findings; 1 = at least one ERROR finding; 2 = the
-input could not be read or parsed at all.
+``--baseline`` reads a committed list of acknowledged findings. A finding it
+names is still printed, still counted and still an ERROR; the one thing it
+stops doing is gating the exit code. ``--write-baseline`` prints such a file
+for a human to annotate, to stdout rather than to disk, because this command
+has never written a file and the privacy audit says so. See ``baseline.py``.
+
+Exit codes: 0 = no ERROR findings the baseline did not acknowledge; 1 = at
+least one that it did not, or a stale baseline entry under
+``--fail-on-stale``; 2 = the input, or the baseline, could not be read.
 """
 
 from __future__ import annotations
@@ -34,9 +49,11 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from . import __version__
+from . import __version__, baseline
 from .document import DocumentError
-from .findings import Severity, render_findings_json, render_findings_text
+from .findings import Finding, exit_code, render_findings_json, render_findings_text
+from .htmlreport import render_findings_html
+from .positions import attach
 from .report import read_report_schema
 from .rules import OSCAL_RELEASE
 from .sarif import render_findings_sarif
@@ -59,7 +76,7 @@ AI_COMMANDS = ("explain", "repair", "walkthrough", "ask")
 #: ``non-literal-import`` says so, and it is right that this is not a property
 #: worth having to save a line. ``test_every_deterministic_command_is_actually
 #: _dispatched`` holds the tuple and the branches together instead.
-DETERMINISTIC_COMMANDS = ("diff",)
+DETERMINISTIC_COMMANDS = ("diff", "rule", "mcp", "package")
 
 
 class PrintReportSchema(argparse.Action):
@@ -97,8 +114,14 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Severities: ERROR gates the exit code. UNVERIFIABLE never does; it marks "
             "what the supplied documents cannot settle, and is never a pass. "
-            f"`oscal-validate {DETERMINISTIC_COMMANDS[0]} --help` compares two runs, with "
-            "no model and no network, like this command. "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[0]} --help` compares two runs, "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[1]} --help` prints the citation "
+            "trail for one constraint or finding code, "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[2]} --help` serves this validator "
+            "to an assistant over stdio, and "
+            f"`oscal-validate {DETERMINISTIC_COMMANDS[3]} --help` validates a directory "
+            "as one deliverable; all four make no model call and no network call, like "
+            "this command. "
             f"Opt-in model-backed subcommands ({', '.join(AI_COMMANDS)}) are documented by "
             "`oscal-validate explain --help`; they call a model, this command never does."
         ),
@@ -116,11 +139,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--format",
-        choices=("text", "json", "sarif"),
+        choices=("text", "json", "sarif", "html"),
         default="text",
         help=(
             "output format (default: text). sarif is SARIF 2.1.0 with the same findings: "
-            "ERROR and WARNING as kind fail, UNVERIFIABLE as kind open, never a pass"
+            "ERROR and WARNING as kind fail, UNVERIFIABLE as kind open, never a pass. "
+            "html is one self-contained page for a reviewer -- no script, no external "
+            "stylesheet, no timestamp -- written to stdout like the others"
         ),
     )
     parser.add_argument(
@@ -135,6 +160,50 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--locations",
+        action="store_true",
+        help=(
+            "print the line and column in the source file where each finding's pointer "
+            "points, beside the pointer and never instead of it. text gains "
+            "'<file>:<line>:<column>' on a finding's first line; json gains line and "
+            "column on every finding, null where this run has no position for that "
+            "pointer -- never 0, which is a line no file has. sarif and html are "
+            "unchanged by this flag today. Off by default: without it this command's "
+            "bytes are unchanged, and no source index is built"
+        ),
+    )
+    parser.add_argument(
+        "--baseline",
+        metavar="FILE",
+        help=(
+            "a committed list of acknowledged findings, each with a written reason and "
+            "the date it was acknowledged. Findings it names are still printed, still "
+            "counted, and marked ACKNOWLEDGED, but do not gate the exit code; everything "
+            "else gates exactly as it does without this flag. An entry that matches "
+            "nothing is reported as BASELINE_STALE. An entry with no reason, or one that "
+            "names an UNVERIFIABLE finding, is refused (exit 2)"
+        ),
+    )
+    parser.add_argument(
+        "--fail-on-stale",
+        action="store_true",
+        help=(
+            "exit 1 when a --baseline entry matched nothing in this run, so a baseline "
+            "cannot outlive the defect it excused"
+        ),
+    )
+    parser.add_argument(
+        "--write-baseline",
+        action="store_true",
+        help=(
+            "print a baseline document for this run instead of the report, for a human "
+            "to annotate with reasons. It is written to stdout rather than to a file: "
+            "this tool has never written to disk and the privacy audit says so. As "
+            "generated it is refused by --baseline, because every entry needs a reason. "
+            "Exits 0 whatever the findings were; it generates, it does not gate"
+        ),
+    )
+    parser.add_argument(
         "--report-schema",
         action=PrintReportSchema,
         help=(
@@ -146,20 +215,48 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _deterministic(arguments: list[str]) -> int | None:
+    """Run the deterministic verb the first argument names, or return None.
+
+    Its own function so that ``main`` stays inside the complexity limit as
+    verbs are added -- the fourth one pushed it over -- without giving up the
+    one property the branches exist for: every module is imported by a
+    **literal** path, never by interpolating the command line into
+    ``import_module``. ``None`` means the first argument is not a verb, and the
+    default parser reads it as a file, which is what a word that merely looks
+    like a verb must still be.
+    """
+    verb = arguments[0] if arguments else ""
+    if verb == "diff":
+        module = importlib.import_module("oscal_validate.diff")
+    elif verb == "rule":
+        module = importlib.import_module("oscal_validate.rule")
+    elif verb == "mcp":
+        module = importlib.import_module("oscal_validate.mcp")
+    elif verb == "package":
+        module = importlib.import_module("oscal_validate.package")
+    else:
+        return None
+    result: int = module.main(arguments)
+    return result
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
     if arguments and arguments[0] in AI_COMMANDS:
         ai_cli = importlib.import_module("oscal_validate.ai.cli")
         result: int = ai_cli.main(arguments)
         return result
-    if arguments and arguments[0] == "diff":
-        diff_cli = importlib.import_module("oscal_validate.diff")
-        verdict: int = diff_cli.main(arguments)
-        return verdict
+    handled = _deterministic(arguments)
+    if handled is not None:
+        return handled
     args = build_parser().parse_args(arguments)
     try:
         session = build_session(
-            Path(args.file), [Path(p) for p in args.resolve], suggest=args.suggest
+            Path(args.file),
+            [Path(p) for p in args.resolve],
+            suggest=args.suggest,
+            locations=args.locations,
         )
         findings = validate(session)
     except (DocumentError, SchemaError) as exc:
@@ -172,14 +269,72 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 2
 
-    model = session.corpus.primary.walked.model
-    if args.format == "json":
-        print(render_findings_json(findings, __version__, model))
-    elif args.format == "sarif":
-        print(render_findings_sarif(findings, __version__, model, Path(args.file)))
+    if args.write_baseline:
+        print(baseline.render(findings))
+        return 0
+
+    used = str(args.baseline or "")
+    if used:
+        try:
+            findings = baseline.apply(findings, baseline.load(Path(used)))
+        except baseline.BaselineError as exc:
+            print(f"oscal-validate: {exc}", file=sys.stderr)
+            return 2
+        # A BASELINE_STALE finding is made after `validate` returned, so it
+        # has no position yet. Attaching again is idempotent for every other
+        # finding and is what stops one row of a --locations report reading
+        # as positionless for a reason that has nothing to do with the file.
+        findings = attach(findings, session.corpus)
+
+    _render(
+        findings,
+        args.format,
+        session.corpus.primary.walked.model,
+        args.file,
+        [str(p) for p in args.resolve],
+        used,
+        locations=args.locations,
+    )
+    return exit_code(findings, fail_on_stale=args.fail_on_stale)
+
+
+def _render(
+    findings: list[Finding],
+    fmt: str,
+    model: str,
+    document: str,
+    resolve: list[str],
+    baseline_path: str,
+    *,
+    locations: bool = False,
+) -> None:
+    """Write the report. ``locations`` reaches text and json and nothing else.
+
+    sarif and html do not carry a position today. That is a gap rather than a
+    decision, and it is stated in ``--locations``' own help text and pinned by
+    ``tests/test_locations.py`` so the flag cannot look like it did something
+    to a format it did not touch.
+    """
+    if fmt == "json":
+        print(
+            render_findings_json(findings, __version__, model, baseline_path, locations=locations)
+        )
+    elif fmt == "sarif":
+        print(render_findings_sarif(findings, __version__, model, Path(document)))
+    elif fmt == "html":
+        print(
+            render_findings_html(
+                findings,
+                __version__,
+                model,
+                Path(document),
+                [Path(p) for p in resolve],
+                baseline_path,
+            ),
+            end="",
+        )
     else:
-        print(render_findings_text(findings, model))
-    return 1 if any(f.severity is Severity.ERROR for f in findings) else 0
+        print(render_findings_text(findings, model, baseline_path, locations=locations))
 
 
 def entrypoint() -> None:

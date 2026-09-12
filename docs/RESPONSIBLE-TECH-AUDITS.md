@@ -14,14 +14,16 @@ standards. Last reviewed: 2026-08-14 (initial).
 - **C Privacy / DPIA:** applies in a narrow form. The default command
   processes only the local files it is pointed at, entirely in process, with
   no network calls, no telemetry, and no persistence beyond its printed
-  report. The four opt-in commands of ADR-0005 send the findings, passages of
+  report. `oscal-validate mcp` reads the files a client names, only under
+  the `--root` it was started with, on the same terms. The four opt-in commands of ADR-0005 send the findings, passages of
   NIST's published text, and excerpts of the document around each finding to
   a model provider; see section H below.
 - **D Transparency:** applies and is the design center: every finding carries
   the rule citation, source URL, and retrieval date it enforces, and every
   unevaluated rule is listed.
-- **E Accessibility:** N/A today; no graphical or web surface. Output is plain
-  text (screen-reader-friendly terminal output) plus `--format json`.
+- **E Accessibility:** applies, since `--format html` added the first
+  human-facing rendered surface. See section E below. Terminal output and
+  `--format json` / `--format sarif` are unchanged.
 - **F Security:** applies; see `SECURITY.md`. Input is untrusted JSON.
 - **G Effect on third parties:** applies to the survey harness only, which
   fetches other people's servers.
@@ -88,7 +90,11 @@ NIST's own published catalogs are not spuriously invalid.
 ## C. Privacy
 
 No collection, no transmission, no retention. The DPIA-style answer is short
-because the data flow is short: files in, findings out, process ends. This
+because the data flow is short: files in, findings out, process ends. The
+MCP server is the one mode that does not end after a run, and it keeps
+nothing from a supplied document between requests: the only state that
+outlives a request is memoised reads of the vendored schema and constraint
+files. This
 matters more than usual here, because system security plans and assessment
 results describe live systems' boundaries, components, and unremediated
 weaknesses. Nothing leaves the machine the tool runs on, and there is no code
@@ -104,15 +110,58 @@ choice are documented in the README. The vendored sources and their hashes are
 in `src/oscal_validate/vendor/SOURCES.md`. A finding without a citation cannot
 be constructed in the code path: the `Finding` model requires a `Rule`.
 
+## E. Accessibility: the HTML report
+
+**Applies since `--format html`.** The audience for that page is an ISSO or an
+assessor reviewing a package, which is precisely a population where an
+unreadable document is an access barrier rather than an inconvenience.
+
+**What is checked, mechanically.** `tests/test_html_report.py` parses the
+rendered bytes with `html.parser` and holds every page the suite can produce to
+seven structural rules:
+
+1. exactly one `h1`, and no heading level skipped;
+2. `lang="en"` on the root element;
+3. a skip link whose target id exists, and no duplicate id anywhere;
+4. every table has a caption, every header cell has a `scope`, and **every row
+   is exactly as wide as its header** — the failure where a column is added to
+   a header and left with no cells under it, which reads as a broken table to a
+   screen reader and is invisible to a human skim;
+5. no element that fetches anything, and no attribute naming a subresource;
+6. every form control associated with a label;
+7. severity carried by the word, in a `th scope="row"`, never by colour.
+
+**Each rule is seeded with the defect it exists to catch** — a demoted heading,
+a second `h1`, a removed `lang`, a dangling skip link, an unlabelled control, an
+image with no `alt`, a deleted caption, a deleted header cell — and the checker
+must report it. A checker that has never gone red is a gate that cannot fail,
+which is this repository's own dominant defect class.
+
+**What is not checked, and is not claimed.** These are mechanical structural
+rules, not a WCAG 2.2 AA audit. They cannot judge whether a sentence is
+comprehensible, whether the rendered contrast passes at the size a given
+browser draws it, or how the page behaves under a real screen reader. The
+palette is authored for contrast against white and the page uses no colour as
+the sole carrier of meaning, but **no assistive-technology testing has been
+done**, and that is a gap rather than an exemption.
+
 ## F. Security
 
-See `SECURITY.md` for the threat cases and the commitments. The validator runs
+See `SECURITY.md` for the threat cases and the commitments. `--format html`
+renders untrusted document content into markup, so every value it writes goes
+through `html.escape` with quoting on and the suite carries an injection test
+over a finding whose location, value, message and citation all contain markup.
+The page loads nothing, so there is no subresource for an attacker to point at. The validator runs
 offline by design, which removes the largest attack classes, and that is
 enforced by a test that removes `socket` and by a test that reads the package
 source for network imports. The residual surface is the JSON parser, the
 vendored XML parse (hash-checked input, never user-supplied), and the supply
 chain of the dev toolchain. Documents nested past 200 levels are refused rather
-than read partially.
+than read partially. `oscal-validate mcp` adds one surface: a path chosen by
+whatever drives the assistant. Every such path is resolved, symbolic links
+followed first, and checked against `--root` before it is opened, and the
+suite holds a path outside the root, a `resolve` path outside it, and a link
+out of it to a refusal.
 
 ## G. Effect on the sites the survey harness fetches
 

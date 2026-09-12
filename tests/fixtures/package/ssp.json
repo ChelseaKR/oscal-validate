@@ -1,0 +1,88 @@
+{
+  "system-security-plan": {
+    "uuid": "76aff08f-e98b-5e23-a546-941a5c8d483d",
+    "metadata": {
+      "title": "Package-mode fixture: a synthetic system security plan",
+      "last-modified": "2026-09-11T00:00:00Z",
+      "version": "1.0",
+      "oscal-version": "1.2.3"
+    },
+    "import-profile": {
+      "href": "profile.json"
+    },
+    "system-characteristics": {
+      "system-ids": [
+        {
+          "identifier-type": "https://ietf.org/rfc/rfc4122",
+          "id": "37531b64-b23d-551c-bcca-5dffa16152a8"
+        }
+      ],
+      "system-name": "Package-mode fixture system",
+      "description": "A synthetic system, written for this repository, that exists only to be validated as part of a package.",
+      "system-information": {
+        "information-types": [
+          {
+            "uuid": "645de585-5644-5776-88fc-4001c70a5b43",
+            "title": "Synthetic records",
+            "description": "Records that exist only in this fixture.",
+            "confidentiality-impact": {
+              "base": "fips-199-low"
+            },
+            "integrity-impact": {
+              "base": "fips-199-low"
+            },
+            "availability-impact": {
+              "base": "fips-199-low"
+            }
+          }
+        ]
+      },
+      "status": {
+        "state": "operational"
+      },
+      "authorization-boundary": {
+        "description": "The single synthetic component below."
+      }
+    },
+    "system-implementation": {
+      "components": [
+        {
+          "uuid": "e1d0bc04-ce5d-56dd-996d-93f24d28143f",
+          "type": "this-system",
+          "title": "The fixture system",
+          "description": "Everything this synthetic system is.",
+          "status": {
+            "state": "operational"
+          }
+        }
+      ]
+    },
+    "control-implementation": {
+      "description": "How the fixture system implements the profile's two controls.",
+      "implemented-requirements": [
+        {
+          "uuid": "324cc549-04a4-5e51-9a90-f73298820723",
+          "control-id": "ex-1",
+          "by-components": [
+            {
+              "component-uuid": "e1d0bc04-ce5d-56dd-996d-93f24d28143f",
+              "uuid": "107dda87-9673-5fc1-962d-1f25b10b5072",
+              "description": "The fixture system implements ex-1 in prose only."
+            }
+          ]
+        },
+        {
+          "uuid": "e6254bcb-8821-5b1e-80f4-d8298e329bdb",
+          "control-id": "ex-2",
+          "by-components": [
+            {
+              "component-uuid": "e1d0bc04-ce5d-56dd-996d-93f24d28143f",
+              "uuid": "b6dea9f5-f1f7-5454-a34f-0d6e5d606ff4",
+              "description": "The fixture system implements ex-2 in prose only."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

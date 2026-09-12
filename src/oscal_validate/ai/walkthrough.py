@@ -24,67 +24,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..findings import Finding
+from ..fixorder import group_by_code
 from . import guard, prompts
 from .client import ModelClient, ModelError
 from .run import Run, provenance
 from .verify import ReplyError, parse_reply
-
-#: Fix order. Each tier names the codes in it and why it comes where it does.
-TIERS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
-    (
-        "Supply what the document imports",
-        "an import that was not supplied, or matched more than one file, leaves every "
-        "reference into it unsettled; nothing below can be decided until this is",
-        ("IMPORT_NOT_SUPPLIED", "IMPORT_AMBIGUOUS"),
-    ),
-    (
-        "Shape the validator could not read",
-        "a subtree the schema walk could not resolve, an object no alternative accepts, or "
-        "a value of the wrong JSON type hides everything beneath it from every later check",
-        ("SUBTREE_NOT_READ", "NO_SCHEMA_ALTERNATIVE", "TYPE_MISMATCH"),
-    ),
-    (
-        "Required structure",
-        "properties the schema requires, forbids, or bounds",
-        ("REQUIRED_PROPERTY_MISSING", "PROPERTY_UNDECLARED", "ARRAY_TOO_SHORT"),
-    ),
-    (
-        "Values against their datatypes",
-        "a malformed UUID or timestamp is also a broken identifier or a broken sort key",
-        ("DATATYPE_MISMATCH", "DATATYPE_BELOW_MINIMUM"),
-    ),
-    (
-        "Identifiers",
-        "a duplicated id cannot be referenced unambiguously, so these come before references",
-        ("UUID_NOT_UNIQUE", "CONSTRAINT_NOT_UNIQUE", "CONSTRAINT_CARDINALITY"),
-    ),
-    (
-        "References that resolve to nothing",
-        "the effective data model is complete and the target does not exist",
-        ("REFERENCE_UNRESOLVED",),
-    ),
-    (
-        # The tier's prose is part of the walkthrough prompt, and the prompt is
-        # hashed to key tests/cassettes/walkthrough-nist-ssp.json. Rewording it
-        # -- even to cite ADR-0008, which is where issue #8 was settled --
-        # invalidates a recording only a billed re-record can replace, so the
-        # sentence stays as recorded. Adding a code to the tuple does not touch
-        # the prompt: a code with no findings in the run produces no group.
-        "Declared version",
-        "the document was judged against OSCAL 1.2.3 whatever it declares (issue #8)",
-        ("OSCAL_VERSION_DIFFERS", "VERSION_SKEW_SUSPECTED"),
-    ),
-    (
-        "Not settled: UNVERIFIABLE",
-        "neither a pass nor a fail; the validator did not decide these either way",
-        ("REFERENCE_UNVERIFIABLE", "CONSTRAINT_NOT_EVALUATED", "PATTERN_NOT_CHECKED"),
-    ),
-    (
-        "For the record",
-        "imports that were matched, listed so the effective data model is visible",
-        ("IMPORT_RESOLVED",),
-    ),
-)
 
 EXAMPLES_PER_GROUP = 3
 NOT_COVERED = "Not covered by the narrative"
@@ -128,26 +72,17 @@ class Group:
 
 
 def group(run: Run) -> list[Group]:
-    """Every finding into exactly one group, in fix order, labeled G1..Gn."""
-    known = {code: (tier, why) for tier, why, codes in TIERS for code in codes}
-    order = {code: index for index, (_, _, codes) in enumerate(TIERS) for code in codes}
-    buckets: dict[str, list[Finding]] = {}
-    for finding in run.findings:
-        buckets.setdefault(finding.code, []).append(finding)
-    codes = sorted(buckets, key=lambda c: (order.get(c, len(TIERS)), c))
-    groups: list[Group] = []
-    for index, code in enumerate(codes, 1):
-        tier, why = known.get(
-            code, ("Other", "a code this grouping does not know; fix order unstated")
-        )
-        findings = buckets[code]
-        severity = max((f.severity.value for f in findings), key=_severity_rank)
-        groups.append(Group(f"G{index}", tier, why, code, severity, findings))
-    return groups
+    """Every finding into exactly one group, in fix order, labeled G1..Gn.
 
-
-def _severity_rank(value: str) -> int:
-    return {"ERROR": 3, "WARNING": 2, "INFO": 1, "UNVERIFIABLE": 0}.get(value, -1)
+    The fix order itself is :mod:`oscal_validate.fixorder`, shared with
+    ``--format html`` so a reviewer's page and this narrative cannot place the
+    same finding differently. Only the ``G1..Gn`` labelling is here, because
+    only a prompt needs it.
+    """
+    return [
+        Group(f"G{index}", g.tier, g.why, g.finding_code, g.severity, list(g.findings))
+        for index, g in enumerate(group_by_code(run.findings), 1)
+    ]
 
 
 _LABEL = re.compile(r"\b([GF]\d+)\b")

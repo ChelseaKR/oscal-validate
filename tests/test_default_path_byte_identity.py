@@ -7,7 +7,7 @@ the last commit before any model-backed command existed. Every later commit has
 to reproduce those bytes. This is the proof behind the README's claim that the
 opt-in commands changed nothing about the command that was already there.
 
-Re-captured six times since. Each reason is recorded here because a golden
+Re-captured eight times since. Each reason is recorded here because a golden
 re-captured without one stops being evidence, and each entry names the pull
 request that made it so a reader can check the diff rather than take the
 description on trust. The pull request is cited rather than the commit because
@@ -52,7 +52,24 @@ no document gained or lost a finding. Verified before committing by reading the
 whole diff: every changed line is ``"version": "0.3.0"`` becoming
 ``"version": "0.4.0"``.
 
-On 2026-09-07 (#77), ADR-0008: a document that both declares a non-vendored OSCAL
+On 2026-09-07 (#92): ``report_schema_version`` went from ``1.0.0`` to ``1.1.0``
+for the two keys ``--baseline`` adds to the report -- an optional ``baseline``
+block and an optional ``acknowledged`` on a finding, neither of which any
+golden run produces, because none of them passes ``--baseline``. So the whole
+diff is the version line: twelve lines, one per JSON golden, and the twelve
+text goldens are untouched because the text format does not print it. Verified
+before committing by reading the whole diff: every changed line is
+``"report_schema_version": "1.0.0"`` becoming ``"1.1.0"``.
+
+On 2026-09-09 (#95): ``report_schema_version`` went from ``1.1.0`` to
+``1.2.0`` for the two keys ``--locations`` adds to a finding, ``line`` and
+``column``. No golden run passes ``--locations``, so no golden report carries
+either key and the whole diff is the version line: twelve lines, one per JSON
+golden, and the twelve text goldens are untouched because the text format does
+not print it. Verified before committing by reading the whole diff: every
+changed line is ``"report_schema_version": "1.1.0"`` becoming ``"1.2.0"``.
+
+On 2026-09-12 (#77), ADR-0008: a document that both declares a non-vendored OSCAL
 release and carries an ERROR gains one ``VERSION_SKEW_SUSPECTED`` INFO finding.
 Two of the twelve cases are in that class -- ``nist_component_definition``
 (declares 1.1.2, one ERROR) and ``nist_sp800_53_catalog`` (declares 1.2.2, one

@@ -15,6 +15,12 @@ be installed at all. A document sent through them leaves the machine; the
 README says so beside the commands. Credentials are read from the environment
 and never written to a file.
 
+`oscal-validate mcp` serves the same validator to an assistant over stdio.
+It is as offline as the validation command, calls no model, and writes no
+file; what it adds is that the documents it reads are named by a client
+rather than on the command line, so every such path is resolved and checked
+against the `--root` the server was started with before it is opened.
+
 The one component in this repository that opens a socket is `tools/fetch.py`,
 the development harness behind `docs/findings/`. It is not part of the installed
 package and is not reachable from the CLI. It fetches `robots.txt` first and
@@ -65,7 +71,9 @@ supply-chain compromise), the following are first-class security bugs here:
   `tests/test_vendor_integrity.py` and the recorded SHA-256 hashes in
   `src/oscal_validate/vendor/SOURCES.md` would not catch.
 - Any path by which the installed package opens a network connection, resolves
-  an external schema, or reads a file it was not given on the command line.
+  an external schema, or reads a file it was not given on the command line --
+  or, under `oscal-validate mcp`, reads a file outside the `--root` the server
+  was started with, including by way of a symbolic link.
 - Any path by which `tools/fetch.py` fetches something a `robots.txt` disallows,
   or reaches a scheme other than http and https. There is deliberately no flag
   to disable the robots check; a way to bypass it is a vulnerability, not a

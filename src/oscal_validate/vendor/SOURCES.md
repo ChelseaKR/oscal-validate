@@ -31,6 +31,15 @@ and nothing else was changed.
 `tests/test_vendor_integrity.py` recomputes every hash on every run and checks
 it against both the file and this table.
 
+To take a new OSCAL release, run `tools/revendor.py <version>` from a checkout.
+It fetches the release through the same robots-first fetcher the surveys use,
+refuses any file carrying a DTD, and prints what the new bytes would change --
+constraints, the parsed grammar, schema definitions, which files differ, and
+which goldens would move -- before anything is written. With `--write` it
+copies the files in and moves each hash in the table above; the prose here, the
+tests' own copy of these hashes, and the release named in `rules.py` stay a
+person's to change, and it prints that list.
+
 ## Why both the schema and the metaschema
 
 The JSON Schema expresses shape and datatypes. It expresses no uniqueness and

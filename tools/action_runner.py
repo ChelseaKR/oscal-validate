@@ -44,12 +44,19 @@ import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 MODULE = "oscal_validate"
 TOOL = "oscal-validate"
 
 #: The tool's severities, in the order it reports them.
 SEVERITIES = ("ERROR", "WARNING", "INFO", "UNVERIFIABLE")
+
+#: The finding code a stale --baseline entry is reported under, and the two
+#: counter names that sit beside the severities in the gating tally.
+STALE_CODE = "BASELINE_STALE"
+ACKNOWLEDGED = "acknowledged"
+STALE = "stale"
 
 #: The major version of ``report.schema.json`` this script knows how to read.
 #: A report declaring a different major fails the run rather than being read
@@ -92,10 +99,32 @@ def escape_property(text: str) -> str:
     return escape(text).replace(":", "%3A").replace(",", "%2C")
 
 
-def annotate(level: str, message: str, *, file: str = "", title: str = "") -> None:
+def annotate(
+    level: str,
+    message: str,
+    *,
+    file: str = "",
+    title: str = "",
+    line: int | None = None,
+    column: int | None = None,
+) -> None:
+    """Emit one workflow command.
+
+    ``line`` and ``column`` are omitted when the report has no position for a
+    finding, which is what ``--locations`` writes as ``null``. They are never
+    defaulted to a number: GitHub anchors an annotation on whatever line it is
+    given, so a fabricated ``1`` would put a finding on the first line of the
+    file and read exactly like a measured one. ``col`` without ``line`` means
+    nothing to GitHub, so a column is emitted only alongside a line.
+    """
+    positional = []
+    if line is not None:
+        positional.append(("line", str(line)))
+        if column is not None:
+            positional.append(("col", str(column)))
     properties = [
         f"{key}={escape_property(value)}"
-        for key, value in (("file", file), ("title", title))
+        for key, value in (("file", file), *positional, ("title", title))
         if value
     ]
     joined = " " + ",".join(properties) if properties else ""
@@ -119,12 +148,21 @@ def discover(raw: str) -> list[Path]:
 
 
 def run_cli(
-    document: Path, resolve: Sequence[str], report_format: str = "json"
+    document: Path,
+    resolve: Sequence[str],
+    report_format: str = "json",
+    baseline: str = "",
+    *,
+    locations: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     """Run the CLI over one document, as a child process of this interpreter."""
     command = [sys.executable, "-m", MODULE, str(document), "--format", report_format]
+    if locations:
+        command.append("--locations")
     for extra in resolve:
         command += ["--resolve", extra]
+    if baseline:
+        command += ["--baseline", baseline]
     # S603 flags untrusted input reaching a subprocess. The action's inputs do
     # reach it, and that is the point: they are argv entries in a list, with
     # no shell to interpret them, so a caller controls what is validated and
@@ -132,15 +170,65 @@ def run_cli(
     return subprocess.run(command, capture_output=True, text=True, check=False)  # noqa: S603
 
 
-def report_findings(document: Path, findings: list[dict[str, str]]) -> None:
+def acknowledged_of(finding: dict[str, Any]) -> dict[str, str] | None:
+    """The acknowledgement on a finding, or None. Never a guess.
+
+    A malformed one is *not* read as absent: absent means nothing
+    acknowledged this finding, and it is what makes an ERROR gate. Reading a
+    broken acknowledgement as absent would gate a finding the baseline
+    excused; reading it as present would excuse one nothing acknowledged.
+    Neither is safe to infer, so ``describe_unreadable`` refuses the report.
+    """
+    value = finding.get("acknowledged")
+    if value is None:
+        return None
+    if isinstance(value, dict) and isinstance(value.get("reason"), str):
+        return {
+            "reason": str(value.get("reason")),
+            "acknowledged_on": str(value.get("acknowledged_on")),
+        }
+    return None
+
+
+def position_of(finding: dict[str, Any]) -> tuple[int | None, int | None]:
+    """The 1-based line and column a finding carries, or ``(None, None)``.
+
+    Three inputs, three answers, and the middle one is the one that has to be
+    kept apart from the others. The keys are absent when the report was not
+    asked for positions; they are ``null`` when it was asked and there is no
+    position for that pointer; and they are integers otherwise. All three mean
+    "annotate the file, not a line" except the last, and none of them may be
+    read as line 1. A value that is not a positive integer -- 0, a float, a
+    string -- is refused here rather than passed to GitHub, because GitHub
+    would anchor the annotation somewhere on the strength of it.
+    """
+    line = finding.get("line")
+    column = finding.get("column")
+    if not isinstance(line, int) or isinstance(line, bool) or line < 1:
+        return None, None
+    if not isinstance(column, int) or isinstance(column, bool) or column < 1:
+        return line, None
+    return line, column
+
+
+def report_findings(document: Path, findings: list[dict[str, Any]]) -> None:
     for finding in findings:
         severity = str(finding["severity"])
         where = f"{finding['location']}: {finding['property']} = {finding['value']}"
+        acknowledged = acknowledged_of(finding)
+        if acknowledged is not None:
+            where = (
+                f"{where} [ACKNOWLEDGED {acknowledged['acknowledged_on']}, not gating: "
+                f"{acknowledged['reason']}]"
+            )
+        line, column = position_of(finding)
         annotate(
             LEVELS.get(severity, UNKNOWN_SEVERITY_LEVEL),
             f"{where}. {finding['message']}",
             file=str(document),
             title=f"{finding['code']} ({severity})",
+            line=line,
+            column=column,
         )
 
 
@@ -187,18 +275,9 @@ def describe_unreadable(report: object) -> str | None:
     findings = report.get("findings")
     if not isinstance(findings, list):
         return "findings is missing or is not a list"
-    unknown = sorted(
-        {
-            str(f.get("severity"))
-            for f in findings
-            if isinstance(f, dict) and f.get("severity") not in SEVERITIES
-        }
-    )
-    if unknown:
-        return (
-            f"a finding carries severity {', '.join(unknown)}, which this action does not "
-            f"know how to gate on. It is not counted as none"
-        )
+    unreadable_finding = _describe_unreadable_findings(findings)
+    if unreadable_finding is not None:
+        return unreadable_finding
     document = report.get("document")
     if not isinstance(document, dict) or not isinstance(document.get("model"), str):
         return "document.model is missing"
@@ -217,6 +296,36 @@ def describe_unreadable(report: object) -> str | None:
         return (
             f"summary carries a count for {', '.join(extra)}, which this action does not "
             f"know how to gate on. It is not counted as none"
+        )
+    return None
+
+
+def _describe_unreadable_findings(findings: list[Any]) -> str | None:
+    """Why a finding in this report cannot be gated on, or ``None``."""
+    unknown = sorted(
+        {
+            str(f.get("severity"))
+            for f in findings
+            if isinstance(f, dict) and f.get("severity") not in SEVERITIES
+        }
+    )
+    if unknown:
+        return (
+            f"a finding carries severity {', '.join(unknown)}, which this action does not "
+            f"know how to gate on. It is not counted as none"
+        )
+    # An acknowledgement this action cannot read must not be read as absent,
+    # which would gate a finding the baseline excused, nor as present, which
+    # would excuse one nothing acknowledged. Neither is safe to infer.
+    malformed = {
+        str(f.get("code"))
+        for f in findings
+        if isinstance(f, dict) and f.get("acknowledged") is not None and acknowledged_of(f) is None
+    }
+    if malformed:
+        return (
+            f"a finding ({', '.join(sorted(malformed))}) carries an acknowledged block "
+            "this action cannot read. It is not read as unacknowledged"
         )
     return None
 
@@ -273,7 +382,9 @@ def validate_one(
     document: Path,
     resolve: Sequence[str],
     totals: dict[str, int],
+    gating: dict[str, int],
     sarif_logs: list[object] | None = None,
+    baseline: str = "",
 ) -> bool:
     """Validate one document and fold its counts into ``totals``.
 
@@ -284,7 +395,12 @@ def validate_one(
     a failure too -- see the module docstring for why a partial SARIF file is
     worse than none.
     """
-    completed = run_cli(document, resolve)
+    # --locations, always. The pointer is what a report is keyed on and it is
+    # unchanged; the position is what lets an annotation land on the line a
+    # reviewer is reading rather than on the file. A finding the tool has no
+    # position for still annotates the file, which is what this did for every
+    # finding before.
+    completed = run_cli(document, resolve, baseline=baseline, locations=True)
     if completed.returncode not in (EXIT_CLEAN, EXIT_FINDINGS):
         detail = completed.stderr.strip() or f"{TOOL} exited {completed.returncode}"
         annotate("error", detail, file=str(document))
@@ -313,11 +429,36 @@ def validate_one(
             return False
         sarif_logs.append(log)
 
-    for severity in SEVERITIES:
-        totals[severity] += int(summary[severity])
+    _tally(report, summary, totals, gating)
     counted = ", ".join(f"{summary[s]} {s}" for s in SEVERITIES)
     print(f"{document} ({report['document']['model']}): {counted}")
     return True
+
+
+def _tally(
+    report: dict[str, Any],
+    summary: dict[str, Any],
+    totals: dict[str, int],
+    gating: dict[str, int],
+) -> None:
+    """Fold one report into the run's counts.
+
+    ``totals`` is what the outputs publish and what the summary line prints:
+    every finding, at the severity it carries. ``gating`` is the same numbers
+    minus what a baseline acknowledged, counted off the findings rather than
+    read from ``summary`` -- because ``summary`` deliberately does not move. An
+    acknowledged ERROR is still an ERROR everywhere it is reported, and the
+    only thing an acknowledgement changes is whether it gates.
+    """
+    for severity in SEVERITIES:
+        totals[severity] += int(summary[severity])
+        gating[severity] += int(summary[severity])
+    for finding in report["findings"]:
+        if acknowledged_of(finding) is not None:
+            gating[str(finding["severity"])] -= 1
+            gating[ACKNOWLEDGED] += 1
+        if str(finding["code"]) == STALE_CODE:
+            gating[STALE] += 1
 
 
 def write_sarif(destination: Path, logs: list[object]) -> bool:
@@ -352,6 +493,32 @@ def write_outputs(values: dict[str, int]) -> None:
             handle.write(f"{name}={value}\n")
 
 
+def _publish(
+    totals: dict[str, int], gating: dict[str, int], baseline: str, *, read: int, seen: int
+) -> None:
+    write_outputs(
+        {
+            "error-count": totals["ERROR"],
+            "warning-count": totals["WARNING"],
+            "info-count": totals["INFO"],
+            "unverifiable-count": totals["UNVERIFIABLE"],
+            "acknowledged-count": gating[ACKNOWLEDGED],
+            "stale-baseline-count": gating[STALE],
+            "files-validated": read,
+        }
+    )
+    print(
+        f"{read} of {seen} document(s) validated: "
+        + ", ".join(f"{totals[severity]} {severity}" for severity in SEVERITIES)
+    )
+    if baseline:
+        print(
+            f"baseline {baseline}: {gating[ACKNOWLEDGED]} finding(s) acknowledged and not "
+            f"gating, {gating[STALE]} entry(ies) stale. Acknowledged findings are still "
+            "counted above."
+        )
+
+
 def main() -> int:
     fail_on = (os.environ.get("OSCAL_FAIL_ON") or "error").strip().lower()
     if fail_on not in GATED:
@@ -372,25 +539,20 @@ def main() -> int:
 
     resolve = (os.environ.get("OSCAL_RESOLVE") or "").split()
     sarif_file = (os.environ.get("OSCAL_SARIF_FILE") or "").strip()
+    baseline = (os.environ.get("OSCAL_BASELINE") or "").strip()
+    fail_on_stale = (os.environ.get("OSCAL_FAIL_ON_STALE") or "").strip().lower() == "true"
+    if fail_on_stale and not baseline:
+        annotate("error", "fail-on-stale needs a baseline; none was given")
+        return EXIT_USAGE
     sarif_logs: list[object] | None = [] if sarif_file else None
     totals = dict.fromkeys(SEVERITIES, 0)
+    gating = dict.fromkeys((*SEVERITIES, ACKNOWLEDGED, STALE), 0)
     unreadable = sum(
-        not validate_one(document, resolve, totals, sarif_logs) for document in documents
+        not validate_one(document, resolve, totals, gating, sarif_logs, baseline)
+        for document in documents
     )
 
-    write_outputs(
-        {
-            "error-count": totals["ERROR"],
-            "warning-count": totals["WARNING"],
-            "info-count": totals["INFO"],
-            "unverifiable-count": totals["UNVERIFIABLE"],
-            "files-validated": len(documents) - unreadable,
-        }
-    )
-    print(
-        f"{len(documents) - unreadable} of {len(documents)} document(s) validated: "
-        + ", ".join(f"{totals[severity]} {severity}" for severity in SEVERITIES)
-    )
+    _publish(totals, gating, baseline, read=len(documents) - unreadable, seen=len(documents))
 
     if unreadable:
         if sarif_file:
@@ -403,10 +565,20 @@ def main() -> int:
         return EXIT_USAGE
     if sarif_logs is not None and not write_sarif(Path(sarif_file), sarif_logs):
         return EXIT_USAGE
-    gating = sum(totals[severity] for severity in GATED[fail_on])
-    if gating:
+    if fail_on_stale and gating[STALE]:
         annotate(
-            "error", f"{gating} finding(s) at or above {fail_on.upper()}, and fail-on is {fail_on}"
+            "error",
+            f"{gating[STALE]} baseline entry(ies) matched nothing in this run, and "
+            "fail-on-stale is true. A baseline that outlives the defect it excused stands "
+            "between the next reader and a gate that would now pass on its own",
+        )
+        return EXIT_FINDINGS
+    over_threshold = sum(gating[severity] for severity in GATED[fail_on])
+    if over_threshold:
+        annotate(
+            "error",
+            f"{over_threshold} finding(s) at or above {fail_on.upper()} that no baseline "
+            f"entry acknowledged, and fail-on is {fail_on}",
         )
         return EXIT_FINDINGS
     return EXIT_CLEAN

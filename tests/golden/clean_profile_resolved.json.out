@@ -82,7 +82,7 @@
       "value": "clean_catalog.json"
     }
   ],
-  "report_schema_version": "1.0.0",
+  "report_schema_version": "1.2.0",
   "summary": {
     "ERROR": 0,
     "INFO": 1,

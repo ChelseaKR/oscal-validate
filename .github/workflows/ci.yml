@@ -99,3 +99,49 @@ jobs:
         run: |
           echo "::error::action.yml passed a catalog missing a required property"
           exit 1
+
+      # The annotation's line number, on the runner, against the file the
+      # steps above just built. `make verify` covers this too, but a workflow
+      # command is a thing GitHub reads rather than a string a test compares,
+      # and the difference between annotating the file and annotating the line
+      # only exists here. The expected line is derived from the document rather
+      # than written down: a hard-coded number would go stale the first time
+      # the fixture is edited, and would still pass while pointing at the
+      # wrong line.
+      - name: The annotation lands on the line the finding is about
+        env:
+          PYTHONPATH: src
+          OSCAL_PATH: broken-catalog.json
+        run: |
+          python3 tools/action_runner.py > annotations.txt || true
+          cat annotations.txt
+          python3 - <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          source = Path("broken-catalog.json").read_text(encoding="utf-8")
+          # The metadata object is where the removed required property belongs,
+          # so that is the line REQUIRED_PROPERTY_MISSING must name.
+          offset = source.index('"metadata"')
+          expected = source.count("\n", 0, source.index("{", offset)) + 1
+
+          annotations = Path("annotations.txt").read_text(encoding="utf-8")
+          wanted = re.compile(
+              r"^::error file=broken-catalog\.json,line=(\d+),col=(\d+),"
+              r"title=REQUIRED_PROPERTY_MISSING",
+              re.MULTILINE,
+          )
+          found = wanted.search(annotations)
+          if found is None:
+              sys.exit(
+                  "no REQUIRED_PROPERTY_MISSING annotation carried a line and a column:\n"
+                  + annotations
+              )
+          if int(found.group(1)) != expected:
+              sys.exit(
+                  f"the annotation names line {found.group(1)}; the metadata object "
+                  f"opens on line {expected}"
+              )
+          print(f"annotated line {found.group(1)}, column {found.group(2)}")
+          PY

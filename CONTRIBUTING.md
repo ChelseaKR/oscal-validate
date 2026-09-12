@@ -66,6 +66,12 @@ promises:
 - **The coverage table is generated.** `docs/CONSTRAINT-COVERAGE.md` comes from
   `make coverage-doc`; `tests/test_constraint_coverage.py` fails if the
   committed copy is stale. Do not hand-edit it.
+- **So is the packaged copy of the README's Limits section.**
+  `src/oscal_validate/limits.json` comes from `make limits-data` and is what
+  the MCP server's `limits` tool serves; `tests/test_mcp.py` fails if it is
+  stale. Editing the README's "Limits" section means running that target in
+  the same commit, and it is the one place in the repository where a *shorter*
+  answer than the truth is the failure mode to watch for.
 
 New checks should come with a break-the-gate case in
 `tests/test_break_the_gate.py`: corrupt a proven-clean document in exactly the
@@ -128,6 +134,15 @@ Open a PR against `main`. The short version of the checklist:
 - An ADR is added if you made a significant decision.
 - [`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` is updated for user-visible
   changes.
+
+## Commercial solicitation
+
+Issues here are not open to bids. They are design records — written so a decision is
+reconstructable later — not scope documents for outside quoting, and unsolicited offers to
+implement one for a fee will be declined.
+
+Contributions through the normal fork-and-PR process are welcome, and `good first issue` is the
+place to start.
 
 ## License
 

@@ -30,6 +30,26 @@ over it.
 
 ### What a consumer must not do
 
+### `line` and `column`
+
+`--locations` adds `line` and `column` to every finding. They are three-valued
+and the third value matters:
+
+| | meaning |
+|---|---|
+| the keys are **absent** | `--locations` was not given; the run makes no claim about where anything is |
+| an **integer** | the 1-based line or column where the pointed-at value begins in the source |
+| **`null`** | `--locations` was given and this run has no position for that pointer — a value the walk synthesised, or a document whose source it did not index |
+
+They are never `0`. There is no line 0 and no column 0, so a consumer never
+has to decide whether a zero is a position or an absence. `column` counts
+characters; a line containing a character outside the Basic Multilingual Plane
+is one column per character and more than one byte per column.
+
+`location` remains the primary key of a finding. A position is added beside
+it and never in place of it: `--diff`, `--baseline` and `tests/golden/` all
+key on the pointer, which does not move when the file is reformatted.
+
 Do not read a count with a default:
 
 ```python
@@ -53,11 +73,13 @@ findings = oscal_validate.validate_file(Path("ssp.json"), [Path("catalog.json")]
 
 | Name | Signature | What it is |
 |---|---|---|
-| `validate_file` | `(document: Path, resolve: list[Path] \| None = None, *, suggest: bool = False) -> list[Finding]` | Build a session and validate in one call. The usual entry point. |
-| `build_session` | `(document: Path, resolve: list[Path] \| None = None, *, suggest: bool = False) -> Session` | The loaded schema, metaschema and corpus for one run. Use it when you need the effective data model as well as the findings. |
+| `validate_file` | `(document: Path, resolve: list[Path] \| None = None, *, suggest: bool = False, locations: bool = False) -> list[Finding]` | Build a session and validate in one call. The usual entry point. |
+| `build_session` | `(document: Path, resolve: list[Path] \| None = None, *, suggest: bool = False, locations: bool = False) -> Session` | The loaded schema, metaschema and corpus for one run. Use it when you need the effective data model as well as the findings. |
 | `validate` | `(session: Session) -> list[Finding]` | Run every check over a session. Findings come back deduplicated and in a deterministic order. |
-| `Finding` | frozen dataclass | One finding: `code`, `severity`, `location`, `prop`, `value`, `message`, `rule`, `suggestions`. |
+| `Finding` | frozen dataclass | One finding: `code`, `severity`, `location`, `prop`, `value`, `message`, `rule`, `suggestions`, `acknowledged`, `position`. Its `gates` property is `True` for an ERROR nothing acknowledged, and that is the only thing the exit code is derived from. |
 | `Rule` | frozen dataclass | The published rule a finding is made under: `citation`, `url`, `retrieved`. |
+| `Position` | frozen dataclass | Where a finding's pointer points in the source: `file`, and a 1-based `line` and `column`. Built only under `--locations` (`locations=True`). `Finding.position` is `None` when the run built no index *or* when the pointer names nothing in the source, and neither is a position — the report prints words, never a zero. `column` counts characters, not UTF-8 bytes. |
+| `Acknowledgement` | frozen dataclass | Why a `--baseline` entry accepted a finding, and when: `reason`, `acknowledged_on`. `Finding.acknowledged` is `None` when nothing acknowledged it, and `None` is not a neutral value — it is what makes an ERROR gate. |
 | `Severity` | `StrEnum` | `ERROR`, `WARNING`, `INFO`, `UNVERIFIABLE`. |
 | `REPORT_SCHEMA_VERSION` | `str` | The version of the report schema this package writes. |
 | `read_report_schema` | `() -> str` | The schema as published, byte for byte. |
@@ -73,7 +95,12 @@ The package follows Semantic Versioning. Within a major version:
 
 - no name in the table above is removed or renamed;
 - no parameter is removed, reordered, or made required;
-- `Finding` and `Rule` gain no required field, and lose no field;
+- `Finding`, `Rule`, `Acknowledgement` and `Position` gain no required field,
+  and lose no field. `Finding` may gain an optional one, as it did with
+  `suggestions` (0.3.0), `acknowledged` (0.5.0) and `position`; a consumer
+  that constructs a `Finding` by keyword is unaffected, and one that compares
+  two by equality should know that an optional field is part of that
+  comparison;
 - `Severity` may gain a member. A consumer that switches on severity should
   have a branch for one it does not know, and must not treat an unknown
   severity as a pass.
@@ -85,7 +112,9 @@ A change to any of the above is a major release, listed in the CHANGELOG under
 
 - The text output. It is for people, and its layout may change in any release;
   parse `--format json`.
-- Exit codes are the CLI's contract, not the library's: 0 no ERROR findings,
-  1 at least one, 2 the input could not be read. Those are stable.
+- Exit codes are the CLI's contract, not the library's: 0 no ERROR findings
+  that a `--baseline` did not acknowledge, 1 at least one of those or a stale
+  baseline entry under `--fail-on-stale`, 2 the input or the baseline could
+  not be read. Those are stable.
 - Finding `message` strings. The `code` is the stable identifier; the message
   is prose and may be reworded to say the same thing better.

@@ -10,6 +10,11 @@ are different claims, and only the first one is ever true here. Every
 constraint NIST publishes is listed below with whether this tool runs it, and
 where it does not, the reason.
 
+For one constraint rather than all of them, `oscal-validate rule <constraint-id>`
+prints the same facts plus the declaring element verbatim from the vendored
+module and the Metaschema specification's section for that kind, each beside
+the SHA-256 of the bytes it was read from. It reaches no model and no network.
+
 ## Summary
 
 113 of 340 published constraints are evaluated.

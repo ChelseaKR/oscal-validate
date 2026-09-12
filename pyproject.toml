@@ -47,7 +47,15 @@ oscal-validate = "oscal_validate.cli:entrypoint"
 where = ["src"]
 
 [tool.setuptools.package-data]
-oscal_validate = ["py.typed", "report.schema.json", "vendor/SOURCES.md", "vendor/oscal/*", "ai/corpus/*"]
+oscal_validate = [
+  "py.typed",
+  "report.schema.json",
+  "limits.json",
+  "package.schema.json",
+  "vendor/SOURCES.md",
+  "vendor/oscal/*",
+  "ai/corpus/*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
