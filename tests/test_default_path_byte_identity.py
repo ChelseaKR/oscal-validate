@@ -14,11 +14,13 @@ description on trust. The pull request is cited rather than the commit because
 these land as squash merges: the SHA does not exist when the entry is written,
 and the number does.
 
-This list was itself wrong twice, which is the reason for the citations. It
-said "re-captured twice" while carrying two of the four entries below, and it
-and the README named *different* pairs -- so between them the two documents
+This list was itself wrong three times, which is the reason for the citations.
+It said "re-captured twice" while carrying two of the four entries below, and
+it and the README named *different* pairs -- so between them the two documents
 recorded three of the four recaptures and neither said so. The fourth, #81, was
-recorded in neither.
+recorded in neither. #87 corrected both of those documents and did not reach
+the third: ``docs/ROADMAP.md``'s conformance row then sat two recaptures stale
+on ``main``, saying five and naming #88, while these two said seven.
 
 On 2026-08-29 (#35): the ``CONSTRAINT_NOT_EVALUATED`` finding for
 ``allowed-values`` carried a sentence that said something false about NIST's
@@ -70,11 +72,20 @@ golden, and the twelve text goldens are untouched because the text format does
 not print it. Verified before committing by reading the whole diff: every
 changed line is ``"report_schema_version": "1.1.0"`` becoming ``"1.2.0"``.
 
-Nothing enforces this list. A test that checked it against ``git log`` would
+Nothing derives this list. A test that checked it against ``git log`` would
 have to name the recapture commit inside the commit that makes it, and a
-count gated on equality would go red on whoever is doing the recapture
+count gated on a derivation would go red on whoever is doing the recapture
 correctly, at the moment they do it. So it is maintained by hand, and the
 citations are what make a hand-maintained record checkable.
+
+One weaker thing *is* enforced, because the record drifted three times
+without a red build:
+``test_three_documents_state_the_recapture_count_and_must_agree`` holds the
+three documents that state the count -- this docstring, the README and
+``docs/ROADMAP.md`` -- to the same number, and holds that number to how many
+dated entries this docstring lists. It reads the count out of each document's
+own prose and refuses a document that has stopped stating one. The reasons
+stay hand-written; only their agreement is checked.
 
 The cached NIST documents are not committed (they are public and large, and
 ``.survey-cache/`` is how the survey harness keeps them); their goldens are

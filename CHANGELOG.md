@@ -213,6 +213,26 @@ and this project adheres to
 
 ### Fixed
 
+- **The golden re-capture count was wrong in the third document, four days
+  after #87 corrected the other two** (#107). `docs/ROADMAP.md`'s byte-identity
+  conformance row still said the goldens had been recaptured five times, most
+  recently 2026-09-07 (#88). It had missed #92 and #95, so `main` published
+  three statements of one count and one of them was two behind. #87 fixed
+  exactly this defect between `README.md` and the test docstring; it did not
+  reach `docs/ROADMAP.md`, and that document drifted immediately.
+
+  The row now says seven, most recently 2026-09-09 (#95). A test holds the
+  three together. It deliberately does **not** derive the number: a check
+  against `git log` would have to name the re-capture commit inside the commit
+  that makes it, which is the reason the list is hand-maintained. It asserts
+  the weaker and sufficient thing — that the three hand-written counts say the
+  same number, and that the number matches how many dated entries the docstring
+  lists — and it refuses a document that has stopped stating a count at all,
+  which is how a gate that reads a number out of prose usually stops being a
+  gate. Three negative controls: a README that says six while the others say
+  seven, a docstring that loses one dated entry, and a ROADMAP row that states
+  no count each turned it red.
+
 - **The TruffleHog bump to 3.97.4 would have scanned with 3.97.1.** Dependabot
   edits `uses:` and never a `with:` input, so the SHA pin moved to v3.97.4 while
   `version: "3.97.1"` — the input that actually selects
