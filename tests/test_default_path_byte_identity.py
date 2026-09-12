@@ -87,6 +87,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -151,3 +152,71 @@ def test_the_default_path_never_imports_the_ai_layer() -> None:
     )
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip().splitlines()[-1] == "[]"
+
+
+#: The number words the three documents spell the re-capture count with. The
+#: list stops where a hand-written English count stops being plausible.
+_NUMBER_WORDS = (
+    "once",
+    "twice",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+)
+
+#: Where each document states the count, as a regular expression with the
+#: number word as its only group.
+_COUNT_CLAIMS: tuple[tuple[str, str], ...] = (
+    ("tests/test_default_path_byte_identity.py", r"Re-captured (\w+) times since"),
+    ("README.md", r"They have moved (\w+) times, every one for an unrelated reason"),
+    ("docs/ROADMAP.md", r"recaptured (\w+) times since from the same documents"),
+)
+
+_REPO = Path(__file__).resolve().parents[1]
+
+
+def test_three_documents_state_the_recapture_count_and_must_agree() -> None:
+    """The count of golden re-captures is written down in three places.
+
+    This does not derive the number -- deriving it from ``git log`` would mean
+    naming the re-capture commit inside the commit that makes it, which is why
+    the docstring above says the list is maintained by hand. It checks the
+    weaker and sufficient thing: that the three hand-written statements of the
+    same count say the same number, and that the number matches how many dated
+    entries this docstring actually lists.
+
+    It is here because the record has drifted twice. At four re-captures this
+    docstring and the README each recorded a different three of the four; #87
+    corrected both and left `docs/ROADMAP.md` behind, which then sat two
+    re-captures stale on `main` while both other documents were current. A
+    published count that two documents disagree about is the same defect as a
+    published count that is simply wrong, and neither shows up as a red build
+    unless something looks.
+    """
+    docstring = __doc__ or ""
+    entries = re.findall(r"^On \d{4}-\d{2}-\d{2} \(#\d+\)", docstring, re.MULTILINE)
+
+    stated: dict[str, int] = {}
+    for relative, pattern in _COUNT_CLAIMS:
+        text = (_REPO / relative).read_text(encoding="utf-8")
+        match = re.search(pattern, text)
+        assert match, f"{relative} no longer states the re-capture count as {pattern!r}"
+        word = match.group(1)
+        assert word in _NUMBER_WORDS, f"{relative} states an unreadable count: {word!r}"
+        stated[relative] = _NUMBER_WORDS.index(word) + 1
+
+    assert len(set(stated.values())) == 1, (
+        f"the three documents disagree about how many times the goldens have been "
+        f"re-captured: {stated}"
+    )
+    assert next(iter(stated.values())) == len(entries), (
+        f"the documents say {next(iter(stated.values()))} re-captures but this docstring "
+        f"lists {len(entries)} dated entries"
+    )
