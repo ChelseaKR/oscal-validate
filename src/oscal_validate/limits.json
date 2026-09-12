@@ -9,6 +9,10 @@
       "title": "It evaluates 113 of NIST's 340 published constraints."
     },
     {
+      "text": "**It vendors one OSCAL schema and cannot tell a defect from a release difference.** Everything is checked against the vendored 1.2.3 release, whatever release a document declares. Where a document declares a different one *and* carries an ERROR, the report says so in its own terms \u2014 a `VERSION_SKEW_SUSPECTED` INFO finding naming how many ERRORs there are, under which codes, and that whether each is also an error under the declared release was not determined here, because no schema for that release is vendored. It never says the ERROR is wrong: the ERROR is true of the release it cites. Settling the second question needs NIST's schema for that release, which is [ADR-0008](docs/adr/0008-version-skew-is-flagged-not-resolved.md)'s open question rather than its answer.",
+      "title": "It vendors one OSCAL schema and cannot tell a defect from a release difference."
+    },
+    {
       "text": "**It does not check the `TokenDatatype` pattern.** OSCAL's token pattern uses the ECMA-262 Unicode property escapes `\\p{L}` and `\\p{N}`, which Python's `re` module does not implement. Substituting a hand-written approximation would be a rule encoded from memory, which is the one thing this tool refuses to do, so those values are reported unchecked with a count.",
       "title": "It does not check the `TokenDatatype` pattern."
     },

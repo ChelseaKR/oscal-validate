@@ -24,7 +24,7 @@ so that a decision waiting on a person is not filed as work waiting on time.
 | Vendored snapshot integrity | SHA-256 of every vendored file matches `vendor/SOURCES.md`, and no vendored file lacks a hash row | `tests/test_vendor_integrity.py` | AUTO | Maintainer |
 | Gate self-test | Every seeded corruption of a clean document is caught | `tests/test_break_the_gate.py` | AUTO | Maintainer |
 | The validator stays offline | 0 sockets opened by the default command; 0 network imports under `src/` outside `oscal_validate/ai/`; nothing outside `ai/` imports it; `ai/` imports the SDK only inside a function | `tests/test_offline_guarantee.py` | AUTO | Maintainer |
-| Default path byte identity | The default command's stdout and exit code over the fixtures and nine published documents equal the goldens first captured from commit `6978895`, the last before ADR-0005, and recaptured seven times since from the same documents, most recently on 2026-09-09 (#95), each reason recorded in the docstring of the test module named here; a validation run in a fresh process loads neither `oscal_validate.ai` nor the SDK | `tests/test_default_path_byte_identity.py` | AUTO | Maintainer |
+| Default path byte identity | The default command's stdout and exit code over the fixtures and nine published documents equal the goldens first captured from commit `6978895`, the last before ADR-0005, and recaptured eight times since from the same documents, most recently on 2026-09-12 (#77), each reason recorded in the docstring of the test module named here; a validation run in a fresh process loads neither `oscal_validate.ai` nor the SDK | `tests/test_default_path_byte_identity.py` | AUTO | Maintainer |
 | Constraint coverage honesty | The published coverage table equals what the vendored files contain | `tests/test_constraint_coverage.py` | AUTO | Maintainer |
 | Constraint inventory drift | The published constraint counts equal the vendored inventory | `tests/test_metaschema.py` | AUTO | Maintainer |
 | Severity contract accuracy | UNVERIFIABLE never gates the exit code; ERROR always does | `tests/test_cli.py` plus release review of any severity change | AUTO + REVIEW | Maintainer |
@@ -126,15 +126,17 @@ rather than be filled with invented zeroes.
   inside a mapping, every one of which produced 0 ERROR before, and the seven
   published mapping collections report no `SUBTREE_NOT_READ` and 31 ERROR
   findings where they reported none. REVIEW closed.
-- Decide how a document that declares an older `oscal-version` should be
-  reported. Everything is validated against the vendored 1.2.3 schema and
-  `OSCAL_VERSION_DIFFERS` warns about the gap, which was sufficient while every
-  ERROR in the corpus was version-independent. The 2026-08-19 run produced the
-  first ERRORs that turn on the difference: three mapping collections declare a
-  release that has no mapping model at all, and one component definition declares
-  a pre-1.0 release candidate whose schema NIST does not publish standalone.
-  Checking each finding against its document's declared version is currently a
-  manual step in the write-up. REVIEW, owner: maintainer.
+- ~~Decide how a document that declares an older `oscal-version` should be
+  reported.~~ Decided 2026-09-06 (ADR-0008). Everything is still validated
+  against the vendored 1.2.3 schema; what changed is that a document declaring
+  a different release *and* carrying an ERROR now says so in its own report, as
+  a `VERSION_SKEW_SUSPECTED` INFO naming how many ERRORs there are, under which
+  codes, and that whether each is also an error under the declared release was
+  not determined. The check that used to be a paragraph of prose per finding in
+  a write-up is now emitted by the tool on every run. Vendoring a second schema
+  to *settle* the question is deliberately left open: it would change what this
+  project claims to be, and ADR-0008 records why that is the owner's call.
+  REVIEW closed.
 - Register this repository in the portfolio's `applicability.yml`. It is public
   and it is absent from the manifest on `main`, which the manifest's own header
   calls a loud failure of the weekly conformance run. An entry exists on the

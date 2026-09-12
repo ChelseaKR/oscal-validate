@@ -7,7 +7,7 @@ the last commit before any model-backed command existed. Every later commit has
 to reproduce those bytes. This is the proof behind the README's claim that the
 opt-in commands changed nothing about the command that was already there.
 
-Re-captured seven times since. Each reason is recorded here because a golden
+Re-captured eight times since. Each reason is recorded here because a golden
 re-captured without one stops being evidence, and each entry names the pull
 request that made it so a reader can check the diff rather than take the
 description on trust. The pull request is cited rather than the commit because
@@ -71,6 +71,18 @@ either key and the whole diff is the version line: twelve lines, one per JSON
 golden, and the twelve text goldens are untouched because the text format does
 not print it. Verified before committing by reading the whole diff: every
 changed line is ``"report_schema_version": "1.1.0"`` becoming ``"1.2.0"``.
+
+On 2026-09-12 (#77), ADR-0008: a document that both declares a non-vendored OSCAL
+release and carries an ERROR gains one ``VERSION_SKEW_SUSPECTED`` INFO finding.
+Two of the twelve cases are in that class -- ``nist_component_definition``
+(declares 1.1.2, one ERROR) and ``nist_sp800_53_catalog`` (declares 1.2.2, one
+ERROR) -- and the other ten are untouched, including every committed fixture,
+each of which declares the vendored release or validates without an ERROR. The
+whole diff is one finding and one summary line per format in those two cases:
+the INFO count rises by one, no ERROR is added or removed, and both exit codes
+are what they were, since only ERROR findings make the CLI exit nonzero. A
+recapture that moves an ERROR count, an exit code, or any of the other ten
+cases is not this one.
 
 Nothing derives this list. A test that checked it against ``git log`` would
 have to name the recapture commit inside the commit that makes it, and a

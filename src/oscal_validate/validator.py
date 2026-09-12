@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from .checks import ALL_CHECKS, Check, constraints, references
+from .checks import ALL_CHECKS, Check, constraints, references, versions
 from .corpus import build_corpus
 from .findings import Finding, finalize
 from .metaschema import load_metaschema
@@ -33,14 +33,22 @@ def build_session(
 def validate(session: Session) -> list[Finding]:
     """Run every check. Findings come back in a deterministic order.
 
+    ``versions.skew_flags`` runs after the rest and over their output, which is
+    why it is not in ``ALL_CHECKS``: it is a statement about the other findings
+    rather than about the document. It names how many of them were produced
+    against a release this document does not declare, so a reader is not left
+    to work that out for themselves or, as happened, to have it worked out by
+    hand in a write-up they may never see.
+
     Source positions are attached *after* :func:`finalize`, so deduplication
     and ordering are still decided on exactly the fields they were decided on
     before positions existed. ``attach`` is a no-op unless the session was
-    built with ``locations=True``.
+    built with ``locations=True``. It runs last, over the skew flag as well,
+    so that finding is not the one line in a ``--locations`` report with no
+    position for a reason that has nothing to do with the document.
     """
-    return attach(
-        finalize(_deduplicate((check, check(session)) for check in ALL_CHECKS)), session.corpus
-    )
+    findings = finalize(_deduplicate((check, check(session)) for check in ALL_CHECKS))
+    return attach(finalize(findings + versions.skew_flags(session, findings)), session.corpus)
 
 
 def validate_file(
