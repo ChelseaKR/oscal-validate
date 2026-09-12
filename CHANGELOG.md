@@ -213,6 +213,15 @@ and this project adheres to
 
 ### Fixed
 
+- **The TruffleHog bump to 3.97.4 would have scanned with 3.97.1.** Dependabot
+  edits `uses:` and never a `with:` input, so the SHA pin moved to v3.97.4 while
+  `version: "3.97.1"` — the input that actually selects
+  `ghcr.io/trufflesecurity/trufflehog:${VERSION}` — stayed put, and the upgrade
+  would have changed nothing about what scans. `version:` now names the same
+  release as the pin. This is the exact drift
+  `tests/test_secret_scan_tiers.py::test_action_ref_and_version_input_name_the_same_release`
+  exists to catch, and it caught it: the bump arrived red.
+
 - **No test had ever validated a `--locations` report against the report schema,
   because the schema checker could not read one.** `report.schema.json` declares
   `line` and `column` as `["integer", "null"]` (#95), and `tests/schema_check.py`

@@ -43,7 +43,7 @@ jobs:
           # this input the sweep silently tracked whatever upstream published
           # last, and every Dependabot bump of the ref was a no-op because
           # Dependabot never edits a `with:` input.
-          version: "3.97.1"
+          version: "3.97.4"
           # The action's baked-in command already passes --fail; repeating it
           # is a CLI error ("flag 'fail' cannot be repeated").
           #
