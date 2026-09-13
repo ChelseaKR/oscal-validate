@@ -4,7 +4,9 @@
 # its own detector set, catching anything a diff-scoped scan by construction
 # cannot (a secret introduced and later removed in the same PR still shows up
 # in history). Also runs on push and pull_request so every change is swept,
-# not just the weekly schedule.
+# not just the weekly schedule -- but only because `base:`/`head:` are set
+# below. Left unset, the action scans the triggering event's diff on those two
+# events and the whole history only on schedule/workflow_dispatch.
 name: trufflehog
 
 on:
@@ -30,12 +32,40 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # full clone; this is a whole-history scan, not a diff
+          # Necessary precondition, and NOT the thing that makes this a history
+          # scan. Depth decides how much history is on disk; `base:`/`head:` on
+          # the step below decide how much of it the scanner is asked to read.
+          # Full depth was checked out here the whole time the push and
+          # pull_request runs were scanning a diff.
+          fetch-depth: 0
           persist-credentials: false
       - name: TruffleHog (full history, all result tiers)
         uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
         with:
           path: ./
+          # This pair is what makes the scan read history. The action picks its
+          # range from the triggering event unless one of these is non-empty:
+          # on `push` it runs `--since-commit <event.before> --branch
+          # <event.after>`, on `pull_request` the PR's own base..head diff, and
+          # only on `schedule`/`workflow_dispatch` does it pass an empty
+          # `--since-commit`, i.e. everything. So until 2026-09-13 the weekly
+          # cron and a manual dispatch did read the whole history, while the
+          # two events that gate a merge -- every push to main and every
+          # pull_request -- read the event's diff and reported it under the
+          # name "full-history secret scan (all result tiers)".
+          #
+          # `head` must be non-empty: the action takes its explicit-range
+          # branch on `[ -n "$BASE" ] || [ -n "$HEAD" ]`, so `base: ''` on its
+          # own leaves both empty and falls straight back to the event logic.
+          # `HEAD` rather than a branch name because a `pull_request` checkout
+          # is a detached merge ref with no branch to name. The result is
+          # `--since-commit '' --branch HEAD` on every event.
+          #
+          # Measured on a throwaway clone with a real-shaped AWS key planted in
+          # one commit and deleted in the next: the event-derived diff range
+          # exits 0, `--since-commit "" --branch HEAD` exits 183.
+          base: ''
+          head: HEAD
           # Pinned, and it must equal the version comment on the pinned ref
           # above. The action's `version:` input defaults to "latest" and it
           # runs `ghcr.io/trufflesecurity/trufflehog:${VERSION}`, so the SHA
