@@ -22,7 +22,15 @@ uvx pre-commit install   # optional but recommended: ruff/mypy/gitleaks on commi
 
 ## The merge gate
 
-A change merges when the full gate is green. Reproduce it locally with:
+CI runs the full gate on every pull request, and a change is meant to merge only
+when it is green. That is a convention this project holds itself to, not a
+control: `main` has **no ruleset and no branch protection**, and therefore no
+required status check, so a red run does not stop a merge. Enabling a ruleset on
+`main` is open work — `docs/ROADMAP.md` carries it — and it is a live repository
+setting, not something a pull request can apply. Until it is, read a red check as
+a reason not to merge rather than as something that stops you.
+
+Reproduce the gate locally with:
 
 ```sh
 make verify
