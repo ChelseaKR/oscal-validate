@@ -184,6 +184,21 @@ INDEX_NEVER_BUILT = Rule(
     retrieved="-",
 )
 
+VERSION_SKEW_UNCHECKED = Rule(
+    citation=(
+        "oscal-validate policy: exactly one OSCAL schema is vendored here, the "
+        f"{OSCAL_RELEASE} release, and every finding is produced against it. Where a "
+        "document declares a different release, an ERROR against the vendored schema may "
+        "be a defect in the document or may be a difference between the two releases, and "
+        "this tool has no second schema to tell the two apart. It reports that the question "
+        "was not settled rather than leaving the ERROR to be read as though it had been "
+        "checked against the release the document names. Nothing about the ERROR changes: "
+        f"it remains true of OSCAL {OSCAL_RELEASE}, which is what it cites."
+    ),
+    url="README.md (Limits)",
+    retrieved="-",
+)
+
 OSCAL_VERSION_FIELD = Rule(
     citation=(
         f'The schema declares metadata/oscal-version in {_SNAPSHOT} as "The OSCAL model '

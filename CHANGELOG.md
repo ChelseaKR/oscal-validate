@@ -10,6 +10,49 @@ and this project adheres to
 
 ### Added
 
+- **`VERSION_SKEW_SUSPECTED`: which of this report's ERRORs were not checked
+  against the release the document declares** (closes #8), in
+  `src/oscal_validate/checks/versions.py`, `rules.py`, `rule.py`,
+  `validator.py`, `fixorder.py`, `sarif.py`, `limits.json`,
+  `tests/test_finding_code_census.py`, two golden cases, `README.md`,
+  `docs/ROADMAP.md`, `docs/RESPONSIBLE-TECH-AUDITS.md` and
+  [ADR-0008](docs/adr/0008-version-skew-is-flagged-not-resolved.md).
+
+  Everything is validated against the vendored OSCAL 1.2.3 schema, and
+  `OSCAL_VERSION_DIFFERS` warned about the gap. That was sufficient while every
+  ERROR in the corpus was version-independent — a duplicate UUID, a dangling
+  fragment and a missing timezone are wrong in every release. The 2026-08-19
+  widening produced the first ERRORs that turn on the difference: a component
+  definition declaring 1.1.2 where the shape this tool rejects is the shape
+  1.1.2 used, and mapping collections declaring a release with no mapping model
+  at all. Settling those took two schema fetches and a paragraph of prose per
+  finding, by hand, in a write-up — reproducible by nothing in the repository,
+  and invisible to a reader of the report.
+
+  A document that both declares a non-vendored release *and* carries an ERROR
+  now says so in its own report: one INFO finding at the `oscal-version`
+  scalar, naming how many ERRORs there are and under which codes, that no
+  schema for the declared release is vendored here, and therefore that whether
+  each of them is also an error under that release was not determined by this
+  run. It never says the ERROR is wrong; the ERROR is true of the release it
+  cites. INFO rather than UNVERIFIABLE because the question the validator was
+  asked *was* decided — the second, different question is the open one — and
+  scoring the first as unsettled would move findings out of an ERROR count they
+  belong in.
+
+  Not emitted where there is nothing to qualify: a clean document declaring an
+  older release gets the WARNING alone, and a document with no `oscal-version`
+  at all gets neither, since there is no declared release to be skewed from and
+  the schema already requires the property. Each of those three non-emissions
+  is asserted directly, so the code's witness cannot pass for the wrong half of
+  its condition.
+
+  ADR-0008 records why the other three options in #8 were rejected, and leaves
+  the largest one — vendoring a second schema and validating against the
+  declared version — deliberately open, because it would change what this
+  project claims to be. The new finding is the hook such a decision would hang
+  on: a report now names the ERRORs a second schema would settle.
+
 - **`tools/revendor.py`: what a new OSCAL release would change, before it is paid for.**
   Every check in this tool reads the vendored files, so a release is not a version
   bump; it is a change to what the tool can say. The harness fetches NIST's release

@@ -419,6 +419,14 @@ CODES: dict[str, CodeEntry] = {
         emitted_by=("checks/identifiers.py",),
         produced_by=(_constant("UUID_GLOBALLY_UNIQUE"),),
     ),
+    "VERSION_SKEW_SUSPECTED": CodeEntry(
+        what=(
+            "this report's ERRORs were produced against the vendored release, and whether "
+            "they are also errors under the release the document declares was not settled"
+        ),
+        emitted_by=("checks/versions.py",),
+        produced_by=(_constant("VERSION_SKEW_UNCHECKED"),),
+    ),
 }
 
 
