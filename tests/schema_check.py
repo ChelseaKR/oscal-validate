@@ -6,7 +6,7 @@ written here, over the subset of draft 2020-12 that ``report.schema.json``
 and ``package.schema.json`` actually use.
 
 The dangerous way to write this is the obvious way: walk the schema, handle
-the keywords you recognise, and skip the rest. That checker reports no error
+the keywords you recognize, and skip the rest. That checker reports no error
 for ``{"type": "integer", "minimum": 0}`` if it never implemented ``minimum``,
 and it reports no error at all for a keyword added to the schema later. It is
 a gate that cannot fail on the half of the contract it does not know about.

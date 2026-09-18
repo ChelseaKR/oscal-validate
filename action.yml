@@ -83,7 +83,7 @@ outputs:
     description: >-
       Number of findings a `baseline` entry acknowledged. They are still in
       the severity counts above: an acknowledged ERROR is still an ERROR, and
-      the only thing an acknowledgement changes is whether it gates.
+      the only thing an acknowledgment changes is whether it gates.
     value: ${{ steps.validate.outputs.acknowledged-count }}
   stale-baseline-count:
     description: >-

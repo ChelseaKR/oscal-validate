@@ -7,7 +7,7 @@
 # signed by anything else does not release.
 #
 # `namespaces="git"` restricts the key to the namespace `git verify-tag` uses,
-# so a signature made for any other purpose cannot authorise a release.
+# so a signature made for any other purpose cannot authorize a release.
 #
 # ED25519 fingerprint: SHA256:Kz1JPRtDNVmRa1tD/buR0/iOGDSwEa4P4iu3DN+bElk
 # The same key is committed in ctdl-validate, tods-validate and

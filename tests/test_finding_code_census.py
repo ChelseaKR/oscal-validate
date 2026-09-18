@@ -75,7 +75,7 @@ ROSTER = frozenset(
 #: written by an earlier run, so its ``code=`` is whatever that file said and
 #: is not a code this source can introduce. ``baseline._acknowledged_copy``
 #: does the same to a finding this run already produced: it attaches an
-#: acknowledgement and copies every other field, the code included. Neither
+#: acknowledgment and copies every other field, the code included. Neither
 #: body can be read as string constants and neither should be. An entry here
 #: would be a hole in the census if it were not exactly a named function, so
 #: ``test_the_census_exemption_is_the_one_function_it_names`` holds every name
@@ -395,7 +395,7 @@ def test_baseline_stale_needs_a_baseline_entry_that_matches_nothing(tmp_path: Pa
     """The second witness that cannot be a single document.
 
     ``BASELINE_STALE`` is not a statement about the document at all: it is what
-    the tool reports when a committed acknowledgement no longer describes
+    the tool reports when a committed acknowledgment no longer describes
     anything this run found. So the witness is a clean catalog plus a baseline
     naming a finding that is not in it.
     """

@@ -154,7 +154,7 @@ def _suggestions(
     on: the finding in that case says this tool could not perform the lookup,
     and the closest entry in an index known to be missing documents is not
     evidence about the identifier that was written. Offering one there would
-    publish a partial index's nearest neighbour as though it were the model's,
+    publish a partial index's nearest neighbor as though it were the model's,
     which is the same defect as reporting a truncated dataset as complete.
     """
     if not session.suggest or not complete:

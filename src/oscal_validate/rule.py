@@ -303,7 +303,7 @@ CODES: dict[str, CodeEntry] = {
     "BASELINE_STALE": CodeEntry(
         what=(
             "a --baseline entry acknowledges a finding this run did not report, so the "
-            "acknowledgement no longer describes anything and may be outliving the defect "
+            "acknowledgment no longer describes anything and may be outliving the defect "
             "it excused"
         ),
         emitted_by=("baseline.py",),

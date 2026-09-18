@@ -44,7 +44,7 @@ so that a decision waiting on a person is not filed as work waiting on time.
 | Eval provenance | Every results file names provider, model, served model, prompt version, commit, and date, or is `not_run` with a reason and no numbers | `tests/test_evals.py` | AUTO | Maintainer |
 | Performance | N/A: pure library/CLI with no hosted route and no shipped HTML, per PERFORMANCE-STANDARD section 0. There is no preview environment or frontend bundle to measure, and a perf job that cannot run against a real surface is declared N/A rather than wired in advisory mode | Reviewed on any change that adds a hosted route | N/A | Maintainer |
 | Incident postmortems | Every incident gets a `docs/incidents/YYYY-MM-DD-<slug>.md` file in this repository. Zero incidents to date, which is a count and not an exemption | `docs/incidents/README.md`; the convention is exercised the first time it is needed | REVIEW | Maintainer |
-| Data lineage | Every ingest source has a card in `docs/data/` naming the publisher, licence, retrieval date, refresh trigger, and tier | `docs/data/`; the vendored snapshot's hashes are additionally enforced by `tests/test_vendor_integrity.py` | REVIEW | Maintainer |
+| Data lineage | Every ingest source has a card in `docs/data/` naming the publisher, license, retrieval date, refresh trigger, and tier | `docs/data/`; the vendored snapshot's hashes are additionally enforced by `tests/test_vendor_integrity.py` | REVIEW | Maintainer |
 
 ## Observability
 

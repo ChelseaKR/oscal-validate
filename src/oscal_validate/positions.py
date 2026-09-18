@@ -16,7 +16,7 @@ it no index is built and no finding carries a position.
 
 **A pointer with no recorded position reports nothing, never zero.** Line 0 and
 column 0 do not exist. A finding whose pointer names a value that is not in the
-source — one the walk synthesised, or one in a document whose bytes this run
+source — one the walk synthesized, or one in a document whose bytes this run
 did not index — carries no position at all, and both renderings say so in
 words. Publishing ``0`` there would be a fabricated measurement of exactly the
 kind this tool exists to refuse.

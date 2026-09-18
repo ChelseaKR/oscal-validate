@@ -10,7 +10,7 @@ out of these files; nothing is encoded from memory.
 | Retrieved | 2026-08-14, plain HTTP GET, one request per file |
 | Where it lives | `src/oscal_validate/vendor/oscal/`, shipped as package data |
 | Tier | L1, public and non-sensitive. No personal data, no identity content, nothing about any real system |
-| Licence | Public domain in the United States as a work of the US government, with a worldwide CC0 1.0 waiver, as stated by `usnistgov/OSCAL`. Compatible with this repository's Apache-2.0 |
+| License | Public domain in the United States as a work of the US government, with a worldwide CC0 1.0 waiver, as stated by `usnistgov/OSCAL`. Compatible with this repository's Apache-2.0 |
 | Integrity | SHA-256 per file in [`../../src/oscal_validate/vendor/SOURCES.md`](../../src/oscal_validate/vendor/SOURCES.md), recomputed on every test run by `tests/test_vendor_integrity.py`, which also fails if a file appears in `vendor/` without a hash row |
 | Refresh trigger | A new OSCAL release. There is no time-based cadence: the artifact is a specification snapshot, and it is correct until NIST publishes another one |
 | Staleness signal | Every report names the release it judged against, and every document whose own `oscal-version` differs gets an `OSCAL_VERSION_DIFFERS` finding. There is no runtime alarm on the snapshot's own age; see the gap below |

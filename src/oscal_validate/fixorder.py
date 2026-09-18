@@ -10,7 +10,7 @@ This lived in ``ai/walkthrough.py``, which is where it was first needed. It is
 here now because two surfaces use it -- the model-backed walkthrough and
 ``--format html``, which groups a reviewer's page the same way -- and a fix
 order that two documents state separately is a fix order that will eventually
-disagree with itself. ``ai/walkthrough.py`` imports this and adds the labelling
+disagree with itself. ``ai/walkthrough.py`` imports this and adds the labeling
 and prompt formatting that are only about a prompt.
 """
 
@@ -84,7 +84,7 @@ TIERS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     (
         "Housekeeping: the baseline itself",
         "not a statement about the document; a --baseline entry that matched nothing this "
-        "run found, so the acknowledgement may be outliving the defect it excused",
+        "run found, so the acknowledgment may be outliving the defect it excused",
         ("BASELINE_STALE",),
     ),
 )

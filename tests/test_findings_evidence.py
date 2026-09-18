@@ -401,7 +401,7 @@ def test_the_2026_08_19_run_recorded_an_unread_subtree_on_every_mapping_collecti
     cannot move when the walker does. The change duly landed in #25
     (ADR-0007), the walker now reads `/mapping-collection/mappings`, and this
     test stayed green throughout. Renamed and re-described on 2026-08-28 to
-    say what it actually pins; the assertion about today's behaviour is the
+    say what it actually pins; the assertion about today's behavior is the
     test below, which runs the validator.
     """
     mappings = [r for r in _records(WIDENED) if r["model"] == "mapping-collection"]

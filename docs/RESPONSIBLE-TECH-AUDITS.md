@@ -93,7 +93,7 @@ No collection, no transmission, no retention. The DPIA-style answer is short
 because the data flow is short: files in, findings out, process ends. The
 MCP server is the one mode that does not end after a run, and it keeps
 nothing from a supplied document between requests: the only state that
-outlives a request is memoised reads of the vendored schema and constraint
+outlives a request is memoized reads of the vendored schema and constraint
 files. This
 matters more than usual here, because system security plans and assessment
 results describe live systems' boundaries, components, and unremediated
@@ -129,10 +129,10 @@ seven structural rules:
    screen reader and is invisible to a human skim;
 5. no element that fetches anything, and no attribute naming a subresource;
 6. every form control associated with a label;
-7. severity carried by the word, in a `th scope="row"`, never by colour.
+7. severity carried by the word, in a `th scope="row"`, never by color.
 
 **Each rule is seeded with the defect it exists to catch** — a demoted heading,
-a second `h1`, a removed `lang`, a dangling skip link, an unlabelled control, an
+a second `h1`, a removed `lang`, a dangling skip link, an unlabeled control, an
 image with no `alt`, a deleted caption, a deleted header cell — and the checker
 must report it. A checker that has never gone red is a gate that cannot fail,
 which is this repository's own dominant defect class.
@@ -141,7 +141,7 @@ which is this repository's own dominant defect class.
 rules, not a WCAG 2.2 AA audit. They cannot judge whether a sentence is
 comprehensible, whether the rendered contrast passes at the size a given
 browser draws it, or how the page behaves under a real screen reader. The
-palette is authored for contrast against white and the page uses no colour as
+palette is authored for contrast against white and the page uses no color as
 the sole carrier of meaning, but **no assistive-technology testing has been
 done**, and that is a gap rather than an exemption.
 

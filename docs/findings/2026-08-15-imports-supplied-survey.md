@@ -327,7 +327,7 @@ accuses a correct document on the strength of a rule that was never evaluated.
 
 It is now covered. An `index-has-key` whose index no evaluated `index`
 constraint builds reports UNVERIFIABLE, names the index, and cites the
-cross-instance scoping rule rather than the constraint it could not honour.
+cross-instance scoping rule rather than the constraint it could not honor.
 `docs/CONSTRAINT-COVERAGE.md` gained a generated section listing exactly which
 constraints are in that position, so the count cannot drift, and
 `tests/test_break_the_gate.py` now asserts the non-firing direction on a
@@ -404,7 +404,7 @@ is the run of 2026-08-15.
   first run's numbers were reproduced exactly before this one was taken, so
   nothing here rests on the two runs having seen the same bytes by assumption.
 - Supplying a document by file name is a claim that the name means what the
-  import meant. Three cases where that claim is a judgement rather than an
+  import meant. Three cases where that claim is a judgment rather than an
   identity are named under Method.
 - 15 of 52 documents still have an incomplete effective data model, so the
   ERROR count is still a floor rather than a total. It is a much tighter floor:

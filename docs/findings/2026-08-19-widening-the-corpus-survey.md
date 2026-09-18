@@ -115,7 +115,7 @@ is the only public OSCAL rendering of the FedRAMP 20x key security indicators.
 
 **Licensing.** Recorded per publisher in
 [`../data/published-oscal-corpus.md`](../data/published-oscal-corpus.md).
-Several of these repositories publish no licence at all. As with the first two
+Several of these repositories publish no license at all. As with the first two
 runs, only metadata and finding codes are recorded here and no value read from
 any document is committed to this repository, so nothing here redistributes
 anyone's content.
@@ -342,6 +342,6 @@ oscal-validate <file.json> --resolve <imported-catalog.json>
   OSCAL only behind a login, or only in XML or YAML, is invisible to this method.
   Two national agencies appear here; the absence of others is not evidence that
   they publish nothing.
-- Nine of these repositories publish no licence at all. Only metadata is recorded
+- Nine of these repositories publish no license at all. Only metadata is recorded
   from any of them, but a reader wanting to redistribute the documents themselves
   should check each repository rather than this table.

@@ -99,7 +99,7 @@ def _impact(directory: Path) -> tuple[dict[str, Any], dict[str, Any]]:
 
 def _only(change: dict[str, Any], *populated: str) -> None:
     """Every constraint list except the named ones is empty."""
-    for name in ("added", "removed", "relevelled", "retargeted", "now_evaluated", "now_skipped"):
+    for name in ("added", "removed", "releveled", "retargeted", "now_evaluated", "now_skipped"):
         rows = change["constraints"][name]
         assert bool(rows) == (name in populated), (name, rows)
 
@@ -150,7 +150,7 @@ def test_the_inventory_refuses_to_describe_a_package_it_did_not_import(tmp_path:
 # -- every kind of change is named -------------------------------------------
 
 
-def test_a_relevelled_constraint_is_named_and_no_golden_can_move(
+def test_a_releveled_constraint_is_named_and_no_golden_can_move(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """#69's re-level, and the measurement that decides what "the golden it moves" can mean.
@@ -169,8 +169,8 @@ def test_a_relevelled_constraint_is_named_and_no_golden_can_move(
         '<index id="oscal-catalog-controls" level="WARNING"',
     )
     change, impact = _impact(directory)
-    _only(change, "relevelled")
-    [row] = change["constraints"]["relevelled"]
+    _only(change, "releveled")
+    [row] = change["constraints"]["releveled"]
     assert "oscal-catalog-controls" in row["constraint"]
     assert (row["from"], row["to"]) == ("ERROR", "WARNING")
     assert [f["file"] for f in change["files"]["changed"]] == [CATALOG]

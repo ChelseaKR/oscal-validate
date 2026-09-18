@@ -12,7 +12,7 @@ apply; most PRs are not a new rule.
 
 - [ ] `make verify` passes locally (ruff lint, ruff format, mypy --strict,
       pytest with branch coverage >= 90%, pip-audit)
-- [ ] `CHANGELOG.md` updated under `[Unreleased]` if behaviour changed
+- [ ] `CHANGELOG.md` updated under `[Unreleased]` if behavior changed
 
 ### If this adds or changes a check
 

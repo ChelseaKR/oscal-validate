@@ -507,7 +507,7 @@ def test_a_value_target_parses_the_shapes_the_vendored_files_use(
         "link[@rel='diagram']/@href[starts-with(.,'#')]",
         # Negation, which the predicate grammar has never read.
         ".[@rel=('reference') and not(starts-with(@href,'#'))]/@href",
-        # A parenthesised union of whole paths, not of names.
+        # A parenthesized union of whole paths, not of names.
         "(.|statement|.//by-component)/prop/@name",
         # A union whose alternatives end in different flags. Reading it as one
         # value set would merge two questions NIST asked separately.
