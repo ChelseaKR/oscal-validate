@@ -3,8 +3,8 @@
 Three properties carry this file, and each has a control recorded in the pull
 request that added it.
 
-**The report is the validator's.** ``validate`` does not summarise, re-order or
-re-serialise anything: the report it returns is the exact document
+**The report is the validator's.** ``validate`` does not summarize, re-order or
+re-serialize anything: the report it returns is the exact document
 ``--format json`` writes, compared here byte for byte for every fixture and
 for both settings of ``--locations``. An assistant that quotes a finding is
 quoting this tool.

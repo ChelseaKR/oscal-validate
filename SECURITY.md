@@ -42,7 +42,7 @@ This is a pre-1.0 tool; there is no tagged release yet. Security fixes land on
 
 Preferred: GitHub private vulnerability reporting (this repository's *Security*
 tab, "Report a vulnerability"). Alternatively, email ckellyreif@gmail.com with
-`oscal-validate security` in the subject. Expect an acknowledgement within 72
+`oscal-validate security` in the subject. Expect an acknowledgment within 72
 hours; this is a volunteer project, so please do not disclose publicly until a
 fix is available.
 

@@ -526,7 +526,7 @@ oscal-validate my-ssp.json --baseline oscal-baseline.json
 **An acknowledged finding is still a finding.** It is printed, it keeps its
 severity, it is counted in the summary, and it appears in the JSON report, the
 SARIF log and the HTML page exactly as it did — with the reason and the date
-beside it. The single thing an acknowledgement changes is whether the finding
+beside it. The single thing an acknowledgment changes is whether the finding
 gates the exit code. A report that showed three ERRORs and a summary saying
 zero would be the failure this tool exists to prevent.
 
@@ -712,7 +712,7 @@ jobs:
           path: oscal/
           resolve: baselines/
           sarif-file: oscal-validate.sarif
-      - if: ${{ !cancelled() && steps.oscal.outcome != 'skipped' }}
+      - if: ${{ !canceled() && steps.oscal.outcome != 'skipped' }}
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: oscal-validate.sarif
@@ -1022,7 +1022,7 @@ Those two runs shared one sample, and it had two limits they both stated: seven
 of the eight models, and 30 of 52 documents from NIST.
 [`docs/findings/2026-08-19-widening-the-corpus-survey.md`](docs/findings/2026-08-19-widening-the-corpus-survey.md)
 is 43 more documents from twenty-one publishers none of the first two reached —
-the German BSI, the Australian Cyber Security Centre, NIST's BLOSSOM programme,
+the German BSI, the Australian Cyber Security Centre, NIST's BLOSSOM program,
 GSA, the OSCAL Plugfest, the Linux Foundation's OSCAL Compass, Red Hat, MITRE and
 others — taking the corpus to **95 documents and all eight models**. Nine carried
 at least one ERROR, each verified by hand: four UUIDs used twice in one SSP, 35
@@ -1161,7 +1161,7 @@ it can say, so the cost is made visible before it is paid.
 the same robots-first fetcher the surveys use -- or reads one already on disk
 with `--from-dir` -- refuses any file carrying `<!DOCTYPE` or `<!ENTITY`, and
 prints the difference against the vendored snapshot: constraints added,
-removed, re-levelled or re-targeted, targets outside the parsed grammar, schema
+removed, re-leveled or re-targeted, targets outside the parsed grammar, schema
 definitions that changed, the vendored files whose bytes differ, and every
 golden that would move, with the finding codes that moved in it. The bytes
 decide whether anything changed and the inventory explains what, because the
@@ -1261,7 +1261,7 @@ checked, and it is not a claim that any registry agrees with it yet.
 | CI/CD | Applies | `ci.yml` runs the same `make verify` gate as local development. |
 | Observability | Applies (Tier C, library/CLI) | Declared in [docs/ROADMAP.md](docs/ROADMAP.md#observability). Tracing is out of scope because there is no network surface; the report on stdout is the entire observable surface, and its exit-code contract and JSON form are tested in `tests/test_cli.py`. Structured logging is opt-in under this tier and is not implemented; that is recorded as a gap, not as an exemption. |
 | Performance | N/A (pure library/CLI with no hosted route, per PERFORMANCE-STANDARD section 0) | Recorded in [docs/ROADMAP.md](docs/ROADMAP.md). No latency-sensitive service and no frontend bundle exist to measure. `--format html` writes a file to stdout: it is not served, it loads nothing, and it carries no script, so there is no route to time and no bundle to size. |
-| Accessibility | Applies (since `--format html`, the first human-facing rendered surface) | `tests/test_html_report.py` parses the rendered page with the standard library and holds it to seven structural rules: one `h1` and no skipped heading level, `lang="en"`, a skip link whose target exists, no duplicate ids, a caption and `th scope` on every table with every row exactly as wide as its header, no element that fetches anything, and every form control labelled. Each rule is seeded with the defect it exists to catch, so none of them is a check that has never gone red. Severity is carried by the word, never by colour. The mechanical checks are not a full WCAG audit and the file says so: they cannot judge prose or rendered contrast. |
+| Accessibility | Applies (since `--format html`, the first human-facing rendered surface) | `tests/test_html_report.py` parses the rendered page with the standard library and holds it to seven structural rules: one `h1` and no skipped heading level, `lang="en"`, a skip link whose target exists, no duplicate ids, a caption and `th scope` on every table with every row exactly as wide as its header, no element that fetches anything, and every form control labeled. Each rule is seeded with the defect it exists to catch, so none of them is a check that has never gone red. Severity is carried by the word, never by color. The mechanical checks are not a full WCAG audit and the file says so: they cannot judge prose or rendered contrast. |
 | Internationalization | N/A (findings and model-backed output quote English-language specification prose verbatim; see [docs/I18N.md](docs/I18N.md)) | Multilingual document *data* validates identically. |
 | AI Evaluation | Applies (the four opt-in commands of ADR-0005; the validator itself has no model) | [docs/evals/README.md](docs/evals/README.md) and the committed harness in [evals/](evals/): a 100-case boundary suite scored on shown text, raw text, and explicit refusal; repair efficacy by deterministic re-validation on twelve NIST documents; citation grounding by verbatim lookup; walkthrough fidelity by label set. Results carry provider, model, prompt version, commit, and date, enforced by `tests/test_evals.py`; prompts are versioned in `oscal_validate.ai.PROMPT_VERSION`. |
 | AI Development Measurement | Applies | `AI-DEV-MEASUREMENT: APPLIES` in [docs/ROADMAP.md](docs/ROADMAP.md). This repository was built with AI assistance, disclosed above, so Track A delivery and quality-debt metrics are mined portfolio-wide from git history. Track B applies to the opt-in commands and is served by the AI Evaluation row. |

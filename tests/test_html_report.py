@@ -56,7 +56,7 @@ class Accessibility(HTMLParser):
     """Seven structural rules, checked over the rendered bytes.
 
     Deliberately not a full WCAG audit -- it cannot judge whether a sentence is
-    comprehensible or whether a colour pair passes at the size it is rendered.
+    comprehensible or whether a color pair passes at the size it is rendered.
     It checks the things that are mechanical, and it says which rule failed.
     """
 
@@ -65,7 +65,7 @@ class Accessibility(HTMLParser):
         self.problems: list[str] = []
         self.headings: list[int] = []
         self.ids: set[str] = set()
-        self.labelled_controls: set[str] = set()
+        self.labeled_controls: set[str] = set()
         self.control_ids: list[str] = []
         self.local_links: list[str] = []
         self.language = ""
@@ -106,7 +106,7 @@ class Accessibility(HTMLParser):
         elif tag == "a" and attributes.get("href", "").startswith("#"):
             self.local_links.append(attributes["href"][1:])
         elif tag == "label" and attributes.get("for", ""):
-            self.labelled_controls.add(attributes["for"])
+            self.labeled_controls.add(attributes["for"])
 
     def _note_table(self, tag: str, attributes: dict[str, str]) -> None:
         if tag == "table":
@@ -164,7 +164,7 @@ class Accessibility(HTMLParser):
             if target not in self.ids:
                 problems.append(f"an in-page link to #{target}, which nothing declares")
         for identifier in self.control_ids:
-            if identifier not in self.labelled_controls:
+            if identifier not in self.labeled_controls:
                 problems.append(f"a form control with no label: id={identifier!r}")
         return problems
 
@@ -210,7 +210,7 @@ def _report(document: str, resolve: tuple[str, ...] = ()) -> str:
         ("a second h1", ('<h2 id="summary">', '<h1 id="summary">'), "h1 elements"),
         ("language", ('<html lang="en">', "<html>"), "declares lang"),
         ("a dangling skip link", ('<h2 id="findings">', "<h2>"), "which nothing declares"),
-        ("an unlabelled control", ("</body>", '<input id="q"></body>'), "no label"),
+        ("an unlabeled control", ("</body>", '<input id="q"></body>'), "no label"),
         ("an image with no alt", ("</body>", '<img src="x.png"></body>'), " img with no alt"),
         (
             "a caption that went missing",
@@ -228,7 +228,7 @@ def test_the_accessibility_checker_catches_the_defect_it_exists_to_catch(
     name: str, seed: tuple[str, str], expected: str
 ) -> None:
     """Every rule is seeded once. A checker that has never gone red is not a
-    check; the parametrisation is what makes each of these evidence."""
+    check; the parametrization is what makes each of these evidence."""
     markup = _report("broken_catalog.json")
     before, after = seed
     assert before in markup, f"{name}: the seed did not match, so this proves nothing"

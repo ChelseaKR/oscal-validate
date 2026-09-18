@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 import oscal_validate
-from oscal_validate import Acknowledgement, Finding, Position, Rule, Severity
+from oscal_validate import Acknowledgment, Finding, Position, Rule, Severity
 
 ROOT = Path(__file__).resolve().parent.parent
 API_DOC = ROOT / "docs" / "API.md"
@@ -33,7 +33,7 @@ CHANGELOG = ROOT / "CHANGELOG.md"
 #: non-callable's entry is None and only its presence and type are pinned.
 PUBLIC: dict[str, str | None] = {
     "REPORT_SCHEMA_VERSION": None,
-    "Acknowledgement": None,
+    "Acknowledgment": None,
     "Finding": None,
     "Position": None,
     "Rule": None,
@@ -63,18 +63,18 @@ FINDING_FIELDS = [
     ("message", "str"),
     ("rule", "Rule"),
     ("suggestions", "tuple[Suggestion, ...]"),
-    ("acknowledged", "Acknowledgement | None"),
+    ("acknowledged", "Acknowledgment | None"),
     ("position", "Position | None"),
 ]
 
-#: ``Acknowledgement``'s fields. It is public because ``Finding.acknowledged``
+#: ``Acknowledgment``'s fields. It is public because ``Finding.acknowledged``
 #: is typed with it: a public field whose type a caller cannot import is not a
 #: promise anyone can write against.
-ACKNOWLEDGEMENT_FIELDS = [("reason", "str"), ("acknowledged_on", "str")]
+ACKNOWLEDGMENT_FIELDS = [("reason", "str"), ("acknowledged_on", "str")]
 
 RULE_FIELDS = [("citation", "str"), ("url", "str"), ("retrieved", "str")]
 
-#: ``Position``'s fields. Public for the same reason ``Acknowledgement`` is:
+#: ``Position``'s fields. Public for the same reason ``Acknowledgment`` is:
 #: ``Finding.position`` is typed with it.
 POSITION_FIELDS = [("file", "str"), ("line", "int"), ("column", "int")]
 
@@ -129,13 +129,11 @@ def test_a_position_keeps_its_fields_and_is_frozen() -> None:
         position.line = 2  # type: ignore[misc]
 
 
-def test_an_acknowledgement_keeps_its_fields_and_is_frozen() -> None:
-    assert [(f.name, f.type) for f in dataclasses.fields(Acknowledgement)] == (
-        ACKNOWLEDGEMENT_FIELDS
-    )
-    acknowledgement = Acknowledgement(reason="r", acknowledged_on="2026-01-01")
+def test_an_acknowledgment_keeps_its_fields_and_is_frozen() -> None:
+    assert [(f.name, f.type) for f in dataclasses.fields(Acknowledgment)] == ACKNOWLEDGMENT_FIELDS
+    acknowledgment = Acknowledgment(reason="r", acknowledged_on="2026-01-01")
     with pytest.raises(dataclasses.FrozenInstanceError):
-        acknowledgement.reason = "changed"  # type: ignore[misc]
+        acknowledgment.reason = "changed"  # type: ignore[misc]
 
 
 def test_only_an_unacknowledged_error_gates() -> None:
@@ -145,7 +143,7 @@ def test_only_an_unacknowledged_error_gates() -> None:
     error = Finding("CODE", Severity.ERROR, "/catalog", "p", "v", "m", rule)
     assert error.gates is True
     assert (
-        dataclasses.replace(error, acknowledged=Acknowledgement("because", "2026-01-01")).gates
+        dataclasses.replace(error, acknowledged=Acknowledgment("because", "2026-01-01")).gates
         is False
     )
     for severity in (Severity.WARNING, Severity.INFO, Severity.UNVERIFIABLE):

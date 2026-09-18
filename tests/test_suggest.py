@@ -2,7 +2,7 @@
 
 The 2026-08-15 imports survey measured 178 real unresolved references, and the
 largest class of them was one zero-pad away from resolving. The report named
-the failure and stopped. ``--suggest`` looks the neighbours up in the index the
+the failure and stopped. ``--suggest`` looks the neighbors up in the index the
 resolution check already built, and these tests hold the four properties that
 make that offer honest rather than merely helpful:
 
@@ -88,7 +88,7 @@ def test_the_finding_itself_is_untouched_by_the_offer(tmp_path: Path) -> None:
 
 
 def test_nothing_within_the_bound_produces_no_offer(tmp_path: Path) -> None:
-    """A dangling reference with no near neighbour prints no suggestion line."""
+    """A dangling reference with no near neighbor prints no suggestion line."""
     finding = _unresolved(
         _run(tmp_path, ["completely-different-control"], resolve=True, suggest=True),
         "completely-different-control",
@@ -196,7 +196,7 @@ def test_the_offer_is_bounded_in_number_and_ordered_deterministically() -> None:
     offered = near_misses("ex-1", declared)
 
     assert len(offered) == MAX_SUGGESTIONS
-    # Normalised-equal first, lexically among themselves; edit-distance
+    # Normalized-equal first, lexically among themselves; edit-distance
     # candidates come after, however many of them there are.
     assert [s.value for s in offered] == ["EX-1", "ex-01", "ex_1"]
     assert near_misses("ex-1", declared) == near_misses("ex-1", sorted(declared, reverse=True))

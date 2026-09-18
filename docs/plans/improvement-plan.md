@@ -81,7 +81,7 @@ That change landed in #25 (ADR-0007). The walker now resolves
 reports no `SUBTREE_NOT_READ` at all, and the test is still green — because it
 reads the frozen `docs/findings/2026-08-19-widening-the-corpus-survey.json`
 and not a live run. Pinning the historical record is a legitimate thing for
-that test to do. Promising to notice a behaviour change it cannot observe is
+that test to do. Promising to notice a behavior change it cannot observe is
 not.
 
 ### A stale pointer
@@ -149,7 +149,7 @@ being trusted.
    vendored schema and pins the count of sites behind each of ADR-0007's four
    reasons, and an amended ADR that says what was measured.
 4. **The frozen-evidence test says what it pins**, with a live counterpart
-   asserting the walker's behaviour today.
+   asserting the walker's behavior today.
 5. **Small corrections**: the stale `test_reference_titles.py` pointer, and
    the workflow glob that would pass over an empty directory.
 6. **The Bedrock re-record, made decidable** in `docs/ROADMAP.md`.

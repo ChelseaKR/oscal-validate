@@ -44,7 +44,7 @@ class Rule:
 
 
 @dataclass(frozen=True)
-class Acknowledgement:
+class Acknowledgment:
     """Why a finding was accepted, and when. Never why it stopped being true.
 
     A baseline entry carries one. It changes exactly one thing: whether the
@@ -87,7 +87,7 @@ class Finding:
     #: Set only when ``--baseline`` matched this finding (issue #63). Absent
     #: by default, and absent from both renderings when absent, so a run
     #: without the flag emits the bytes this tool always emitted.
-    acknowledged: Acknowledgement | None = field(default=None)
+    acknowledged: Acknowledgment | None = field(default=None)
     #: Where :attr:`location` points in the source bytes, set only under
     #: ``--locations`` (issue #66) and only when the pointer names a value in
     #: a document whose source this run indexed. Absent by default, and absent
@@ -234,7 +234,7 @@ def _baseline_block(findings: list[Finding], path: str) -> dict[str, object]:
     """What a baseline did to this run, derived rather than restated.
 
     Both numbers are counted off the findings the report carries, so a report
-    cannot claim an acknowledgement it does not show.
+    cannot claim an acknowledgment it does not show.
     """
     return {
         "path": path,

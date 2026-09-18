@@ -141,7 +141,7 @@ _COMPARABLE: tuple[tuple[str, Callable[[Finding], str]], ...] = (
     ("message", lambda f: f.message),
     ("rule source", lambda f: f"{f.rule.url} (retrieved {f.rule.retrieved})"),
     (
-        "acknowledgement",
+        "acknowledgment",
         lambda f: (
             "none"
             if f.acknowledged is None

@@ -39,7 +39,7 @@ and the third value matters:
 |---|---|
 | the keys are **absent** | `--locations` was not given; the run makes no claim about where anything is |
 | an **integer** | the 1-based line or column where the pointed-at value begins in the source |
-| **`null`** | `--locations` was given and this run has no position for that pointer — a value the walk synthesised, or a document whose source it did not index |
+| **`null`** | `--locations` was given and this run has no position for that pointer — a value the walk synthesized, or a document whose source it did not index |
 
 They are never `0`. There is no line 0 and no column 0, so a consumer never
 has to decide whether a zero is a position or an absence. `column` counts
@@ -79,7 +79,7 @@ findings = oscal_validate.validate_file(Path("ssp.json"), [Path("catalog.json")]
 | `Finding` | frozen dataclass | One finding: `code`, `severity`, `location`, `prop`, `value`, `message`, `rule`, `suggestions`, `acknowledged`, `position`. Its `gates` property is `True` for an ERROR nothing acknowledged, and that is the only thing the exit code is derived from. |
 | `Rule` | frozen dataclass | The published rule a finding is made under: `citation`, `url`, `retrieved`. |
 | `Position` | frozen dataclass | Where a finding's pointer points in the source: `file`, and a 1-based `line` and `column`. Built only under `--locations` (`locations=True`). `Finding.position` is `None` when the run built no index *or* when the pointer names nothing in the source, and neither is a position — the report prints words, never a zero. `column` counts characters, not UTF-8 bytes. |
-| `Acknowledgement` | frozen dataclass | Why a `--baseline` entry accepted a finding, and when: `reason`, `acknowledged_on`. `Finding.acknowledged` is `None` when nothing acknowledged it, and `None` is not a neutral value — it is what makes an ERROR gate. |
+| `Acknowledgment` | frozen dataclass | Why a `--baseline` entry accepted a finding, and when: `reason`, `acknowledged_on`. `Finding.acknowledged` is `None` when nothing acknowledged it, and `None` is not a neutral value — it is what makes an ERROR gate. |
 | `Severity` | `StrEnum` | `ERROR`, `WARNING`, `INFO`, `UNVERIFIABLE`. |
 | `REPORT_SCHEMA_VERSION` | `str` | The version of the report schema this package writes. |
 | `read_report_schema` | `() -> str` | The schema as published, byte for byte. |
@@ -95,7 +95,7 @@ The package follows Semantic Versioning. Within a major version:
 
 - no name in the table above is removed or renamed;
 - no parameter is removed, reordered, or made required;
-- `Finding`, `Rule`, `Acknowledgement` and `Position` gain no required field,
+- `Finding`, `Rule`, `Acknowledgment` and `Position` gain no required field,
   and lose no field. `Finding` may gain an optional one, as it did with
   `suggestions` (0.3.0), `acknowledged` (0.5.0) and `position`; a consumer
   that constructs a `Finding` by keyword is unaffected, and one that compares

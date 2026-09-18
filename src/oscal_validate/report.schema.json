@@ -84,7 +84,7 @@
       }
     },
     "baseline": {
-      "description": "Present only when --baseline was given. Absent is not the same as a baseline that acknowledged nothing: a run that was never given one makes no claim either way. `path` is the file as it was named on the command line. `acknowledged` is how many findings in this report an entry matched -- they are still in `findings`, still carry their own severity, and are still counted in `summary`. `stale` is how many BASELINE_STALE findings this report carries, one per entry that matched nothing in this run. Both counts are derived from the findings this report carries, so a report cannot claim an acknowledgement it does not show.",
+      "description": "Present only when --baseline was given. Absent is not the same as a baseline that acknowledged nothing: a run that was never given one makes no claim either way. `path` is the file as it was named on the command line. `acknowledged` is how many findings in this report an entry matched -- they are still in `findings`, still carry their own severity, and are still counted in `summary`. `stale` is how many BASELINE_STALE findings this report carries, one per entry that matched nothing in this run. Both counts are derived from the findings this report carries, so a report cannot claim an acknowledgment it does not show.",
       "type": "object",
       "required": [
         "path",
@@ -111,7 +111,7 @@
       "minimum": 0
     },
     "source-line": {
-      "description": "A 1-based line or column in the source file the finding's pointer points into, present on every finding only when --locations was given. Null means this run found no position for that pointer -- a value the walk synthesised, or a document whose source was not indexed. Never 0: there is no line 0 and no column 0, so a consumer never has to read a zero as either a position or an absence. Columns count characters, not UTF-8 bytes. Absent, as opposed to null, means --locations was not given and the run makes no claim either way.",
+      "description": "A 1-based line or column in the source file the finding's pointer points into, present on every finding only when --locations was given. Null means this run found no position for that pointer -- a value the walk synthesized, or a document whose source was not indexed. Never 0: there is no line 0 and no column 0, so a consumer never has to read a zero as either a position or an absence. Columns count characters, not UTF-8 bytes. Absent, as opposed to null, means --locations was not given and the run makes no claim either way.",
       "type": [
         "integer",
         "null"

@@ -4,14 +4,14 @@ A baseline is the standard way to make a validator usable on a document nobody
 can fix, and it is also the standard way to build a gate that lies. So the
 tests here are mostly refusals. Each one drives a path in
 :mod:`oscal_validate.baseline` that decides whether a finding stops gating, and
-the fixture for every acknowledgement is a **real finding this tool produced**
+the fixture for every acknowledgment is a **real finding this tool produced**
 rather than a hand-written key: a key written by hand would still match itself
 after the code that builds it changed, which is the one thing this file must
 not be able to do.
 
 The document under all of them is ``broken_catalog.json``, whose findings
 include an ERROR (a duplicated identifier) and several UNVERIFIABLE ones. Both
-are needed: the ERROR is the thing an acknowledgement is for, and the
+are needed: the ERROR is the thing an acknowledgment is for, and the
 UNVERIFIABLE is the thing it must refuse.
 """
 
@@ -105,7 +105,7 @@ def _write(tmp_path: Path, payload: Any) -> Path:
 
 
 # --------------------------------------------------------------------------
-# What an acknowledgement changes, and what it must leave alone
+# What an acknowledgment changes, and what it must leave alone
 # --------------------------------------------------------------------------
 
 
@@ -235,7 +235,7 @@ def test_the_json_report_derives_its_baseline_counts_from_the_findings_it_shows(
     assert len(stale) == report["baseline"]["stale"]
 
 
-def test_the_html_report_shows_the_acknowledgement_and_stops_claiming_the_error_gates(
+def test_the_html_report_shows_the_acknowledgment_and_stops_claiming_the_error_gates(
     tmp_path: Path,
 ) -> None:
     """The page a person signs off from must agree with the exit code.
@@ -399,7 +399,7 @@ def test_nothing_here_reads_the_clock(tmp_path: Path) -> None:
     """A verdict that depends on when it runs is not deterministic.
 
     A future ``acknowledged_on`` is accepted, and that is the documented
-    behaviour rather than an oversight: this module never compares the date
+    behavior rather than an oversight: this module never compares the date
     against today, so there is no age check for a future date to satisfy
     forever. The source assertion is what stops that becoming untrue.
     """
@@ -463,7 +463,7 @@ def test_the_stale_code_is_the_one_the_renderers_and_the_action_count() -> None:
     assert stale.gates is False
 
 
-def test_a_stale_finding_carries_no_acknowledgement_of_its_own() -> None:
+def test_a_stale_finding_carries_no_acknowledgment_of_its_own() -> None:
     """It is a finding *about* the baseline, so acknowledging it would let one
     entry excuse another entry's staleness."""
     stale = baseline.apply(

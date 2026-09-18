@@ -541,7 +541,7 @@ def test_a_finding_of_every_known_severity_is_still_read(name: str, tmp_path: Pa
 
 
 def test_a_severity_that_reached_the_annotator_anyway_is_not_rendered_as_a_notice() -> None:
-    """Defence in depth, and the direction matters.
+    """Defense in depth, and the direction matters.
 
     `describe_unreadable` refuses such a report before anything is annotated, so
     this is unreachable through the runner. If a later change makes it

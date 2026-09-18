@@ -171,11 +171,11 @@ def run_cli(
 
 
 def acknowledged_of(finding: dict[str, Any]) -> dict[str, str] | None:
-    """The acknowledgement on a finding, or None. Never a guess.
+    """The acknowledgment on a finding, or None. Never a guess.
 
     A malformed one is *not* read as absent: absent means nothing
     acknowledged this finding, and it is what makes an ERROR gate. Reading a
-    broken acknowledgement as absent would gate a finding the baseline
+    broken acknowledgment as absent would gate a finding the baseline
     excused; reading it as present would excuse one nothing acknowledged.
     Neither is safe to infer, so ``describe_unreadable`` refuses the report.
     """
@@ -314,7 +314,7 @@ def _describe_unreadable_findings(findings: list[Any]) -> str | None:
             f"a finding carries severity {', '.join(unknown)}, which this action does not "
             f"know how to gate on. It is not counted as none"
         )
-    # An acknowledgement this action cannot read must not be read as absent,
+    # An acknowledgment this action cannot read must not be read as absent,
     # which would gate a finding the baseline excused, nor as present, which
     # would excuse one nothing acknowledged. Neither is safe to infer.
     malformed = {
@@ -448,7 +448,7 @@ def _tally(
     minus what a baseline acknowledged, counted off the findings rather than
     read from ``summary`` -- because ``summary`` deliberately does not move. An
     acknowledged ERROR is still an ERROR everywhere it is reported, and the
-    only thing an acknowledgement changes is whether it gates.
+    only thing an acknowledgment changes is whether it gates.
     """
     for severity in SEVERITIES:
         totals[severity] += int(summary[severity])

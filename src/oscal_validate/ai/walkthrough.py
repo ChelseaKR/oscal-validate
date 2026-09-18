@@ -76,7 +76,7 @@ def group(run: Run) -> list[Group]:
 
     The fix order itself is :mod:`oscal_validate.fixorder`, shared with
     ``--format html`` so a reviewer's page and this narrative cannot place the
-    same finding differently. Only the ``G1..Gn`` labelling is here, because
+    same finding differently. Only the ``G1..Gn`` labeling is here, because
     only a prompt needs it.
     """
     return [
