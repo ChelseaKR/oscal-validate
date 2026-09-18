@@ -25,7 +25,7 @@ The widened corpus produced the first ERRORs that do turn on it
 | `mapping-collection.json` (OSCAL Compass) | 1.1.2 | `TYPE_MISMATCH` on `provenance/method`, `NO_SCHEMA_ALTERNATIVE` on `provenance/confidence-score` |
 | `splunk-demo.json` (GovReady) | 1.0.0-rc1 | `TYPE_MISMATCH`: `components` is an object where 1.2.3 declares an array |
 
-Two neighbouring findings survived the same check and are ordinary true
+Two neighboring findings survived the same check and are ordinary true
 positives: BSI's `qa-note`/`qa-reviewed` under `provenance`, verified against
 NIST's published v1.1.2 schema, and three mapping collections declaring
 releases in which `mapping-collection` does not exist at all.
