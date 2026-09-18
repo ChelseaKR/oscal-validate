@@ -229,7 +229,7 @@ JUDGMENT_VOCABULARY = frozenset(
 )
 
 #: The sentence a judgment-shaped request is refused with. It states the
-#: boundary rather than apologising for it, and it names the tool that answers
+#: boundary rather than apologizing for it, and it names the tool that answers
 #: the question the caller can have answered.
 BOUNDARY = (
     "this server reports structural conformance and makes no judgment about "

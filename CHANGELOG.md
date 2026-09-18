@@ -15,7 +15,7 @@ and this project adheres to
   bump; it is a change to what the tool can say. The harness fetches NIST's release
   through the robots-first fetcher, or reads one with `--from-dir`, refuses any file
   carrying `<!DOCTYPE` or `<!ENTITY`, and prints the cost before anything is written:
-  constraints added, removed, re-levelled, re-targeted, newly evaluated or newly
+  constraints added, removed, re-leveled, re-targeted, newly evaluated or newly
   skipped; targets outside the parsed grammar; schema definitions that changed; the
   files whose bytes differ; and every golden that would move, with the finding codes
   that moved in it. It writes only with `--write`, after the diff, and lists what is
@@ -138,7 +138,7 @@ and this project adheres to
   means the flag was not given and the run makes no claim. An integer is the
   1-based position where the pointed-at value begins. `null` means the flag was
   given and this run has no position for that pointer — a value the walk
-  synthesised, or a document whose source it did not index. It is never `0`,
+  synthesized, or a document whose source it did not index. It is never `0`,
   because there is no line 0 and a consumer must never have to decide whether a
   zero is a position or an absence. The text report writes that case as
   `(no source position)` rather than as a number, and `tools/action_runner.py`
@@ -181,7 +181,7 @@ and this project adheres to
 
   An acknowledged finding is still printed, still keeps its severity, and is
   still counted in every summary, in every format. The single thing an
-  acknowledgement changes is whether the finding gates the exit code, and
+  acknowledgment changes is whether the finding gates the exit code, and
   `Finding.gates` is the one place that is decided, so no renderer can disagree
   with the exit code. Four refusals keep it from becoming a suppression list: an
   entry with no written reason is refused at exit 2; an entry naming an
@@ -208,7 +208,7 @@ and this project adheres to
   The report schema goes to **1.1.0** for two optional keys — a `baseline` block
   and an `acknowledged` object on a finding. Both counts in that block are
   derived from the findings the report carries, so a report cannot claim an
-  acknowledgement it does not show, and the key is absent when no baseline was
+  acknowledgment it does not show, and the key is absent when no baseline was
   given: a run never given one makes no claim either way.
 
 ### Fixed
@@ -279,7 +279,7 @@ and this project adheres to
   finding's sentence was corrected and its value did not move.
 
   Every field that differs is now named on both sides — value, severity,
-  message, rule source, acknowledgement — and a pair that differs in none of
+  message, rule source, acknowledgment — and a pair that differs in none of
   them says so and points at `--format json`, rather than printing an empty
   block under a heading that claims a change.
 
@@ -300,12 +300,12 @@ and this project adheres to
   a refusal that blames the reader for something the generator did and whose
   only obvious cure is to weaken the duplicate check. It now writes one entry
   per distinct key, which is what `apply` matches on and therefore the only
-  shape that describes what an acknowledgement will do.
+  shape that describes what an acknowledgment will do.
 
 - **The HTML report told a reviewer an acknowledged ERROR gates the exit code.**
   Its summary answered `yes` in the "Gates the exit code" column for ERROR
   unconditionally — true until `--baseline` existed. The page a person signs off
-  from now derives that cell from `Finding.gates`, names the acknowledgement, the
+  from now derives that cell from `Finding.gates`, names the acknowledgment, the
   reason and the date on the finding's own row, and states the baseline path with
   its acknowledged and stale counts. The defect class is a disclosure corrected
   in the machine-readable formats and left wrong in the one a person reads.
@@ -334,7 +334,7 @@ and this project adheres to
   — one `h1` with no skipped levels, `lang="en"`, a skip link whose target
   exists, no duplicate ids, a caption and `th scope` on every table with every
   row exactly as wide as its header, no fetching element, every control
-  labelled — and **each rule is seeded with the defect it exists to catch**, so
+  labeled — and **each rule is seeded with the defect it exists to catch**, so
   none of them is a check that has never gone red. What the mechanical checks
   cannot judge is stated rather than implied: they are not a WCAG audit, and no
   assistive-technology testing has been done. `docs/RESPONSIBLE-TECH-AUDITS.md`
@@ -389,7 +389,7 @@ and this project adheres to
   `ai/walkthrough.py` to `oscal_validate/fixorder.py`. Two surfaces now order
   findings by it — the model-backed walkthrough and `--format html` — and a fix
   order that two modules state separately is one that will eventually disagree
-  with itself. `ai/walkthrough.py` imports it and keeps the `G1..Gn` labelling
+  with itself. `ai/walkthrough.py` imports it and keeps the `G1..Gn` labeling
   and prompt formatting, which are only about a prompt; a test asserts the two
   orderings are equal over a real document.
 
@@ -451,7 +451,7 @@ and this project adheres to
   removed on 2026-09-06, said the other way round: a count that is not there is
   not a count of none, and **a count this action does not know how to gate on is
   not a count of zero either.** `describe_unreadable` now refuses a report
-  carrying an unrecognised severity — in a finding or as a summary key — and the
+  carrying an unrecognized severity — in a finding or as a summary key — and the
   run exits 2 rather than gating on a subset of what was reported. The
   annotator's fallback level moved from `notice` to `error`; it is unreachable
   now that the report is refused first, and the direction still matters, because
@@ -490,7 +490,7 @@ and this project adheres to
   -- answers "no", and TruffleHog files that answer under `unverified`. The
   sweep was therefore structurally incapable of failing on the thing it exists
   for, and `tests/test_security_policy.py` asserted that setting as intended
-  behaviour, so the defect had a test defending it. Measured on a throwaway
+  behavior, so the defect had a test defending it. Measured on a throwaway
   clone with a real-shaped AWS key planted in one commit and deleted in the
   next: `--only-verified`, `--results=verified` and `--results=verified,unknown`
   all exited 0 reporting nothing; `--results=verified,unknown,unverified`
@@ -663,7 +663,7 @@ and this project adheres to
   separator character, zero-padding, or a bounded number of character edits.
   Candidates are drawn only from the identifier index the resolution check
   already built, for that reference's own kind, so a group id is never offered
-  for a control reference. Ranking is fixed — normalised equality, then an
+  for a control reference. Ranking is fixed — normalized equality, then an
   optimal-string-alignment distance of at most two with adjacent
   transpositions counted as one edit, then lexical order — so the same inputs
   produce the same three every time. Nothing is fetched and no model is
@@ -991,16 +991,16 @@ and this project adheres to
 
 - **Three more target shapes, enumerated from the vendored files.** 198 of the
   200 `allowed-values` targets are now read, up from 155. The shapes:
-  `(.)` as a parenthesised context node, which is how 37 vendored targets are
+  `(.)` as a parenthesized context node, which is how 37 vendored targets are
   written and which is bracketed only so a predicate can follow the group; a
-  parenthesised union of names as one step rather than only after `//`; and a
+  parenthesized union of names as one step rather than only after `//`; and a
   top-level union whose alternatives each carry their own flag step, where
   every alternative must name the same flag, because reading a union ending in
   different flags as one value set would merge two questions NIST asked
   separately.
 
   Two `allowed-values` targets stay refused, both of the form
-  `(.|statement|.//by-component)/...`, which is a parenthesised union of whole
+  `(.|statement|.//by-component)/...`, which is a parenthesized union of whole
   paths rather than of names. Seven `matches` targets stay refused for
   negation and for a predicate on the flag itself. Each is named individually
   in `docs/CONSTRAINT-COVERAGE.md` rather than by category.
@@ -1346,7 +1346,7 @@ the goldens in `tests/golden/` are untouched.
 
 - **The one-line summary a report prints for the `allowed-values` kind still
   carries the sentence above.** It is corrected in the coverage document that
-  the line points at, and it is labelled as wrong in `metaschema.py` where it
+  the line points at, and it is labeled as wrong in `metaschema.py` where it
   is declared, but the line itself cannot be corrected from inside the
   repository. `ai/walkthrough.py` puts `finding.value` and the first 160
   characters of `finding.message` into the model prompt, and
@@ -1711,7 +1711,7 @@ the goldens in `tests/golden/` are untouched.
   survey run, over 43 published documents from **twenty-one publishers** none of
   the first two runs reached, taking the corpus to **95 documents and all eight
   OSCAL models**. `mapping-collection` had never appeared; the German BSI, the
-  Australian Cyber Security Centre, NIST's BLOSSOM programme, GSA, the OSCAL
+  Australian Cyber Security Centre, NIST's BLOSSOM program, GSA, the OSCAL
   Plugfest, the Linux Foundation's OSCAL Compass, Red Hat, MITRE and thirteen
   others had not either. Targets are in `tools/survey-urls-2026-08-19.txt`; the
   two target lists are disjoint and a test enforces it, so the corpus total is a

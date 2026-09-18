@@ -10,7 +10,7 @@ gate that lies. So the rules here are narrow and they are all in one direction:
 
 **An acknowledged finding is still a finding.** It is printed, it keeps its
 severity, and it is counted in the summary exactly as it was. The single thing
-an acknowledgement changes is whether the finding gates the exit code, and the
+an acknowledgment changes is whether the finding gates the exit code, and the
 report says so on the line beneath it.
 
 **A reason is required, and an entry without one is refused.** Not defaulted,
@@ -46,14 +46,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from . import __version__, rules
-from .findings import Acknowledgement, Finding, Severity
+from .findings import Acknowledgment, Finding, Severity
 
 #: The shape of a baseline file. Its own version, moving independently of the
 #: tool's and of the report schema's, because it is a file a team commits.
 BASELINE_VERSION = "1.0.0"
 
 #: What identifies one finding for the purpose of acknowledging it. Deliberately
-#: not the message: a message is prose this project edits, and an acknowledgement
+#: not the message: a message is prose this project edits, and an acknowledgment
 #: that fell off because a sentence was reworded would silently restore a gate.
 #:
 #: The consequence, which is real rather than theoretical: **a key does not
@@ -75,7 +75,7 @@ _ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 
 class BaselineError(Exception):
-    """A baseline that cannot be read or cannot be honoured. Always exit 2."""
+    """A baseline that cannot be read or cannot be honored. Always exit 2."""
 
 
 Key = tuple[str, str, str, str]
@@ -101,8 +101,8 @@ class Entry:
         return (self.finding_code, self.location, self.prop, self.value)
 
     @property
-    def acknowledgement(self) -> Acknowledgement:
-        return Acknowledgement(reason=self.reason, acknowledged_on=self.acknowledged_on)
+    def acknowledgment(self) -> Acknowledgment:
+        return Acknowledgment(reason=self.reason, acknowledged_on=self.acknowledged_on)
 
     def to_dict(self) -> dict[str, str]:
         return {
@@ -216,13 +216,13 @@ def render(findings: list[Finding]) -> str:
     someone writing down why each entry is there.
 
     That "exactly one reason" is load-bearing, and the first version of this
-    function did not honour it. It wrote one entry per finding, and two
+    function did not honor it. It wrote one entry per finding, and two
     findings can share a key (see :data:`KEY_FIELDS`), so a generated file was
     refused for *duplicate entries* on a document whose findings collide --
     a refusal that blames the reader for something the generator did, and one
     whose only obvious cure is to relax the duplicate check. One entry per
     distinct key is what :func:`apply` matches on, so it is also the only
-    shape that describes what an acknowledgement will do.
+    shape that describes what an acknowledgment will do.
 
     UNVERIFIABLE findings are never written: there is nothing to acknowledge in
     an answer the tool did not reach.
@@ -258,7 +258,7 @@ def apply(findings: list[Finding], baseline: Baseline) -> list[Finding]:
     """Mark the findings a baseline acknowledges and report the entries it did not.
 
     The returned list holds every finding that was passed in, in the same
-    order, with an :class:`Acknowledgement` attached where an entry matched --
+    order, with an :class:`Acknowledgment` attached where an entry matched --
     plus one ``BASELINE_STALE`` finding for every entry that matched nothing.
     Nothing is ever removed.
     """
@@ -272,13 +272,13 @@ def apply(findings: list[Finding], baseline: Baseline) -> list[Finding]:
             continue
         _refuse_unverifiable(baseline.path, finding)
         matched.add(entry.key)
-        marked.append(_acknowledged_copy(finding, entry.acknowledgement))
+        marked.append(_acknowledged_copy(finding, entry.acknowledgment))
     stale = [entry for entry in baseline.entries if entry.key not in matched]
     return marked + [_stale_finding(baseline.path, entry) for entry in stale]
 
 
-def _acknowledged_copy(finding: Finding, acknowledgement: Acknowledgement) -> Finding:
-    """The same finding with an acknowledgement attached, and nothing else moved.
+def _acknowledged_copy(finding: Finding, acknowledgment: Acknowledgment) -> Finding:
+    """The same finding with an acknowledgment attached, and nothing else moved.
 
     Named in ``RECONSTRUCTION`` in ``tests/test_finding_code_census.py``: it
     copies a code that already exists rather than originating one, which is
@@ -293,7 +293,7 @@ def _acknowledged_copy(finding: Finding, acknowledgement: Acknowledgement) -> Fi
         message=finding.message,
         rule=finding.rule,
         suggestions=finding.suggestions,
-        acknowledged=acknowledgement,
+        acknowledged=acknowledgment,
         # Copied like every other field. A field left off here is not
         # inherited from anywhere: the copy would silently lose it, and an
         # acknowledged finding would be the one finding in a --locations
@@ -319,7 +319,7 @@ def _stale_finding(path: Path, entry: Entry) -> Finding:
     # ``tests/test_finding_code_census.py`` enumerates every ``code=`` keyword
     # in the package and resolves names bound to a string literal *in the same
     # module*; a name imported from another one is recorded as an expression it
-    # could not read, which is the right behaviour for a census that must never
+    # could not read, which is the right behavior for a census that must never
     # silently skip. So the code is spelled here, and
     # ``tests/test_baseline.py`` asserts it is ``findings.BASELINE_STALE``.
     return Finding(

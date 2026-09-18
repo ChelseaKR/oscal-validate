@@ -5,7 +5,7 @@ Status: active. Written 2026-08-28. Owner: Chelsea Kelly-Reif.
 This plan covers roughly two to three years of work on one subject: the
 constraints NIST publishes in the vendored metaschema modules that this tool
 does not evaluate — 238 of them when this file was written, 227 today. It is
-subordinate to `CONTRIBUTING.md` and to the ADRs. Nothing in it authorises
+subordinate to `CONTRIBUTING.md` and to the ADRs. Nothing in it authorizes
 encoding a rule from memory, guessing at a Metapath expression, or letting an
 unevaluated constraint report as a pass.
 
@@ -245,7 +245,7 @@ each evaluated form.
 
 **Delivers.** The `allowed-values` targets Phase 2 still cannot read, which are
 the reason Phase 4 has to withhold judgment on parts of the SSP and the
-assessment models: a parenthesised context step carrying predicates
+assessment models: a parenthesized context step carrying predicates
 (`(.)[@type='software']/...`), interior unions (`(.|statement|.//by-component)/...`),
 and a top-level union whose alternatives end in flag steps. Each shape is
 enumerated from the vendored files first and implemented only if the

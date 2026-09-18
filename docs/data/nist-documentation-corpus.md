@@ -11,7 +11,7 @@ against it before display.
 | Retrieved | 2026-08-21, through `tools/fetch.py` (robots.txt first and obeyed, identifying User-Agent, byte cap, per-host rate limit) |
 | Where it lives | `src/oscal_validate/ai/corpus/`, shipped as package data, 4.2 MB of text. The vendored schema and metaschema under `vendor/` are sources too, under ids of the form `vendor:<file>` |
 | Tier | L1, public and non-sensitive. Specification prose; nothing about any real system |
-| Licence | Works of the US National Institute of Standards and Technology; public domain in the United States, CC0 1.0 elsewhere, as `usnistgov/OSCAL` states. Compatible with this repository's Apache-2.0 |
+| License | Works of the US National Institute of Standards and Technology; public domain in the United States, CC0 1.0 elsewhere, as `usnistgov/OSCAL` states. Compatible with this repository's Apache-2.0 |
 | Integrity | `MANIFEST.json` records, per page, the URL, final URL, title, retrieval date, SHA-256 of the raw bytes as served, and SHA-256 and size of the extracted text. `tests/test_ai_sources.py` recomputes the text hashes on every run and fails on a file without a row or a row without a file |
 | Refresh trigger | A new OSCAL release (the reference pages are per-release), or a change to a concept page that a rule in `rules.py` quotes. `tests/test_ai_sources.py` asserts the three prose rules `rules.py` already quotes verify against the corpus, so a re-fetch that changed that wording would fail the build and be noticed |
 | Staleness signal | Every quote printed carries the source's retrieval date. There is no runtime alarm on the corpus's age |

@@ -345,7 +345,7 @@ def diff(
             },
             "added": added,
             "removed": sorted(set(before) - set(after)),
-            "relevelled": changed("level"),
+            "releveled": changed("level"),
             "retargeted": retargeted,
             "now_evaluated": now_evaluated,
             "now_skipped": now_skipped,
@@ -365,7 +365,7 @@ def is_empty(change: dict[str, Any]) -> bool:
     constraints = change["constraints"]
     lists = [
         constraints[k]
-        for k in ("added", "removed", "relevelled", "retargeted", "now_evaluated", "now_skipped")
+        for k in ("added", "removed", "releveled", "retargeted", "now_evaluated", "now_skipped")
     ]
     return (
         not change["files"]["changed"]
@@ -517,7 +517,7 @@ def render_text(change: dict[str, Any], goldens: dict[str, Any], records: list[F
     for label, rows in (
         ("added", c["added"]),
         ("removed", c["removed"]),
-        ("re-levelled", [f"{r['constraint']}: {r['from']} -> {r['to']}" for r in c["relevelled"]]),
+        ("re-leveled", [f"{r['constraint']}: {r['from']} -> {r['to']}" for r in c["releveled"]]),
         ("re-targeted", [f"{r['constraint']}: {r['from']} -> {r['to']}" for r in c["retargeted"]]),
         ("now evaluated", c["now_evaluated"]),
         ("now skipped", [f"{r['constraint']}: {r['because']}" for r in c["now_skipped"]]),
@@ -533,7 +533,7 @@ def render_text(change: dict[str, Any], goldens: dict[str, Any], records: list[F
         lines.extend(f"  {row}" for row in rows)
     explained = any(
         c[k]
-        for k in ("added", "removed", "relevelled", "retargeted", "now_evaluated", "now_skipped")
+        for k in ("added", "removed", "releveled", "retargeted", "now_evaluated", "now_skipped")
     ) or any(change["definitions"].values())
     if changed_files and not explained:
         lines.append(

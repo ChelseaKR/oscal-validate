@@ -40,7 +40,7 @@ def test_every_corpus_file_matches_its_manifest_row_and_vice_versa() -> None:
         assert re.fullmatch(r"[0-9a-f]{64}", row["raw_sha256"]), identifier
 
 
-def test_the_manifest_states_its_extraction_version_and_licence() -> None:
+def test_the_manifest_states_its_extraction_version_and_license() -> None:
     payload = json.loads((CORPUS_DIR / "MANIFEST.json").read_text(encoding="utf-8"))
     assert payload["extraction_version"]
     assert "public domain" in payload["license"]

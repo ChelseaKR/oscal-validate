@@ -19,7 +19,7 @@ UNVERIFIABLE SUBTREE_NOT_READ  at=/mapping-collection/mappings
 `/mapping-collection/mappings` is the whole substance of a mapping collection:
 the source controls, the target controls, and the relationship asserted between
 them. Everything the tool checked in those documents was metadata, provenance
-and back matter. The behaviour was correct and is what ADR-0002 asks for, but
+and back matter. The behavior was correct and is what ADR-0002 asks for, but
 it left one model with no gate to break, which by this repository's own rule
 means one model whose checks were being trusted on faith
 ([issue #7](https://github.com/ChelseaKR/oscal-validate/issues/7)).

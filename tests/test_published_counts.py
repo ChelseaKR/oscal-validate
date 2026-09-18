@@ -170,7 +170,7 @@ def test_no_coverage_number_escapes_a_check(document: str) -> None:
     """A reworded claim fails rather than slipping past the shapes above.
 
     The shapes are literal sentences, so a rewrite could state a coverage
-    number in a form none of them recognise and go unchecked forever. Every
+    number in a form none of them recognize and go unchecked forever. Every
     occurrence of one of the three headline counts therefore has to sit inside
     something this file matched. Rewording is fine; rewording without adding
     the new shape here is not.

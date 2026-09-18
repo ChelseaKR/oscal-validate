@@ -34,7 +34,7 @@ display from ``level`` alone, and documents ``note``, ``warning``, and
 would therefore vanish from the one place this format is most often read,
 which is the absence-as-pass this tool exists to refuse. So non-``fail``
 results carry ``level: note``. The JSON schema accepts it; a viewer that
-honours ``kind`` sees the distinction; a viewer that does not still shows the
+honors ``kind`` sees the distinction; a viewer that does not still shows the
 finding. The tool's own severity is carried verbatim in every result's
 ``properties.severity`` for anything that wants it.
 
@@ -144,7 +144,7 @@ DESCRIPTIONS: dict[str, str] = {
     ),
     "BASELINE_STALE": (
         "A --baseline entry acknowledges a finding this run did not report, so the "
-        "acknowledgement no longer describes anything."
+        "acknowledgment no longer describes anything."
     ),
 }
 
@@ -300,7 +300,7 @@ def merge_logs(logs: Sequence[Any]) -> str:
     per document stops working at the twenty-first -- and a delivery of
     twenty-one OSCAL documents is an ordinary delivery, not an edge case.
 
-    Nothing is dropped, deduplicated or re-levelled: the results are
+    Nothing is dropped, deduplicated or re-leveled: the results are
     concatenated in the order the documents were given, each result's
     ``ruleIndex`` is re-pointed at the merged rules array, and the run's
     ``summary`` is the sum of the summaries. Every driver must be identical,

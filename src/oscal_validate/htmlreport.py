@@ -27,13 +27,13 @@ A finding a ``--baseline`` acknowledged is on the page like any other, at its
 own severity, in the same group, with the reason and the date beside it -- and
 the summary's gating column says how many ERRORs are not gating rather than
 answering "yes" for all of them. This page is the surface a person signs off
-from, so an acknowledgement it did not show would be the machine-readable
+from, so an acknowledgment it did not show would be the machine-readable
 report and the human-readable one disagreeing about the same run.
 
 **Accessible, mechanically.** One ``h1``; heading levels that never skip;
 ``lang="en"``; a skip link that names an id that exists; a table per group with
 a caption, ``th scope="col"`` headers and ``th scope="row"`` severity cells; and
-severity carried by the word, never by colour. ``tests/test_html_report.py``
+severity carried by the word, never by color. ``tests/test_html_report.py``
 parses the output and checks each of those, and seeds a heading-order defect to
 prove the parser can fail.
 
@@ -125,7 +125,7 @@ def _rule_cell(finding: Finding) -> str:
     return f"{citation}<br>Source: {where} ({retrieved})"
 
 
-def _acknowledgement_note(finding: Finding) -> str:
+def _acknowledgment_note(finding: Finding) -> str:
     """What a baseline said about this finding, or nothing at all.
 
     Written into the row rather than into a column of its own, so a run with
@@ -146,7 +146,7 @@ def _acknowledgement_note(finding: Finding) -> str:
 
 def _message_cell(finding: Finding) -> str:
     message = _escape(finding.message)
-    note = _acknowledgement_note(finding)
+    note = _acknowledgment_note(finding)
     if not finding.suggestions:
         return message + note
     items = "".join(
@@ -300,7 +300,7 @@ def _baseline_note(findings: Sequence[Finding], baseline: str) -> list[str]:
     Absent means no baseline was given, which is not the same as a baseline
     that acknowledged nothing: a run that was never given one makes no claim
     either way. Both counts come off the findings on the page, so this
-    sentence cannot describe an acknowledgement the page does not show.
+    sentence cannot describe an acknowledgment the page does not show.
     """
     if not baseline:
         return []

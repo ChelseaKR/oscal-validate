@@ -10,7 +10,7 @@ Nothing here is invented and no model is involved. Candidates come from the
 identifier index the resolution check already built, for the same reference
 kind, and the ranking key is fixed:
 
-1. **Normalised equality** — the two strings differ only in ways this module
+1. **Normalized equality** — the two strings differ only in ways this module
    names: a leading ``#``, case, the separator character, or zero-padding.
 2. **A bounded edit distance** — optimal string alignment (Damerau-Levenshtein
    restricted to adjacent transpositions) of at most :data:`MAX_DISTANCE`.
@@ -61,10 +61,10 @@ def _strip_zero_padding(value: str) -> str:
 
 
 #: The differences this module can name, in the order it names them. Each entry
-#: is a normalisation; two identifiers are "normalised-equal" when applying all
+#: is a normalization; two identifiers are "normalized-equal" when applying all
 #: of them makes the strings identical, and the difference reported is the
 #: subset that was actually load-bearing.
-_NORMALISERS: tuple[tuple[str, Callable[[str], str]], ...] = (
+_NORMALIZERS: tuple[tuple[str, Callable[[str], str]], ...] = (
     ("a leading '#'", lambda value: value.removeprefix("#")),
     ("case", str.casefold),
     ("the separator", _unify_separators),
@@ -90,42 +90,42 @@ class Suggestion:
         return f"    also declared: {self.value}  (differs by {self.difference})"
 
 
-def _apply(normalisers: Iterable[Callable[[str], str]], value: str) -> str:
-    for normalise in normalisers:
-        value = normalise(value)
+def _apply(normalizers: Iterable[Callable[[str], str]], value: str) -> str:
+    for normalize in normalizers:
+        value = normalize(value)
     return value
 
 
-def _normalised_difference(written: str, declared: str) -> str | None:
+def _normalized_difference(written: str, declared: str) -> str | None:
     """How ``declared`` differs from ``written``, or ``None`` if not this close.
 
-    Only the normalisations that are *needed* are named: dropping one and
+    Only the normalizations that are *needed* are named: dropping one and
     finding the two strings no longer equal is what makes it load-bearing.
-    Where no single normalisation is individually necessary -- two of them
-    happen to repair the same difference -- every normalisation that changes
+    Where no single normalization is individually necessary -- two of them
+    happen to repair the same difference -- every normalization that changes
     either string is named instead, so the answer is never empty when the
     strings genuinely differ.
     """
-    everything = [normalise for _, normalise in _NORMALISERS]
+    everything = [normalize for _, normalize in _NORMALIZERS]
     if _apply(everything, written) != _apply(everything, declared):
         return None
     needed = [
         name
-        for index, (name, _) in enumerate(_NORMALISERS)
+        for index, (name, _) in enumerate(_NORMALIZERS)
         if _apply(
-            [n for position, (_, n) in enumerate(_NORMALISERS) if position != index],
+            [n for position, (_, n) in enumerate(_NORMALIZERS) if position != index],
             written,
         )
         != _apply(
-            [n for position, (_, n) in enumerate(_NORMALISERS) if position != index],
+            [n for position, (_, n) in enumerate(_NORMALIZERS) if position != index],
             declared,
         )
     ]
     if not needed:
         needed = [
             name
-            for name, normalise in _NORMALISERS
-            if normalise(written) != written or normalise(declared) != declared
+            for name, normalize in _NORMALIZERS
+            if normalize(written) != written or normalize(declared) != declared
         ]
     if not needed:
         return None
@@ -187,9 +187,9 @@ def near_misses(
     for candidate in declared:
         if candidate == written:
             continue
-        difference = _normalised_difference(written, candidate)
+        difference = _normalized_difference(written, candidate)
         if difference is not None:
-            # Every normalised-equal candidate is the same distance away for
+            # Every normalized-equal candidate is the same distance away for
             # ranking purposes -- none of them requires reading the identifier
             # differently -- so lexical order alone separates them.
             scored.append((0, 0, candidate, difference))
