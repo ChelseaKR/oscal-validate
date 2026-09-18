@@ -568,7 +568,7 @@ one entry per key for that reason.
 | 3 | NIST's constraint layer: `is-unique`, `index` uniqueness, `index-has-key` cross-references, `has-cardinality`, and the `matches` constraints whose regex or datatype the vendored files carry | `CONSTRAINT_NOT_UNIQUE`, `CONSTRAINT_CARDINALITY`, `CONSTRAINT_VALUE_MISMATCH`, `REFERENCE_UNRESOLVED`, `REFERENCE_UNVERIFIABLE`, `CONSTRAINT_NOT_EVALUATED` | the vendored `*_metaschema_RESOLVED.xml` modules, at NIST's declared severity |
 | 4 | One UUID, one object, across the whole document | `UUID_NOT_UNIQUE` | [Identifier Use and UUIDs](https://pages.nist.gov/OSCAL/learn/concepts/identifier-use/) |
 | 5 | Identifier references the constraint layer does not cover: `control-id`, `with-id`, `param-id`, `statement-id`, and bare `#` fragments | `REFERENCE_UNRESOLVED`, `REFERENCE_UNVERIFIABLE` | [URI Usage](https://pages.nist.gov/OSCAL/learn/concepts/uri-use/) |
-| 6 | Which OSCAL release the document was authored against, versus the one it was judged by | `OSCAL_VERSION_DIFFERS` | the schema's own `oscal-version` description |
+| 6 | Which OSCAL release the document was authored against, versus the one it was judged by, and which of this report's ERRORs were therefore not checked against the release the document names | `OSCAL_VERSION_DIFFERS`, `VERSION_SKEW_SUSPECTED` | the schema's own `oscal-version` description; [ADR-0008](docs/adr/0008-version-skew-is-flagged-not-resolved.md) |
 
 Every finding carries its rule citation, source URL, and retrieval date in the
 output itself, in both text and JSON.
@@ -834,7 +834,8 @@ provider's handling of it.
 before any model call. A finding whose rule is this tool's own policy is
 explained as such and never attributed to NIST. A document declaring an
 OSCAL version other than 1.2.3 carries a note that every finding was judged
-against 1.2.3 ([issue #8](https://github.com/ChelseaKR/oscal-validate/issues/8)).
+against 1.2.3
+([ADR-0008](docs/adr/0008-version-skew-is-flagged-not-resolved.md)).
 A reply that cannot be parsed shows nothing.
 
 **Model and provider.** The public `anthropic` SDK, default
@@ -952,7 +953,7 @@ first captured from commit `6978895`, the last commit before any model-backed
 command existed.
 
 **The model-backed layer has never moved those bytes, and that is what this
-gate is for.** They have moved seven times, every one for an unrelated reason.
+gate is for.** They have moved eight times, every one for an unrelated reason.
 On 2026-08-29 (#35): the `CONSTRAINT_NOT_EVALUATED` finding for
 `allowed-values` carried a sentence that said something false about NIST's
 `allow-other` semantics, and correcting a sentence the report prints is a
@@ -969,13 +970,15 @@ twelve lines, one per JSON golden, and no text golden, because the text format
 does not print it. On 2026-09-09 (#95): the report schema went to `1.2.0` for
 the two keys `--locations` adds, `line` and `column`, neither of which any
 golden run produces, because no golden run passes the flag — so again the whole
-diff is the `report_schema_version` line, twelve lines and no text golden. Each
-time the
+diff is the `report_schema_version` line, twelve lines and no text golden. On 2026-09-12 (#77): a document that declares a non-vendored
+release *and* carries an ERROR gains one `VERSION_SKEW_SUSPECTED` INFO
+finding, which two of the twelve cases do; the other ten are untouched and no
+ERROR count or exit code moves. Each time the
 goldens were recaptured from the same documents, each verified by SHA-256
 against the manifest that recorded them, and every other byte of the output is
-unchanged. Those seven are the only recaptures since `6978895`;
+unchanged. Those eight are the only recaptures since `6978895`;
 [CHANGELOG.md](CHANGELOG.md) and
-`tests/test_default_path_byte_identity.py` record all seven, and
+`tests/test_default_path_byte_identity.py` record all eight, and
 `tests/golden/capture.py` now refuses to write a manifest smaller than the
 committed one, so a recapture on a machine without the cached documents cannot
 quietly shrink what this compares.
@@ -1093,6 +1096,18 @@ rest of that gap is intended to close, and what each step is waiting on, is
 [`docs/EXPANSION-PLAN.md`](docs/EXPANSION-PLAN.md). A constraint is also
 only applied to documents of the models its module governs, since assembly
 names repeat across models and a catalog's `part` is not assessment-common's.
+
+**It vendors one OSCAL schema and cannot tell a defect from a release difference.**
+Everything is checked against the vendored 1.2.3 release,
+whatever release a document declares. Where a document declares a different one
+*and* carries an ERROR, the report says so in its own terms — a
+`VERSION_SKEW_SUSPECTED` INFO finding naming how many ERRORs there are, under
+which codes, and that whether each is also an error under the declared release
+was not determined here, because no schema for that release is vendored. It
+never says the ERROR is wrong: the ERROR is true of the release it cites.
+Settling the second question needs NIST's schema for that release, which is
+[ADR-0008](docs/adr/0008-version-skew-is-flagged-not-resolved.md)'s open
+question rather than its answer.
 
 **It does not check the `TokenDatatype` pattern.** OSCAL's token pattern uses
 the ECMA-262 Unicode property escapes `\p{L}` and `\p{N}`, which Python's `re`

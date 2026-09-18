@@ -290,7 +290,7 @@ def test_a_message_only_change_shows_the_message(capsys: pytest.CaptureFixture[s
     halves of the entry were identical on every byte shown. The heading said a
     finding had changed and the block under it showed nothing that had.
 
-    Not hypothetical: two of the seven golden re-captures in
+    Not hypothetical: two of the eight golden re-captures in
     `tests/test_default_path_byte_identity.py` are message-only changes.
     """
     before = _finding("/a")

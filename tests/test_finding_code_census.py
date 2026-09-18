@@ -63,6 +63,7 @@ ROSTER = frozenset(
         "SUBTREE_NOT_READ",
         "TYPE_MISMATCH",
         "UUID_NOT_UNIQUE",
+        "VERSION_SKEW_SUSPECTED",
     }
 )
 
@@ -315,6 +316,19 @@ def _witness_oscal_version_differs() -> Any:
     return document
 
 
+def _witness_version_skew_suspected() -> Any:
+    """An ERROR *and* a declared release this tool has no schema for.
+
+    Both halves are load-bearing and neither produces the code alone, which
+    ``test_the_skew_flag_needs_both_halves`` asserts directly: the skew alone
+    leaves a clean document with nothing to qualify, and the missing property
+    alone leaves a document declaring the vendored release.
+    """
+    document = _witness_oscal_version_differs()
+    del document["catalog"]["metadata"]["last-modified"]
+    return document
+
+
 #: code -> (name, document, whether the profile's import is supplied).
 WITNESSES: dict[str, tuple[str, Any, bool]] = {
     "REQUIRED_PROPERTY_MISSING": ("required-missing", _witness_required_property_missing(), False),
@@ -331,6 +345,11 @@ WITNESSES: dict[str, tuple[str, Any, bool]] = {
     "CONSTRAINT_VALUE_MISMATCH": ("short-hash", _witness_constraint_value_mismatch(), False),
     "REFERENCE_UNRESOLVED": ("dangling", _witness_reference_unresolved(), False),
     "OSCAL_VERSION_DIFFERS": ("older-release", _witness_oscal_version_differs(), False),
+    "VERSION_SKEW_SUSPECTED": (
+        "older-release-with-error",
+        _witness_version_skew_suspected(),
+        False,
+    ),
     "PATTERN_NOT_CHECKED": ("clean-catalog", _catalog(), False),
     "CONSTRAINT_NOT_EVALUATED": ("clean-catalog", _catalog(), False),
     "IMPORT_NOT_SUPPLIED": ("profile-alone", _profile(), False),
@@ -405,3 +424,65 @@ def test_every_rostered_code_has_a_witness() -> None:
     """
     covered = set(WITNESSES) | {"IMPORT_AMBIGUOUS", "BASELINE_STALE"}
     assert covered == set(ROSTER), sorted(set(ROSTER) - covered)
+
+
+def test_the_skew_flag_needs_both_halves(tmp_path: Path) -> None:
+    """Neither half alone produces it, so the witness above is a real witness.
+
+    A fixture that produced the code for only one of the two reasons would let
+    the census pass while the condition it is named for went unexercised. The
+    clean catalog declares the vendored release and validates without an ERROR,
+    so each half is introduced on its own here and neither is enough.
+    """
+    skew_only = _run(tmp_path, "skew-only", copy.deepcopy(_witness_oscal_version_differs()), False)
+    assert "OSCAL_VERSION_DIFFERS" in skew_only
+    assert "VERSION_SKEW_SUSPECTED" not in skew_only
+
+    error_only = _run(
+        tmp_path, "error-only", copy.deepcopy(_witness_required_property_missing()), False
+    )
+    assert "REQUIRED_PROPERTY_MISSING" in error_only
+    assert "VERSION_SKEW_SUSPECTED" not in error_only
+
+    both = _run(tmp_path, "both", copy.deepcopy(_witness_version_skew_suspected()), False)
+    assert {"OSCAL_VERSION_DIFFERS", "REQUIRED_PROPERTY_MISSING", "VERSION_SKEW_SUSPECTED"} <= both
+
+
+def test_a_document_that_declares_no_release_is_not_flagged_as_skewed(tmp_path: Path) -> None:
+    """Absence of a declared version is not a version that differs.
+
+    Removing ``oscal-version`` leaves nothing to be skewed *from*, and reading
+    the empty declaration as a difference would publish a flag about a release
+    the document never named. The schema requires the property, so its absence
+    is already reported on its own terms.
+    """
+    document = _catalog()
+    del document["catalog"]["metadata"]["oscal-version"]
+    del document["catalog"]["metadata"]["last-modified"]
+    codes = _run(tmp_path, "no-version", document, False)
+    assert "REQUIRED_PROPERTY_MISSING" in codes
+    assert "VERSION_SKEW_SUSPECTED" not in codes
+    assert "OSCAL_VERSION_DIFFERS" not in codes
+
+
+def test_the_skew_flag_counts_every_error_and_names_each_code(tmp_path: Path) -> None:
+    """The count in the message is derived from the report, not restated.
+
+    A flag that said "there are ERRORs here" without saying how many, or that
+    counted the findings it was itself adding, would be a sentence rather than
+    a measurement.
+    """
+    document = _witness_oscal_version_differs()
+    del document["catalog"]["metadata"]["last-modified"]
+    document["catalog"]["metadata"]["invented-property"] = "hello"
+    path = write(tmp_path, "two-errors.json", document)
+    findings = validate_file(path, None)
+
+    errors = [f for f in findings if f.severity.value == "ERROR"]
+    flags = [f for f in findings if f.code == "VERSION_SKEW_SUSPECTED"]
+    assert len(errors) >= 2 and len(flags) == 1
+    assert f"{len(errors)} ERROR finding(s)" in flags[0].message
+    for code in {f.code for f in errors}:
+        assert code in flags[0].message
+    assert flags[0].severity.value == "INFO"
+    assert flags[0].value == "1.1.2"

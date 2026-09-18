@@ -61,9 +61,15 @@ TIERS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         ("REFERENCE_UNRESOLVED",),
     ),
     (
+        # The tier's prose is part of the walkthrough prompt, and the prompt is
+        # hashed to key tests/cassettes/walkthrough-nist-ssp.json. Rewording it
+        # -- even to cite ADR-0008, which is where issue #8 was settled --
+        # invalidates a recording only a billed re-record can replace, so the
+        # sentence stays as recorded. Adding a code to the tuple does not touch
+        # the prompt: a code with no findings in the run produces no group.
         "Declared version",
         "the document was judged against OSCAL 1.2.3 whatever it declares (issue #8)",
-        ("OSCAL_VERSION_DIFFERS",),
+        ("OSCAL_VERSION_DIFFERS", "VERSION_SKEW_SUSPECTED"),
     ),
     (
         "Not settled: UNVERIFIABLE",
