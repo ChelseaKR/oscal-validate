@@ -26,8 +26,8 @@ from dataclasses import dataclass
 _OBJECTS = (
     r"(?:fully |partially |properly |adequately |correctly |effectively |not |un)?"
     r"(?:implemented|unimplemented|secure|insecure|safe|unsafe|compliant|non-?compliant|"
-    r"authorized|unauthorized|authorizable|accredited|certified|"
-    r"fedramp[- ]ready|ato[- ]ready|audit[- ]ready|ready for (?:an? )?(?:ato|authorization|"
+    r"authori[sz]ed|unauthori[sz]ed|authori[sz]able|accredited|certified|"
+    r"fedramp[- ]ready|ato[- ]ready|audit[- ]ready|ready for (?:an? )?(?:ato|authori[sz]ation|"
     r"fedramp|stateramp|assessment|submission)|"
     r"sufficient|insufficient|adequate|inadequate|effective|ineffective|"
     r"good enough|acceptable|unacceptable|satisfactory|unsatisfactory|"
@@ -76,7 +76,7 @@ _JUDGMENT_PATTERNS = tuple(
         r"\bready (?:to|for) (?:submit|submission|authorization|authorisation|an ato|ato|"
         r"fedramp|stateramp|assessment|audit|approval)\b",
         r"\b(?:passes|passed|would pass|will pass|clears|cleared)\s+(?:an? |the )?"
-        r"(?:assessment|audit|3pao|review|fedramp|stateramp|authorization|security review)",
+        r"(?:assessment|audit|3pao|review|fedramp|stateramp|authori[sz]ation|security review)",
         r"\b(?:control|requirement|safeguard|countermeasure)s?\s+(?:is|are|has been|have been)"
         r"\s+(?:fully |partially |properly |not )?(?:implemented|in place|operating|satisfied|"
         r"met|addressed|covered|effective)\b",

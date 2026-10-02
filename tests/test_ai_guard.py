@@ -54,6 +54,43 @@ def test_a_judgment_is_withheld(sentence: str) -> None:
     assert result.withheld == (sentence,)
 
 
+#: The same verdicts in both spellings (#98). The guard is lexical, so a word
+#: it knows only as ``-ize`` is a judgment it lets through as ``-ise``.
+SPELLING_PAIRS = [
+    ("This system is authorized.", "This system is authorised."),
+    ("The system is authorized to operate.", "The system is authorised to operate."),
+    ("This system is unauthorized.", "This system is unauthorised."),
+    ("This package is authorizable as submitted.", "This package is authorisable as submitted."),
+    ("The system is ready for authorization.", "The system is ready for authorisation."),
+    ("The package passed authorization.", "The package passed authorisation."),
+    ("The package would receive authorization.", "The package would receive authorisation."),
+]
+
+#: And the boundary stated in either spelling stays a boundary statement.
+BOUNDARY_SPELLING_PAIRS = [
+    (
+        "This tool cannot tell you whether the system is authorized.",
+        "This tool cannot tell you whether the system is authorised.",
+    ),
+    (
+        "Whether the package is authorizable is a question for an authorizing official.",
+        "Whether the package is authorisable is a question for an authorising official.",
+    ),
+]
+
+
+@pytest.mark.parametrize("sentence", [s for pair in SPELLING_PAIRS for s in pair])
+def test_a_judgment_is_withheld_in_either_spelling(sentence: str) -> None:
+    assert is_judgment(sentence), sentence
+    assert screen(sentence).withheld == (sentence,)
+
+
+@pytest.mark.parametrize("sentence", [s for pair in BOUNDARY_SPELLING_PAIRS for s in pair])
+def test_a_boundary_statement_is_kept_in_either_spelling(sentence: str) -> None:
+    assert not is_judgment(sentence), sentence
+    assert screen(sentence).text == sentence
+
+
 @pytest.mark.parametrize("sentence", BOUNDARY_STATEMENTS + NEUTRAL)
 def test_a_boundary_statement_or_neutral_sentence_is_kept(sentence: str) -> None:
     assert not is_judgment(sentence), sentence
