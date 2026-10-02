@@ -256,6 +256,26 @@ and this project adheres to
 
 ### Fixed
 
+- **The boundary guard withheld "authorized" and let "authorised" through**
+  (closes #98). `ai/guard.py` is lexical, and its copula vocabulary knew the
+  verdict words only in their `-ize` spelling, so "The system is authorised to
+  operate." reached the reader while "authorized" was withheld. The same gap
+  sat in "unauthorised", "authorisable", and "passed authorisation" (the
+  "passes an assessment or authorization" pattern). Those patterns now accept
+  both spellings, as the "would receive" and recommendation patterns already
+  did. `tests/test_ai_guard.py` holds each verdict in both spellings as
+  withheld and each boundary statement in both spellings as kept; the new
+  judgment cases fail on the previous guard.
+
+  `mcp.JUDGMENT_VOCABULARY` gains `authorised` and `unauthorised`, which it had
+  left out rather than claim a boundary the guard did not have; the binding
+  test in `tests/test_mcp.py` confirms the two lists agree again. No prompt
+  changed, and no recorded eval result moves: over every sentence in
+  `evals/cassettes/` and `tests/cassettes/` (8,651), the old and new guard
+  return the same verdict, because the only British spellings recorded there
+  ("authorised personnel", "authorised security assessors") are not in a
+  verdict position.
+
 - **The golden re-capture count was wrong in the third document, four days
   after #87 corrected the other two** (#107). `docs/ROADMAP.md`'s byte-identity
   conformance row still said the goldens had been recaptured five times, most
