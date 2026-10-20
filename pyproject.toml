@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Chelsea Kelly-Reif" }]
-keywords = ["oscal", "nist", "fedramp", "compliance-as-code", "validation"]
+keywords = ["oscal", "nist", "fedramp", "stateramp", "compliance-as-code", "security-compliance", "ssp", "poam", "json-schema", "metaschema", "validation", "validator", "offline", "deterministic"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
@@ -21,6 +21,12 @@ classifiers = [
   "Topic :: Software Development :: Quality Assurance",
 ]
 dependencies = []
+
+[project.urls]
+Repository = "https://github.com/ChelseaKR/oscal-validate"
+Issues = "https://github.com/ChelseaKR/oscal-validate/issues"
+Changelog = "https://github.com/ChelseaKR/oscal-validate/blob/main/CHANGELOG.md"
+"OSCAL (NIST)" = "https://pages.nist.gov/OSCAL/"
 
 # The validator has no runtime dependency. The opt-in model-backed commands
 # (ADR-0005) need the public SDK, which is imported lazily inside them.
