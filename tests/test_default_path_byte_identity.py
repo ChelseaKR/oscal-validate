@@ -84,7 +84,7 @@ are what they were, since only ERROR findings make the CLI exit nonzero. A
 recapture that moves an ERROR count, an exit code, or any of the other ten
 cases is not this one.
 
-On 2026-10-19 (#127), cutting 0.5.0: the same one line as #38 and #88, for the
+On 2026-10-19 (#128), cutting 0.5.0: the same one line as #38 and #88, for the
 same reason -- the JSON report stamps ``tool.version``, so a version bump moves
 that line and nothing else. Twelve lines, one per JSON golden; the twelve text
 goldens are untouched because the text format does not print the version, and

@@ -974,7 +974,7 @@ golden run produces, because no golden run passes the flag — so again the whol
 diff is the `report_schema_version` line, twelve lines and no text golden. On 2026-09-12 (#77): a document that declares a non-vendored
 release *and* carries an ERROR gains one `VERSION_SKEW_SUSPECTED` INFO
 finding, which two of the twelve cases do; the other ten are untouched and no
-ERROR count or exit code moves. On 2026-10-19 (#127), cutting 0.5.0: the
+ERROR count or exit code moves. On 2026-10-19 (#128), cutting 0.5.0: the
 version stamp again, twelve lines and no text golden. Each time the
 goldens were recaptured from the same documents, each verified by SHA-256
 against the manifest that recorded them, and every other byte of the output is
