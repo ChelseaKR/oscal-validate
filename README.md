@@ -1,5 +1,8 @@
 # oscal-validate
 
+[![CI](https://github.com/ChelseaKR/oscal-validate/actions/workflows/ci.yml/badge.svg)](https://github.com/ChelseaKR/oscal-validate/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 Deterministic structural validation for
 [OSCAL (Open Security Controls Assessment Language)](https://pages.nist.gov/OSCAL/)
 documents, meant to run before you hand a package to anyone. Point it at a
