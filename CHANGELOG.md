@@ -8,6 +8,17 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-19
+
+0.5.0 is the release that ships the work merged since `v0.4.0`, and it is the
+version intended for the PyPI upload. It is a minor bump under the pre-1.0
+SemVer reading this project has followed since 0.1.0: the sections below add
+finding codes and commands and change report behavior, which is more than a
+patch release describes. `0.4.0` stays tagged as the record of what was cut on
+2026-09-07; it is not re-cut. The version bump moves `uv.lock` and the
+twelve JSON and two SARIF goldens, which stamp the tool version, and nothing
+else in them.
+
 ### Added
 
 - **`VERSION_SKEW_SUSPECTED`: which of this report's ERRORs were not checked
