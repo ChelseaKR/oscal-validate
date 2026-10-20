@@ -7,7 +7,7 @@ the last commit before any model-backed command existed. Every later commit has
 to reproduce those bytes. This is the proof behind the README's claim that the
 opt-in commands changed nothing about the command that was already there.
 
-Re-captured eight times since. Each reason is recorded here because a golden
+Re-captured nine times since. Each reason is recorded here because a golden
 re-captured without one stops being evidence, and each entry names the pull
 request that made it so a reader can check the diff rather than take the
 description on trust. The pull request is cited rather than the commit because
@@ -83,6 +83,15 @@ the INFO count rises by one, no ERROR is added or removed, and both exit codes
 are what they were, since only ERROR findings make the CLI exit nonzero. A
 recapture that moves an ERROR count, an exit code, or any of the other ten
 cases is not this one.
+
+On 2026-10-19 (#127), cutting 0.5.0: the same one line as #38 and #88, for the
+same reason -- the JSON report stamps ``tool.version``, so a version bump moves
+that line and nothing else. Twelve lines, one per JSON golden; the twelve text
+goldens are untouched because the text format does not print the version, and
+no document gained or lost a finding. The two SARIF goldens under
+``tests/sarif/`` carry the same version in ``semanticVersion`` and ``version``
+and moved with it, two lines each. Verified before committing by reading the
+whole diff: every changed line is the string ``0.4.0`` becoming ``0.5.0``.
 
 Nothing derives this list. A test that checked it against ``git log`` would
 have to name the recapture commit inside the commit that makes it, and a

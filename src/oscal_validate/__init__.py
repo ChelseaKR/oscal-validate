@@ -9,7 +9,7 @@ from __future__ import annotations
 #: Pinned to pyproject.toml's version by tests/test_cli.py. Not read from
 #: importlib.metadata: the GitHub Action runs this package straight off
 #: PYTHONPATH with nothing installed, and there is no distribution to ask.
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 from .findings import Acknowledgment, Finding, Rule, Severity
 from .positions import Position
