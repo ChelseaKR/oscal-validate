@@ -40,7 +40,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: TruffleHog (full history, all result tiers)
-        uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
+        uses: trufflesecurity/trufflehog@e76dff8a7e57d6df0c60ad8cbf5d5cba505a8fc9 # v3.99.2
         with:
           path: ./
           # This pair is what makes the scan read history. The action picks its
@@ -73,7 +73,7 @@ jobs:
           # this input the sweep silently tracked whatever upstream published
           # last, and every Dependabot bump of the ref was a no-op because
           # Dependabot never edits a `with:` input.
-          version: "3.97.4"
+          version: "3.99.2"
           # The action's baked-in command already passes --fail; repeating it
           # is a CLI error ("flag 'fail' cannot be repeated").
           #
