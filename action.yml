@@ -1,7 +1,7 @@
 name: oscal-validate
 description: >-
-  Validate OSCAL documents against NIST's published schema and constraint
-  layer, and annotate the findings on the pull request.
+  Validate OSCAL JSON against NIST's schema and constraints with no Java
+  runtime, and annotate the findings on the pull request.
 branding:
   icon: check-circle
   color: green

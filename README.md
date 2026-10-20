@@ -19,6 +19,16 @@ do call a model; they are separate subcommands, they change nothing about
 the one above, and they are described in
 [AI-assisted explanation and repair](#ai-assisted-explanation-and-repair-opt-in).
 
+## Compared with oscal-cli
+
+NIST and the Metaschema community maintain `oscal-cli`, a Java command-line
+tool that validates and converts OSCAL content. This project is a separate
+Python tool that does validation only. It needs no Java runtime, its validation
+command makes no network or model call, and it reports anything it could not
+check as UNVERIFIABLE instead of passing it. Reach for `oscal-cli` when you need
+format conversion or its Metaschema processing; reach for this when you want a
+validator that runs in a Python-only pipeline.
+
 ## Structural conformance is not evidence that a control is implemented
 
 **This tool cannot tell you whether a control is implemented, whether a system
